@@ -15,7 +15,7 @@ type BizError struct {
 }
 
 // New an error support error code
-func New[T constraints.Unsigned](code T, message string) *BizError {
+func New[T constraints.Integer](code T, message string) *BizError {
 	return &BizError{
 		Code: int32(code),
 		Msg:  message,
