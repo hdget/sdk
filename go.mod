@@ -7,14 +7,15 @@ require (
 	github.com/dapr/go-sdk v1.11.0
 	github.com/elliotchance/pie/v2 v2.9.1
 	github.com/gogo/protobuf v1.3.2
-	github.com/hdget/common v0.0.1
+	github.com/hdget/common v0.0.2
 	github.com/hdget/provider-config-viper v0.0.1
-	github.com/hdget/provider-logger-zerolog v0.0.1
+	github.com/hdget/provider-logger-zerolog v0.0.2
 	github.com/hdget/utils v0.0.1
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cast v1.7.1
 	github.com/sqids/sqids-go v0.4.1
 	go.uber.org/fx v1.23.0
+	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8
 	google.golang.org/grpc v1.70.0
 )
 
@@ -24,8 +25,6 @@ require (
 	github.com/go-chi/chi/v5 v5.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/hdget/hdutils v0.0.32 // indirect
-	github.com/jmoiron/sqlx v1.4.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -44,7 +43,6 @@ require (
 	go.uber.org/dig v1.18.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
 	golang.org/x/net v0.32.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
