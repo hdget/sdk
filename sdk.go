@@ -15,13 +15,11 @@ import (
 type SdkInstance struct {
 	config *types.SdkConfig
 
-	configProvider    intf.ConfigProvider
-	loggerProvider    intf.LoggerProvider
-	dbProvider        intf.DbProvider
-	sqlxDbProvider    intf.SqlxDbProvider
-	dbBuilderProvider intf.DbBuilderProvider
-	redisProvider     intf.RedisProvider
-	mqProvider        intf.MessageQueueProvider
+	configProvider intf.ConfigProvider
+	loggerProvider intf.LoggerProvider
+	dbProvider     intf.DbProvider
+	redisProvider  intf.RedisProvider
+	mqProvider     intf.MessageQueueProvider
 	//graphProvider   intf.GraphProvider
 }
 
@@ -105,10 +103,10 @@ func (i *SdkInstance) Initialize(capabilities ...*types.Capability) error {
 		switch c.Category {
 		case types.ProviderCategoryDb:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.dbProvider))
-		case types.ProviderCategoryDbSqlx: // will removed in the future
-			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.sqlxDbProvider))
-		case types.ProviderCategoryDbBuilder: // will removed in the future
-			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.dbBuilderProvider))
+		//case types.ProviderCategoryDbSqlx: // will removed in the future
+		//	fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.sqlxDbProvider))
+		//case types.ProviderCategoryDbBuilder: // will removed in the future
+		//	fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.dbBuilderProvider))
 		case types.ProviderCategoryRedis:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.redisProvider))
 		case types.ProviderCategoryMq:
