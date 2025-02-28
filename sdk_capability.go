@@ -21,3 +21,7 @@ func Config() intf.ConfigProvider {
 func Mq() intf.MessageQueueProvider {
 	return _instance.mqProvider
 }
+
+func Oss() intf.OssProvider {
+	return _instance.ossProvider
+}

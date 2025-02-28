@@ -20,7 +20,7 @@ type SdkInstance struct {
 	dbProvider     intf.DbProvider
 	redisProvider  intf.RedisProvider
 	mqProvider     intf.MessageQueueProvider
-	//graphProvider   intf.GraphProvider
+	ossProvider    intf.OssProvider
 }
 
 var (
@@ -37,11 +37,6 @@ func New(app string, options ...SdkOption) *SdkInstance {
 			for _, apply := range options {
 				apply(sdkConfig)
 			}
-
-			//v, err := newInstance(app, env, options...)
-			//if err != nil {
-			//	loggerProvider.Fatal("new sdk instance", "err", err)
-			//}
 			_instance = &SdkInstance{
 				config: sdkConfig,
 			}
@@ -103,14 +98,12 @@ func (i *SdkInstance) Initialize(capabilities ...*types.Capability) error {
 		switch c.Category {
 		case types.ProviderCategoryDb:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.dbProvider))
-		//case types.ProviderCategoryDbSqlx: // will removed in the future
-		//	fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.sqlxDbProvider))
-		//case types.ProviderCategoryDbBuilder: // will removed in the future
-		//	fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.dbBuilderProvider))
 		case types.ProviderCategoryRedis:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.redisProvider))
 		case types.ProviderCategoryMq:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.mqProvider))
+		case types.ProviderCategoryOss:
+			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.ossProvider))
 		default:
 			return errors.Wrapf(errInvalidCapability, "capability: %s", c.Name)
 		}
