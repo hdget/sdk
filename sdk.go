@@ -83,7 +83,7 @@ func (i *SdkInstance) LoadConfig(configVar any) *SdkInstance {
 // Initialize initializes the SDK instance with given capabilities.
 // This function configures the SDK instance using dependency injection with fx.Options,
 // based on the provided capabilities, such as database, logging, and configuration providers.
-func (i *SdkInstance) Initialize(capabilities ...*types.Capability) error {
+func (i *SdkInstance) Initialize(capabilities ...types.Capability) error {
 	// Prepare fxOptions for DI configuration
 	fxOptions := []fx.Option{
 		fx.Provide(func() *types.SdkConfig { return i.config }),
