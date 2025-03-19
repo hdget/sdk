@@ -41,7 +41,7 @@ func NewEventModule(app, pubsub string, moduleObject EventModule, functions map[
 	}
 
 	// 最后注册module
-	registerEventModule(module)
+	RegisterEventModule(module)
 
 	return nil
 }

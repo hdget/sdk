@@ -122,21 +122,3 @@ func (i *SdkInstance) Initialize(capabilities ...types.Capability) error {
 
 	return nil
 }
-
-//
-//func newInstance(app string, options ...SdkOption) (*SdkInstance, error) {
-//	sdkOption := defaultSdkConfig
-//	for _, apply := range options {
-//		apply(sdkOption)
-//	}
-//
-//	//configProvider, err := viper.New(app, configOption)
-//	//if err != nil {
-//	//	return nil, err
-//	//}
-//
-//	return &SdkInstance{
-//		config: sdkOption,
-//		//providerConfiger: configProvider,
-//	}, nil
-//}

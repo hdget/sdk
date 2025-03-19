@@ -13,16 +13,16 @@ import (
 	"net"
 )
 
-type Server interface {
+type DaprServer interface {
 	Start() error
 	Stop() error
 	GracefulStop() error
 	GetInvocationHandlers() map[string]common.ServiceInvocationHandler
 	GetBindingHandlers() map[string]common.BindingInvocationHandler
-	GetEvents() []daprEvent
+	GetEvents() []Event
 }
 
-type serverImpl struct {
+type daprServerImpl struct {
 	common.Service
 	logger intf.LoggerProvider
 	ctx    context.Context
@@ -36,7 +36,7 @@ var (
 	_moduleName2delayEventModule = make(map[string]DelayEventModule) // delay event module
 )
 
-func NewGrpcServer(logger intf.LoggerProvider, address string) (Server, error) {
+func NewGrpcDaprServer(logger intf.LoggerProvider, address string) (DaprServer, error) {
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		return nil, fmt.Errorf("grpc server failed to listen on %s: %w", address, err)
@@ -46,7 +46,7 @@ func NewGrpcServer(logger intf.LoggerProvider, address string) (Server, error) {
 	grpcServer := grpc.NewServiceWithListener(lis)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	appServer := &serverImpl{
+	appServer := &daprServerImpl{
 		Service: grpcServer,
 		logger:  logger,
 		ctx:     ctx,
@@ -60,11 +60,11 @@ func NewGrpcServer(logger intf.LoggerProvider, address string) (Server, error) {
 	return appServer, nil
 }
 
-func NewHttpServer(logger intf.LoggerProvider, address string) (Server, error) {
+func NewHttpDaprServer(logger intf.LoggerProvider, address string) (DaprServer, error) {
 	httpServer := http.NewServiceWithMux(address, nil)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	appServer := &serverImpl{
+	appServer := &daprServerImpl{
 		Service: httpServer,
 		logger:  logger,
 		ctx:     ctx,
@@ -78,22 +78,22 @@ func NewHttpServer(logger intf.LoggerProvider, address string) (Server, error) {
 	return appServer, nil
 }
 
-func (impl *serverImpl) Start() error {
+func (impl *daprServerImpl) Start() error {
 	return impl.Service.Start()
 }
 
-func (impl *serverImpl) Stop() error {
+func (impl *daprServerImpl) Stop() error {
 	impl.cancel()
 	return impl.Service.Stop()
 }
 
-func (impl *serverImpl) GracefulStop() error {
+func (impl *daprServerImpl) GracefulStop() error {
 	impl.cancel()
 	return impl.Service.GracefulStop()
 }
 
 // Initialize 初始化server
-func (impl *serverImpl) initialize() error {
+func (impl *daprServerImpl) initialize() error {
 	// 注册health check handler
 	if err := impl.AddHealthCheckHandler("", impl.GetHealthCheckHandler()); err != nil {
 		return errors.Wrap(err, "adding health check handler")
@@ -113,7 +113,7 @@ func (impl *serverImpl) initialize() error {
 	}
 
 	for _, event := range impl.GetEvents() {
-		if err := impl.AddTopicEventHandler(event.subscription, event.handler); err != nil {
+		if err := impl.AddTopicEventHandler(event.Subscription, event.Handler); err != nil {
 			return errors.Wrap(err, "adding event handler")
 		}
 	}
@@ -126,7 +126,7 @@ func (impl *serverImpl) initialize() error {
 	return nil
 }
 
-func (impl *serverImpl) GetInvocationHandlers() map[string]common.ServiceInvocationHandler {
+func (impl *daprServerImpl) GetInvocationHandlers() map[string]common.ServiceInvocationHandler {
 	// 获取handlers
 	handlers := make(map[string]common.ServiceInvocationHandler)
 	for _, invocationModule := range _moduleName2invocationModule {
@@ -137,20 +137,20 @@ func (impl *serverImpl) GetInvocationHandlers() map[string]common.ServiceInvocat
 	return handlers
 }
 
-func (impl *serverImpl) GetEvents() []daprEvent {
+func (impl *daprServerImpl) GetEvents() []Event {
 	// 获取handlers
-	events := make([]daprEvent, 0)
+	events := make([]Event, 0)
 	for _, m := range _moduleName2eventModule {
 		for _, h := range m.GetHandlers() {
-			events = append(events, getDaprEvent(m.GetPubSub(), h.GetTopic(), h.GetEventFunction(impl.logger)))
+			events = append(events, NewEvent(m.GetPubSub(), h.GetTopic(), h.GetEventFunction(impl.logger)))
 		}
 	}
 	return events
 }
 
-func (impl *serverImpl) SubscribeDelayEvents() error {
+func (impl *daprServerImpl) SubscribeDelayEvents() error {
 	var app string
-	topic2delayEventHandler := make(map[string]delayEventHandler)
+	topic2delayEventHandler := make(map[string]DelayEventHandler)
 	for _, m := range _moduleName2delayEventModule {
 		if app == "" {
 			app = m.GetApp()
@@ -192,9 +192,9 @@ func (impl *serverImpl) SubscribeDelayEvents() error {
 	return nil
 }
 
-func (impl *serverImpl) GetHealthCheckHandler() common.HealthCheckHandler {
+func (impl *daprServerImpl) GetHealthCheckHandler() common.HealthCheckHandler {
 	if len(_moduleName2healthModule) == 0 {
-		return emptyHealthCheckFunction
+		return EmptyHealthCheckFunction
 	}
 
 	var firstModule HealthModule
@@ -206,22 +206,22 @@ func (impl *serverImpl) GetHealthCheckHandler() common.HealthCheckHandler {
 }
 
 // GetBindingHandlers todo:需要通过反射获取bindingHandlers
-func (impl *serverImpl) GetBindingHandlers() map[string]common.BindingInvocationHandler {
+func (impl *daprServerImpl) GetBindingHandlers() map[string]common.BindingInvocationHandler {
 	return nil
 }
 
-func registerInvocationModule(module InvocationModule) {
+func RegisterInvocationModule(module InvocationModule) {
 	_moduleName2invocationModule[module.GetModuleInfo().ModuleName] = module
 }
 
-func registerEventModule(module EventModule) {
+func RegisterEventModule(module EventModule) {
 	_moduleName2eventModule[module.GetModuleInfo().ModuleName] = module
 }
 
-func registerDelayEventModule(module DelayEventModule) {
+func RegisterDelayEventModule(module DelayEventModule) {
 	_moduleName2delayEventModule[module.GetModuleInfo().ModuleName] = module
 }
 
-func registerHealthModule(module HealthModule) {
+func RegisterHealthModule(module HealthModule) {
 	_moduleName2healthModule[module.GetModuleInfo().ModuleName] = module
 }

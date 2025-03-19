@@ -58,7 +58,7 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) com
 
 		result, err := h.fn(ctx, event)
 		if err != nil {
-			logger.Error("service invoke", "module", h.module.GetModuleInfo().StructName, "handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
+			logger.Error("service invoke", "module", h.module.GetModuleInfo().StructName, "Handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
 			return h.replyError(err)
 		}
 

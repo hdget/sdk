@@ -21,7 +21,7 @@ type HealthCheckFunction func(context.Context) error
 
 var (
 	_                        HealthModule = (*healthModuleImpl)(nil)
-	emptyHealthCheckFunction              = func(ctx context.Context) (err error) { return nil }
+	EmptyHealthCheckFunction              = func(ctx context.Context) (err error) { return nil }
 )
 
 // NewHealthModule 健康模块
@@ -33,7 +33,7 @@ func NewHealthModule(app string, moduleObject HealthModule, fn HealthCheckFuncti
 	}
 
 	// 最后注册module
-	registerHealthModule(module)
+	RegisterHealthModule(module)
 
 	return nil
 }
@@ -78,7 +78,7 @@ func AsHealthModule(app string, moduleObject any, fn HealthCheckFunction) (Healt
 
 func (m *healthModuleImpl) GetHandler() common.HealthCheckHandler {
 	if m.fn == nil {
-		return emptyHealthCheckFunction
+		return EmptyHealthCheckFunction
 	}
 
 	return func(ctx context.Context) error {

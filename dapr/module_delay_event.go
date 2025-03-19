@@ -10,14 +10,14 @@ import (
 type DelayEventModule interface {
 	moduler
 	RegisterHandlers(functions map[string]DelayEventFunction) error // 注册Handlers
-	GetHandlers() []delayEventHandler                               // 获取handlers
+	GetHandlers() []DelayEventHandler                               // 获取handlers
 	GetAckTimeout() time.Duration
 	GetBackOffPolicy() backoff.BackOff
 }
 
 type delayEventModuleImpl struct {
 	moduler
-	handlers      []delayEventHandler
+	handlers      []DelayEventHandler
 	ackTimeout    time.Duration
 	backoffPolicy backoff.BackOff
 }
@@ -41,7 +41,7 @@ func NewDelayEventModule(app string, moduleObject DelayEventModule, functions ma
 	}
 
 	// 最后注册module
-	registerDelayEventModule(module)
+	RegisterDelayEventModule(module)
 
 	return nil
 }
@@ -92,14 +92,14 @@ func AsDelayEventModule(app string, moduleObject any, options ...DelayEventModul
 
 // RegisterHandlers 参数handlers为alias=>receiver.fnName, 保存为handler.id=>*invocationHandler
 func (m *delayEventModuleImpl) RegisterHandlers(functions map[string]DelayEventFunction) error {
-	m.handlers = make([]delayEventHandler, 0)
+	m.handlers = make([]DelayEventHandler, 0)
 	for topic, fn := range functions {
 		m.handlers = append(m.handlers, m.newDelayEventHandler(m, topic, fn))
 	}
 	return nil
 }
 
-func (m *delayEventModuleImpl) GetHandlers() []delayEventHandler {
+func (m *delayEventModuleImpl) GetHandlers() []DelayEventHandler {
 	return m.handlers
 }
 
@@ -111,7 +111,7 @@ func (m *delayEventModuleImpl) GetBackOffPolicy() backoff.BackOff {
 	return m.backoffPolicy
 }
 
-func (m *delayEventModuleImpl) newDelayEventHandler(module DelayEventModule, topic string, fn DelayEventFunction) delayEventHandler {
+func (m *delayEventModuleImpl) newDelayEventHandler(module DelayEventModule, topic string, fn DelayEventFunction) DelayEventHandler {
 	return &delayEventHandlerImpl{
 		module: module,
 		topic:  topic,

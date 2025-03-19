@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-type delayEventHandler interface {
+type DelayEventHandler interface {
 	GetTopic() string
 	Handle(ctx context.Context, logger intf.LoggerProvider, msgChan <-chan *types.Message)
 }
@@ -43,7 +43,7 @@ LOOP:
 	for {
 		select {
 		case <-ctx.Done():
-			logger.Debug("shutdown delay event handler", "topic", h.GetTopic())
+			logger.Debug("shutdown delay event Handler", "topic", h.GetTopic())
 			break LOOP
 		case msg := <-msgChan:
 			retry, err := h.fn(msg.Payload)

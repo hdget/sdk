@@ -45,7 +45,7 @@ func NewInvocationModule(app string, moduleObject InvocationModule, functions ma
 	}
 
 	// 最后注册module
-	registerInvocationModule(module)
+	RegisterInvocationModule(module)
 
 	return nil
 }

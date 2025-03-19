@@ -8,16 +8,6 @@ import (
 	"strconv"
 )
 
-type moduleKind int
-
-const (
-	moduleKindUnknown    moduleKind = iota
-	ModuleKindInvocation            // dapr调用模块
-	ModuleKindEvent                 // dapr事件模块
-	ModuleKindDelayEvent            // 延迟事件模块
-	ModuleKindHealth                // dapr健康检测模块
-)
-
 type moduler interface {
 	GetApp() string
 	GetModuleInfo() *moduleInfo
@@ -27,7 +17,7 @@ var (
 	regModuleName        = regexp.MustCompile(`^[vV]([0-9]+)_([a-zA-Z0-9]+)`)
 	errInvalidModule     = errors.New("invalid module, it must be struct")
 	errInvalidModuleName = errors.New("invalid module name, it should be: v<number>_name, e,g: v1_abc")
-	handlerNameSuffix    = "handler"
+	handlerNameSuffix    = "Handler"
 )
 
 type baseModule struct {
