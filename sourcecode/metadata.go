@@ -12,9 +12,9 @@ type metaDataManager struct {
 	srcDir string
 }
 
-type metaData struct {
-	ModulePaths map[string]string // 模块的路径
-	EntryPath   string            // appServer.Run的入口文件即appServer开始运行所在的go文件
+type MetaData struct {
+	ModulePaths     map[string]string // 模块的路径
+	ServerEntryFile string            // appServer.Run的入口文件即appServer开始运行所在的go文件
 }
 
 const (
@@ -32,7 +32,7 @@ func (m *metaDataManager) Store(data any) error {
 	return saveFile(absPath, data)
 }
 
-func (m *metaDataManager) Load() (*metaData, error) {
+func (m *metaDataManager) Load() (*MetaData, error) {
 	// 读取文件内容
 	// 使用 os.ReadFile 读取文件内容
 	content, err := os.ReadFile(filepath.Join(m.srcDir, fileMeta))
@@ -40,7 +40,7 @@ func (m *metaDataManager) Load() (*metaData, error) {
 		return nil, errors.Wrapf(err, "failed read meta file, file: %s", fileMeta)
 	}
 
-	var meta metaData
+	var meta MetaData
 	err = json.Unmarshal(content, &meta)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid meta file")
@@ -56,10 +56,10 @@ func (m *metaDataManager) Print() error {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Name", "Path"})
+	table.SetHeader([]string{"NAME", "PATH"})
 	table.SetRowLine(true)
 	table.Append([]string{
-		"ServerEntry", meta.EntryPath,
+		"SERVER_ENTRY", meta.ServerEntryFile,
 	})
 	for k, v := range meta.ModulePaths {
 		table.Append([]string{k, v})

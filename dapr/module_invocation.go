@@ -10,10 +10,10 @@ import (
 
 type InvocationModule interface {
 	moduler
-	DiscoverHandlers(args ...HandlerNameMatcher) ([]invocationHandler, error)                   // 通过反射发现Handlers
-	RegisterHandlers(functions map[string]InvocationFunction) error                             // 注册Handlers
-	GetHandlers() []invocationHandler                                                           // 获取handlers
-	GetRouteAnnotations(srcPath string, args ...HandlerNameMatcher) ([]*routeAnnotation, error) // 从源代码获取路由注解
+	DiscoverHandlers(args ...HandlerMatcher) ([]invocationHandler, error)                   // 通过反射发现Handlers
+	RegisterHandlers(functions map[string]InvocationFunction) error                         // 注册Handlers
+	GetHandlers() []invocationHandler                                                       // 获取handlers
+	GetRouteAnnotations(srcPath string, args ...HandlerMatcher) ([]*routeAnnotation, error) // 从源代码获取路由注解
 }
 
 type invocationModuleImpl struct {
@@ -99,7 +99,7 @@ func (m *invocationModuleImpl) RegisterHandlers(functions map[string]InvocationF
 }
 
 // DiscoverHandlers 获取Module作为receiver的所有MethodMatchFunction匹配的方法, MethodMatchFunction生成新的方法名和判断是否匹配
-func (m *invocationModuleImpl) DiscoverHandlers(args ...HandlerNameMatcher) ([]invocationHandler, error) {
+func (m *invocationModuleImpl) DiscoverHandlers(args ...HandlerMatcher) ([]invocationHandler, error) {
 	matchFn := m.defaultHandlerNameMatcher
 	if len(args) > 0 {
 		matchFn = args[0]

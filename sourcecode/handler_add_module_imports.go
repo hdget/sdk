@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/elliotchance/pie/v2"
+	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
+	"github.com/spf13/cast"
 	"go/ast"
 	"go/parser"
 	"go/printer"
@@ -33,12 +35,12 @@ func (h *addModuleImportPathsHandler) Handle() error {
 	fmt.Println("=== add module import paths ===")
 	fmt.Println("")
 
-	meta, err := newMetaDataManager(h.sc.srcDir).Load()
+	metaData, err := newMetaDataManager(h.sc.srcDir).Load()
 	if err != nil {
 		return err
 	}
 
-	if meta.EntryPath == "" {
+	if metaData.ServerEntryFile == "" {
 		return errors.New("server start entry not found")
 	}
 
@@ -51,29 +53,30 @@ func (h *addModuleImportPathsHandler) Handle() error {
 	// 将源代码解析为抽象语法树（AST）
 	fset := token.NewFileSet()
 	// IMPORTANT: 这里要保证注释不被丢失
-	astFile, err := parser.ParseFile(fset, meta.EntryPath, nil, parser.ParseComments)
+	astFile, err := parser.ParseFile(fset, metaData.ServerEntryFile, nil, parser.ParseComments)
 	if err != nil {
-		return errors.Wrapf(err, "golang ast parseMetaData file, path: %s", meta.EntryPath)
+		return errors.Wrapf(err, "golang ast parseMetaData file, path: %s", metaData.ServerEntryFile)
 	}
 
 	// 记录所有已经导入的包
-	allImportPaths := make(map[string]struct{})
+	importedPaths := make(map[string]struct{})
 	for _, spec := range astFile.Imports {
-		allImportPaths[spec.Path.Value] = struct{}{}
+		importedPaths[spec.Path.Value] = struct{}{}
 	}
 
 	// 创建新的import节点匿名插入到import声明列表
-	for _, modulePath := range pie.Values(meta.ModulePaths) {
+	newImported := make([]string, 0)
+	for _, modulePath := range pie.Values(metaData.ModulePaths) {
 		// IMPORTANT: spec.Path.Value是带了双引号的
-		checkValue := "\"" + path.Join(projectModuleName, modulePath) + "\""
+		impPath := "\"" + path.Join(projectModuleName, modulePath) + "\""
 
 		// 当patch进去的路径不存在时才加入
-		if _, exists := allImportPaths[checkValue]; !exists {
+		if _, exists := importedPaths[impPath]; !exists {
 			// 创建一个新的匿名ImportSpec节点
 			spec := &ast.ImportSpec{
 				Path: &ast.BasicLit{
 					Kind:  token.STRING,
-					Value: checkValue,
+					Value: impPath,
 				},
 				Name: ast.NewIdent("_"), // 下划线表示匿名导入
 			}
@@ -87,7 +90,15 @@ func (h *addModuleImportPathsHandler) Handle() error {
 			}
 
 			astFile.Decls = append([]ast.Decl{decl}, astFile.Decls...)
+
+			newImported = append(newImported, impPath)
 		}
+	}
+
+	if len(newImported) == 0 {
+		fmt.Println("All modules imported. No action required!")
+		fmt.Println("")
+		return nil
 	}
 
 	// 使用printer包将抽象语法树（AST）打印成代码
@@ -98,7 +109,7 @@ func (h *addModuleImportPathsHandler) Handle() error {
 	}
 
 	// 打开文件
-	file, err := os.OpenFile(meta.EntryPath, os.O_RDWR|os.O_TRUNC, 0666)
+	file, err := os.OpenFile(metaData.ServerEntryFile, os.O_RDWR|os.O_TRUNC, 0666)
 	if err != nil {
 		return err
 	}
@@ -116,7 +127,19 @@ func (h *addModuleImportPathsHandler) Handle() error {
 		return err
 	}
 
+	h.print(newImported)
+
 	return nil
+}
+
+func (h *addModuleImportPathsHandler) print(newAdded []string) {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"NO", "IMPORT PACKAGE"})
+	table.SetRowLine(true)
+	for i, impPath := range newAdded {
+		table.Append([]string{cast.ToString(i + 1), impPath})
+	}
+	table.Render() // Send output
 }
 
 func (h *addModuleImportPathsHandler) getProjectModuleName() (string, error) {

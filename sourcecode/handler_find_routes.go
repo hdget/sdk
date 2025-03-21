@@ -38,14 +38,14 @@ func (h *findRouteAnnotationHandler) Handle() error {
 		return err
 	}
 
-	if len(meta.ModulePaths) == 0 || meta.ModulePaths["InvocationModule"] == "" {
+	if len(meta.ModulePaths) == 0 || meta.ModulePaths["INVOCATION_MODULE"] == "" {
 		return errors.New("invocation module path not found")
 	}
 
 	routeItems := make([]*protobuf.RouteItem, 0)
-	absModulePath := filepath.Join(h.sc.srcDir, meta.ModulePaths["InvocationModule"])
+	absModulePath := filepath.Join(h.sc.srcDir, meta.ModulePaths["INVOCATION_MODULE"])
 	for _, m := range dapr.GetInvocationModules() {
-		routeAnnotations, err := m.GetRouteAnnotations(absModulePath, h.sc.handlerNameMatchers...)
+		routeAnnotations, err := m.GetRouteAnnotations(absModulePath, h.sc.handlerMatchers...)
 		if err != nil {
 			return err
 		}
@@ -97,7 +97,7 @@ func (h *findRouteAnnotationHandler) printRoutes(routeItems []*protobuf.RouteIte
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ModuleName", "Total", "Handlers"})
+	table.SetHeader([]string{"MODULE_NAME", "TOTAL", "HANDLERS"})
 	table.SetRowLine(true)
 	for moduleName, handlerNames := range moduleName2handlerNames {
 		table.Append([]string{moduleName, cast.ToString(len(handlerNames)), strings.Join(handlerNames, ", ")})

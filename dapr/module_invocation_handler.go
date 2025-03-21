@@ -33,7 +33,7 @@ type invocationHandlerImpl struct {
 }
 
 type InvocationFunction func(ctx context.Context, event *common.InvocationEvent) (any, error)
-type HandlerNameMatcher func(methodName string) (string, bool) // 传入receiver.methodName, 判断是否匹配，然后取出处理后的handlerName
+type HandlerMatcher func(methodName string) (string, bool) // 传入receiver.methodName, 判断是否匹配，然后取出处理后的handlerName
 
 func (h invocationHandlerImpl) GetAlias() string {
 	return h.handlerAlias

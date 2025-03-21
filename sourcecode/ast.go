@@ -11,13 +11,13 @@ import (
 	"strings"
 )
 
-type functionCall struct {
+type CallSignature struct {
 	importPath    string
 	functionChain string
 }
 
 // astIsFunctionCall 检查某个函数调用是导入包名和函数调用链条是否完全匹配
-func astIsFunctionCall(n *ast.CallExpr, importMap map[string]string, fnCall *functionCall) bool {
+func astIsFunctionCall(n *ast.CallExpr, importMap map[string]string, fnCall *CallSignature) bool {
 	if caller, ok := astGetCaller(n); ok {
 		if importMap[caller] == fnCall.importPath {
 			if astGetFunctionChain(n) == fnCall.functionChain {

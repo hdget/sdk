@@ -31,7 +31,7 @@ var (
 )
 
 // GetRouteAnnotations 从源代码的注解中解析路由注解
-func (m *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...HandlerNameMatcher) ([]*routeAnnotation, error) {
+func (m *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...HandlerMatcher) ([]*routeAnnotation, error) {
 	matchFn := m.defaultHandlerNameMatcher
 	if len(args) > 0 {
 		matchFn = args[0]

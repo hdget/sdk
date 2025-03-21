@@ -17,26 +17,19 @@ type parseMetaHandler struct {
 	sc *sourceCodeManagerImpl
 }
 
-//// astEmbedPathResult 嵌入资源的路径
-//type astEmbedPathResult struct {
-//	varName string // 变量名字
-//	absPath string
-//	relPath string
-//}
-
 var (
 	moduleExpr2moduleName = map[string]string{
-		"&{dapr InvocationModule}": "InvocationModule", // 服务调用模块
-		"&{dapr EventModule}":      "EventModule",      // 事件模块
-		"&{dapr HealthModule}":     "HealthModule",     // 健康检测模块
-		"&{dapr DelayEventModule}": "DelayEventModule", // 延迟事件模块
+		"&{dapr InvocationModule}": "INVOCATION_MODULE",  // 服务调用模块
+		"&{dapr EventModule}":      "EVENT_MODULE",       // 事件模块
+		"&{dapr HealthModule}":     "HEALTH_MODULE",      // 健康检测模块
+		"&{dapr DelayEventModule}": "DELAY_EVENT_MODULE", // 延迟事件模块
 	}
 )
 
 const (
 	// 需要将invocation module的包导入到server包来保证dapr方法的自动注册
-	defaultAppServerImportPath  = "github.com/hdget/sdk/dapr" // 服务缺省的导入的包路径
-	defaultAppServerRunFunction = "NewGrpcServer"             // 函数签名：dapr.NewGrpcServer
+	defaultServerImportPath  = "github.com/hdget/sdk/dapr" // 服务缺省的导入的包路径
+	defaultServerNewFunction = "NewGrpcServer"             // 函数签名：dapr.NewGrpcServer
 )
 
 func newParseMetaHandler(sc *sourceCodeManagerImpl) Handler {
@@ -70,7 +63,7 @@ func (h *parseMetaHandler) Handle() error {
 	return nil
 }
 
-func (h *parseMetaHandler) parseMetaData(skipDirs ...string) (*metaData, error) {
+func (h *parseMetaHandler) parseMetaData(skipDirs ...string) (*MetaData, error) {
 	st, err := os.Stat(h.sc.srcDir)
 	if err != nil {
 		return nil, errors.Wrapf(err, "sourc code dir not accessable, srcDir: %s", h.sc.srcDir)
@@ -80,7 +73,7 @@ func (h *parseMetaHandler) parseMetaData(skipDirs ...string) (*metaData, error) 
 		return nil, fmt.Errorf("invalid source code dir, dir: %s", h.sc.srcDir)
 	}
 
-	result := &metaData{
+	result := &MetaData{
 		ModulePaths: make(map[string]string),
 	}
 
@@ -118,12 +111,12 @@ func (h *parseMetaHandler) parseMetaData(skipDirs ...string) (*metaData, error) 
 					}
 				case *ast.CallExpr: // 函数调用
 					// 查找server.Start调用所在的文件路径
-					if result.EntryPath == "" {
-						if astIsFunctionCall(n, pkgName2importPath, &functionCall{
-							importPath:    defaultAppServerImportPath,
-							functionChain: defaultAppServerRunFunction,
+					if result.ServerEntryFile == "" {
+						if astIsFunctionCall(n, pkgName2importPath, &CallSignature{
+							importPath:    defaultServerImportPath,
+							functionChain: defaultServerNewFunction,
 						}) {
-							result.EntryPath = path
+							result.ServerEntryFile = path
 						}
 					}
 				}
