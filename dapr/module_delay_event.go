@@ -41,7 +41,7 @@ func NewDelayEventModule(app string, moduleObject DelayEventModule, functions ma
 	}
 
 	// 最后注册module
-	RegisterDelayEventModule(module)
+	registerModule(module)
 
 	return nil
 }

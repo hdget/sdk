@@ -33,7 +33,7 @@ func NewHealthModule(app string, moduleObject HealthModule, fn HealthCheckFuncti
 	}
 
 	// 最后注册module
-	RegisterHealthModule(module)
+	registerModule(module)
 
 	return nil
 }

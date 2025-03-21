@@ -8,6 +8,16 @@ import (
 	"strconv"
 )
 
+type ModuleKind int
+
+const (
+	ModuleKindUnknown    ModuleKind = iota
+	ModuleKindInvocation            = iota
+	ModuleKindEvent
+	ModuleKindHealth
+	ModuleKindDelayEvent
+)
+
 type moduler interface {
 	GetApp() string
 	GetModuleInfo() *moduleInfo

@@ -2,11 +2,9 @@ package dapr
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/utils/convert"
 	"github.com/pkg/errors"
-	"strings"
 )
 
 const ContentTypeJson = "application/json"
@@ -44,7 +42,7 @@ func (a apiImpl) Invoke(app string, moduleVersion int, moduleName, handler strin
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
 	//defer daprClient.Close()
 
-	fullMethodName := getServiceInvocationName(moduleVersion, moduleName, handler)
+	fullMethodName := buildServiceInvocationName(moduleVersion, moduleName, handler)
 	resp, err := daprClient.InvokeMethodWithContent(a.ctx, a.normalize(app), fullMethodName, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
@@ -54,9 +52,4 @@ func (a apiImpl) Invoke(app string, moduleVersion int, moduleName, handler strin
 	}
 
 	return resp, nil
-}
-
-// GetServiceInvocationName 构造version:module:realMethod的方法名
-func getServiceInvocationName(moduleVersion int, moduleName, handler string) string {
-	return strings.Join([]string{fmt.Sprintf("v%d", moduleVersion), moduleName, handler}, ":")
 }
