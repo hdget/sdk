@@ -75,6 +75,7 @@ func (h *parseMetaHandler) parseMetaData(skipDirs ...string) (*MetaData, error) 
 
 	result := &MetaData{
 		ModulePaths: make(map[string]string),
+		//EmbedInfos:  make([]*EmbedInfo, 0),
 	}
 
 	// 遍历源代码
@@ -109,6 +110,16 @@ func (h *parseMetaHandler) parseMetaData(skipDirs ...string) (*MetaData, error) 
 						relPath, _ := filepath.Rel(h.sc.srcDir, filepath.Dir(path))
 						result.ModulePaths[moduleName] = filepath.ToSlash(relPath)
 					}
+					//{
+					//	varName, relPath := astGetEmbedVarAndRelPath(n)
+					//	if varName != "" {
+					//		result.EmbedInfos = append(result.EmbedInfos, &EmbedInfo{
+					//			VarName: varName,
+					//			AbsPath: filepath.Dir(filepath.Join(path, relPath)),
+					//			RelPath: filepath.Dir(relPath),
+					//		})
+					//	}
+					//}
 				case *ast.CallExpr: // 函数调用
 					// 查找server.Start调用所在的文件路径
 					if result.ServerEntryFile == "" {

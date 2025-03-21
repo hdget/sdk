@@ -9,9 +9,9 @@ import (
 )
 
 type SourceCodeManager interface {
-	Patch() error                                        // 处理源代码
-	Inspect() error                                      // 检查源代码
-	GetRouteAnnotations() ([]*protobuf.RouteItem, error) // 获取路由注解
+	Patch() error                              // 处理源代码
+	Inspect() error                            // 检查源代码并embed必要的资源
+	GetRoutes() ([]*protobuf.RouteItem, error) // 获取保存的路由项
 }
 
 type sourceCodeManagerImpl struct {
@@ -71,7 +71,7 @@ func (impl *sourceCodeManagerImpl) Inspect() error {
 	return nil
 }
 
-func (impl *sourceCodeManagerImpl) GetRouteAnnotations() ([]*protobuf.RouteItem, error) {
+func (impl *sourceCodeManagerImpl) GetRoutes() ([]*protobuf.RouteItem, error) {
 	data, err := impl.assetManager.Load(fileRoutes)
 	if err != nil {
 		return nil, err

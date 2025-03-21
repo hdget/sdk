@@ -12,9 +12,16 @@ type metaDataManager struct {
 	srcDir string
 }
 
+//type EmbedInfo struct {
+//	VarName string
+//	AbsPath string // 调用方嵌入文件系统的绝对路径
+//	RelPath string // 调用方嵌入文件系统的相对路径
+//}
+
 type MetaData struct {
 	ModulePaths     map[string]string // 模块的路径
 	ServerEntryFile string            // appServer.Run的入口文件即appServer开始运行所在的go文件
+	// EmbedInfos      []*EmbedInfo      // 获取所有嵌入类型的定义
 }
 
 const (

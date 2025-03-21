@@ -3,7 +3,6 @@ package sourcecode
 import (
 	"fmt"
 	"github.com/elliotchance/pie/v2"
-	"github.com/pkg/errors"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -144,23 +143,22 @@ func astGetCaller(n *ast.CallExpr) (string, bool) {
 //}
 
 // astGetEmbedInfo 获取嵌入资源的信息，返回变量名，embed路径
-func astGetEmbedVarAndRelPath(n *ast.GenDecl) (string, string) {
+func astGetEmbedVarAndRelPath(n *ast.GenDecl) (string, string, bool) {
 	// 如果是 GenDecl 类型，则可能是 import 或者变量声明等
 	if n.Tok == token.VAR {
 		for _, spec := range n.Specs {
-			if valueSpec, ok := spec.(*ast.ValueSpec); ok && valueSpec.Doc != nil {
-				if astTypeIsEmbedFS(valueSpec.Type) {
-					// 获取 embed 路径
-					return valueSpec.Names[0].Name, astGetEmbedRelPath(valueSpec)
+			if valueSpec, ok := spec.(*ast.ValueSpec); ok {
+				if astIsEmbedFSType(valueSpec.Type) {
+					return valueSpec.Names[0].Name, astGetEmbedRelPath(n), true
 				}
 			}
 		}
 	}
-	return "", ""
+	return "", "", false
 }
 
 // 检查类型是否为 embed.FS
-func astTypeIsEmbedFS(expr ast.Expr) bool {
+func astIsEmbedFSType(expr ast.Expr) bool {
 	if selectorExpr, ok := expr.(*ast.SelectorExpr); ok {
 		if ident, ok := selectorExpr.X.(*ast.Ident); ok && ident.Name == "embed" {
 			if selectorExpr.Sel.Name == "FS" {
@@ -172,13 +170,32 @@ func astTypeIsEmbedFS(expr ast.Expr) bool {
 }
 
 // 获取 embed 路径
-// 获取 embed 路径
-func astGetEmbedRelPath(n *ast.ValueSpec) string {
+func astGetEmbedRelPath(n *ast.GenDecl) string {
+	// 如果直接定义变量
+	// //go:embed assets/*
+	// var assets embed.FS
 	if n.Doc != nil {
 		for _, comment := range n.Doc.List {
 			if strings.HasPrefix(comment.Text, "//go:embed") {
 				// 提取路径部分
 				return filepath.Dir(strings.TrimSpace(strings.TrimPrefix(comment.Text, "//go:embed")))
+			}
+		}
+	}
+	// 如果定义在var block中
+	// var (
+	//   //go:embed assets/*
+	//   assets embed.FS
+	// )
+	for _, spec := range n.Specs {
+		if valueSpec, ok := spec.(*ast.ValueSpec); ok {
+			if valueSpec.Doc != nil {
+				for _, comment := range valueSpec.Doc.List {
+					if strings.HasPrefix(comment.Text, "//go:embed") {
+						// 提取路径部分
+						return filepath.Dir(strings.TrimSpace(strings.TrimPrefix(comment.Text, "//go:embed")))
+					}
+				}
 			}
 		}
 	}
@@ -197,22 +214,36 @@ func astParseEmbed(callerFilePath string) (string, string, error) {
 	}
 
 	// 遍历AST节点
-	var embedAbsPath, embedRelPath string
+	count := 0
+	var foundVar, foundRelPath, embedAbsPath string
 	ast.Inspect(f, func(node ast.Node) bool {
 		switch n := node.(type) {
 		case *ast.GenDecl:
-			varName, relPath := astGetEmbedVarAndRelPath(n)
-			if varName != "" {
-				embedAbsPath = filepath.Join(filepath.Dir(callerFilePath), relPath)
-				embedRelPath = relPath
+			if varName, relPath, ok := astGetEmbedVarAndRelPath(n); ok {
+				foundVar = varName
+				foundRelPath = relPath
+				return false
 			}
 		}
-		return embedAbsPath == ""
+		count += 1
+		return foundVar == ""
 	})
 
-	if embedAbsPath == "" {
-		return "", "", errors.New("embed path not found")
+	fmt.Println("xxxxxxxxxxxxxx:", count)
+
+	if foundVar == "" {
+		return "", "", fmt.Errorf("embed.FS variable declare not found, var: %s", foundVar)
 	}
 
-	return embedAbsPath, embedRelPath, nil
+	// 有可能定义了embed.FS,但是没有指定编译指令//go:embed
+	if foundRelPath == "" {
+		return "", "", fmt.Errorf("//go:embed compiler directive not found, var: %s", foundVar)
+	}
+
+	if foundRelPath == "." {
+		return "", "", fmt.Errorf("//go:embed must specify a directory, var: %s", foundVar)
+	}
+
+	embedAbsPath = filepath.Join(filepath.Dir(callerFilePath), foundRelPath)
+	return embedAbsPath, foundRelPath, nil
 }
