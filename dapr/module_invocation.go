@@ -10,10 +10,11 @@ import (
 
 type InvocationModule interface {
 	moduler
-	DiscoverHandlers(args ...HandlerMatcher) ([]invocationHandler, error)                   // 通过反射发现Handlers
-	RegisterHandlers(functions map[string]InvocationFunction) error                         // 注册Handlers
-	GetHandlers() []invocationHandler                                                       // 获取handlers
-	GetRouteAnnotations(srcPath string, args ...HandlerMatcher) ([]*routeAnnotation, error) // 从源代码获取路由注解
+	Register(app string, alias2handler map[string]InvocationFunction) error
+	RegisterHandlers(functions map[string]InvocationFunction) error // 注册Handlers
+	GetHandlers() []invocationHandler                               // 获取handlers
+	//DiscoverHandlers(args ...HandlerMatcher) ([]invocationHandler, error)                   // 通过反射发现Handlers
+	//GetRouteAnnotations(srcPath string, args ...HandlerMatcher) ([]*routeAnnotation, error) // 从源代码获取路由注解
 }
 
 type invocationModuleImpl struct {
@@ -27,19 +28,15 @@ var (
 	_                            InvocationModule = (*invocationModuleImpl)(nil)
 )
 
-// NewInvocationModule 新建服务调用模块会执行下列操作:
-// 1. 实例化invocation module
-// 2. 注册invocation functions
-// 3. 注册module
-func NewInvocationModule(app string, moduleObject InvocationModule, functions map[string]InvocationFunction) error {
+func (m *invocationModuleImpl) Register(app string, alias2handler map[string]InvocationFunction) error {
 	// 首先实例化module
-	module, err := AsInvocationModule(app, moduleObject)
+	module, err := initializeInvocationModule(app, m)
 	if err != nil {
 		return err
 	}
 
 	// 然后注册handlers
-	err = module.RegisterHandlers(functions)
+	err = module.RegisterHandlers(alias2handler)
 	if err != nil {
 		return err
 	}
@@ -50,7 +47,30 @@ func NewInvocationModule(app string, moduleObject InvocationModule, functions ma
 	return nil
 }
 
-// AsInvocationModule 将一个any类型的结构体转换成InvocationModule
+// NewInvocationModule 新建服务调用模块会执行下列操作:
+// 1. 实例化invocation module
+// 2. 注册invocation functions
+// 3. 注册module
+//func NewInvocationModule(app string, moduleObject InvocationModule, functions map[string]InvocationFunction) error {
+//	// 首先实例化module
+//	module, err := initializeInvocationModule(app, moduleObject)
+//	if err != nil {
+//		return err
+//	}
+//
+//	// 然后注册handlers
+//	err = module.RegisterHandlers(functions)
+//	if err != nil {
+//		return err
+//	}
+//
+//	// 最后注册module
+//	registerModule(module)
+//
+//	return nil
+//}
+
+// initializeInvocationModule 将一个any类型的结构体转换成InvocationModule
 //
 // e,g:
 //
@@ -59,12 +79,12 @@ func NewInvocationModule(app string, moduleObject InvocationModule, functions ma
 //		}
 //
 //		 v := &v1_test{}
-//		 im, err := AsInvocationModule("app",v)
+//		 im, err := initializeInvocationModule("app",v)
 //	     if err != nil {
 //	      ...
 //	     }
 //	     im.DiscoverHandlers()
-func AsInvocationModule(app string, moduleObject any) (InvocationModule, error) {
+func initializeInvocationModule(app string, moduleObject any) (InvocationModule, error) {
 	m, err := newModule(app, moduleObject)
 	if err != nil {
 		return nil, err
@@ -99,7 +119,7 @@ func (m *invocationModuleImpl) RegisterHandlers(functions map[string]InvocationF
 }
 
 // DiscoverHandlers 获取Module作为receiver的所有MethodMatchFunction匹配的方法, MethodMatchFunction生成新的方法名和判断是否匹配
-func (m *invocationModuleImpl) DiscoverHandlers(args ...HandlerMatcher) ([]invocationHandler, error) {
+func (m *invocationModuleImpl) discoverHandlers(args ...HandlerMatcher) ([]invocationHandler, error) {
 	matchFn := m.defaultHandlerNameMatcher
 	if len(args) > 0 {
 		matchFn = args[0]
