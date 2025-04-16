@@ -47,7 +47,7 @@ func (m *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...Handl
 
 	routeAnnotations := make([]*routeAnnotation, 0)
 	for _, fnInfo := range funcInfos {
-		mInfo, err := parseModuleInfo(fnInfo.Receiver)
+		mInfo, err := ParseModuleInfo(fnInfo.Receiver)
 		if err != nil {
 			return nil, err
 		}
