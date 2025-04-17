@@ -44,7 +44,8 @@ func (h invocationHandlerImpl) GetName() string {
 }
 
 func (h invocationHandlerImpl) GetInvokeName() string {
-	return generateMethodName(h.module.GetModuleInfo(), h.handlerAlias)
+	moduleInfo := h.module.GetModuleInfo()
+	return generateMethodName(moduleInfo.Version, moduleInfo.Name, h.handlerAlias, moduleInfo.Namespace)
 }
 
 func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) common.ServiceInvocationHandler {

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dapr/go-sdk/client"
-	"github.com/hdget/common/types"
 	"github.com/hdget/utils/convert"
 	"github.com/pkg/errors"
 	"strings"
@@ -13,7 +12,7 @@ import (
 const ContentTypeJson = "application/json"
 
 // Invoke 调用dapr服务
-func (a apiImpl) Invoke(app string, moduleInfo *types.DaprModuleInfo, handler string, data any) ([]byte, error) {
+func (a apiImpl) Invoke(app string, version int, module, handler string, data any, namespaces ...string) ([]byte, error) {
 	var value []byte
 	switch t := data.(type) {
 	case string:
@@ -37,7 +36,8 @@ func (a apiImpl) Invoke(app string, moduleInfo *types.DaprModuleInfo, handler st
 	}
 
 	// IMPORTANT: daprClient是全局的连接
-	resp, err := daprClient.InvokeMethodWithContent(a.ctx, a.normalize(app), generateMethodName(moduleInfo, handler), "post", &client.DataContent{
+	method := generateMethodName(version, module, handler, namespaces...)
+	resp, err := daprClient.InvokeMethodWithContent(a.ctx, a.normalize(app), method, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
 	})
@@ -48,18 +48,17 @@ func (a apiImpl) Invoke(app string, moduleInfo *types.DaprModuleInfo, handler st
 	return resp, nil
 }
 
-func generateMethodName(moduleInfo *types.DaprModuleInfo, handler string) string {
-	if moduleInfo == nil {
-		return ""
-	}
+func generateMethodName(version int, module, handler string, args ...string) string {
 	tokens := []string{
-		fmt.Sprintf("v%d", moduleInfo.Version),
-		moduleInfo.Name,
+		fmt.Sprintf("v%d", version),
+		module,
 		handler,
 	}
-	// 去掉module后面的可能的module后缀
-	if moduleInfo.Namespace != "" {
-		tokens = append(tokens, moduleInfo.Namespace)
+	if len(args) > 0 {
+		namespace := args[0]
+		if namespace != "" {
+			tokens = append(tokens, namespace)
+		}
 	}
-	return strings.Join(tokens, ":")
+	return strings.ToLower(strings.Join(tokens, ":"))
 }

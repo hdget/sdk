@@ -15,8 +15,12 @@ import (
 
 type daprServerImpl struct {
 	common.Service
-	ctx    context.Context
-	cancel context.CancelFunc
+	ctx                context.Context
+	cancel             context.CancelFunc
+	hooks              map[intf.HookPoint][]intf.HookFunction
+	providers          []intf.Provider
+	fnAppRegister      AppRegisterFunction // 向系统注册appServer的函数
+	invocationHandlers []*types.ParsedDaprHandler
 }
 
 var (
@@ -30,28 +34,7 @@ func GetInvocationModules() []InvocationModule {
 	return _invocationModules
 }
 
-//func NewServer(assetFs embed.FS, options ...ServerOption) (intf.AppServer, error) {
-//	// 解析go:embed路径
-//	_, callFile, _, _ := runtime.Caller(1)
-//	embedAbsPath, embedRelPath, err := newAstEmbedFinder(callFile).Parse()
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	srv := &daprServerImpl{
-//		assetManager:      asset.New(assetFs, embedAbsPath, embedRelPath),
-//		actions:           make([]Action, 0),
-//		serverImportPath:  defaultAppServerImportPath,
-//		serverRunFuncName: defaultAppServerRunFunction,
-//	}
-//
-//	for _, apply := range options {
-//		apply(srv)
-//	}
-//	return srv, nil
-//}
-
-func NewGrpcServer(address string, providers ...intf.Provider) (intf.AppServer, error) {
+func NewGrpcServer(address string, options ...ServerOption) (intf.AppServer, error) {
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		return nil, fmt.Errorf("grpc server failed to listen on %s: %w", address, err)
@@ -65,16 +48,21 @@ func NewGrpcServer(address string, providers ...intf.Provider) (intf.AppServer, 
 		Service: grpcServer,
 		ctx:     ctx,
 		cancel:  cancel,
+		hooks:   make(map[intf.HookPoint][]intf.HookFunction),
 	}
 
-	if err = appServer.initialize(providers...); err != nil {
+	for _, apply := range options {
+		apply(appServer)
+	}
+
+	if err = appServer.initialize(); err != nil {
 		return nil, err
 	}
 
 	return appServer, nil
 }
 
-func NewHttpServer(address string, providers ...intf.Provider) (intf.AppServer, error) {
+func NewHttpServer(address string, options ...ServerOption) (intf.AppServer, error) {
 	httpServer := http.NewServiceWithMux(address, nil)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -82,9 +70,14 @@ func NewHttpServer(address string, providers ...intf.Provider) (intf.AppServer, 
 		Service: httpServer,
 		ctx:     ctx,
 		cancel:  cancel,
+		hooks:   make(map[intf.HookPoint][]intf.HookFunction),
 	}
 
-	if err := appServer.initialize(providers...); err != nil {
+	for _, apply := range options {
+		apply(appServer)
+	}
+
+	if err := appServer.initialize(); err != nil {
 		return nil, err
 	}
 
@@ -92,10 +85,32 @@ func NewHttpServer(address string, providers ...intf.Provider) (intf.AppServer, 
 }
 
 func (impl *daprServerImpl) Start() error {
+	for _, fn := range impl.hooks[intf.HookPointBeforeStart] {
+		if err := fn(); err != nil {
+			return err
+		}
+	}
+
+	// 启动前调用AppRegister函数
+	fnAppRegister := impl.fnAppRegister
+	if fnAppRegister == nil {
+		fnAppRegister = defaultGatewayRegisterFunction
+	}
+
+	if err := fnAppRegister(impl.invocationHandlers); err != nil {
+		return err
+	}
+
 	return impl.Service.Start()
 }
 
 func (impl *daprServerImpl) Stop(forced ...bool) error {
+	for _, fn := range impl.hooks[intf.HookPointBeforeStop] {
+		if err := fn(); err != nil {
+			return err
+		}
+	}
+
 	impl.cancel()
 	if len(forced) > 0 && forced[0] {
 		return impl.Service.Stop()
@@ -103,17 +118,22 @@ func (impl *daprServerImpl) Stop(forced ...bool) error {
 	return impl.Service.GracefulStop()
 }
 
+func (impl *daprServerImpl) AddHook(hookPoint intf.HookPoint, hookFunctions ...intf.HookFunction) intf.AppServer {
+	impl.hooks[hookPoint] = append(impl.hooks[hookPoint], hookFunctions...)
+	return impl
+}
+
 ///////////////////////////////////////////////////////////////////////
 // private functions
 ///////////////////////////////////////////////////////////////////////
 
 // Initialize 初始化server
-func (impl *daprServerImpl) initialize(providers ...intf.Provider) error {
+func (impl *daprServerImpl) initialize() error {
 	var (
 		loggerProvider intf.LoggerProvider
 		mqProvider     intf.MessageQueueProvider
 	)
-	for _, provider := range providers {
+	for _, provider := range impl.providers {
 		switch provider.GetCapability().Category {
 		case types.ProviderCategoryLogger:
 			loggerProvider = provider.(intf.LoggerProvider)
@@ -232,6 +252,18 @@ func (impl *daprServerImpl) addInvocationHandlers(logger intf.LoggerProvider) er
 				return err
 			}
 		}
+	}
+	return nil
+}
+
+// defaultGatewayRegisterFunction 缺省的将AppServer注册到系统的函数
+func defaultGatewayRegisterFunction(handlers []*types.ParsedDaprHandler) error {
+	if len(handlers) == 0 {
+		return nil
+	}
+	_, err := Api().Invoke("gateway", 1, "app", "register", handlers)
+	if err != nil {
+		return err
 	}
 	return nil
 }
