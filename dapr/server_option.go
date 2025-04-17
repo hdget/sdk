@@ -2,11 +2,11 @@ package dapr
 
 import (
 	"github.com/hdget/common/intf"
-	"github.com/hdget/common/types"
+	"github.com/hdget/common/protobuf"
 )
 
 // AppRegisterFunction app向gateway注册的函数
-type AppRegisterFunction func([]*types.ParsedDaprHandler) error
+type AppRegisterFunction func([]*protobuf.DaprHandler) error
 
 type ServerOption func(impl *daprServerImpl)
 
@@ -23,7 +23,7 @@ func WithGatewayRegisterFunction(fn AppRegisterFunction) ServerOption {
 	}
 }
 
-func WithInvocationHandlers(handlers []*types.ParsedDaprHandler) ServerOption {
+func WithInvocationHandlers(handlers []*protobuf.DaprHandler) ServerOption {
 	return func(impl *daprServerImpl) {
 		impl.invocationHandlers = handlers
 	}

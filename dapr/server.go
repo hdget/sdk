@@ -8,6 +8,7 @@ import (
 	"github.com/dapr/go-sdk/service/http"
 	"github.com/elliotchance/pie/v2"
 	"github.com/hdget/common/intf"
+	"github.com/hdget/common/protobuf"
 	"github.com/hdget/common/types"
 	"github.com/pkg/errors"
 	"net"
@@ -20,7 +21,7 @@ type daprServerImpl struct {
 	hooks              map[intf.HookPoint][]intf.HookFunction
 	providers          []intf.Provider
 	fnAppRegister      AppRegisterFunction // 向系统注册appServer的函数
-	invocationHandlers []*types.ParsedDaprHandler
+	invocationHandlers []*protobuf.DaprHandler
 }
 
 var (
@@ -257,7 +258,7 @@ func (impl *daprServerImpl) addInvocationHandlers(logger intf.LoggerProvider) er
 }
 
 // defaultGatewayRegisterFunction 缺省的将AppServer注册到系统的函数
-func defaultGatewayRegisterFunction(handlers []*types.ParsedDaprHandler) error {
+func defaultGatewayRegisterFunction(handlers []*protobuf.DaprHandler) error {
 	if len(handlers) == 0 {
 		return nil
 	}
