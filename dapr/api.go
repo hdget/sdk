@@ -3,6 +3,7 @@ package dapr
 import (
 	"context"
 	"github.com/dapr/go-sdk/client"
+	"github.com/hdget/common/types"
 	"github.com/spf13/cast"
 	"google.golang.org/grpc/metadata"
 	"os"
@@ -13,7 +14,7 @@ const (
 )
 
 type APIer interface {
-	Invoke(app string, moduleVersion int, module, method string, data any) ([]byte, error)
+	Invoke(app string, moduleInfo *types.DaprModuleInfo, handler string, data any) ([]byte, error)
 	Lock(lockStore, lockOwner, resource string, expiryInSeconds int) error
 	Unlock(lockStore, lockOwner, resource string) error
 	Publish(pubSubName, topic string, data interface{}, args ...bool) error

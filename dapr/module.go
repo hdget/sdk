@@ -2,9 +2,9 @@ package dapr
 
 import (
 	"fmt"
+	"github.com/hdget/common/types"
 	reflectUtils "github.com/hdget/utils/reflect"
 	"github.com/pkg/errors"
-	"regexp"
 	"strconv"
 )
 
@@ -18,31 +18,32 @@ const (
 	ModuleKindDelayEvent
 )
 
-type moduler interface {
+type Module interface {
 	GetApp() string
-	GetModuleInfo() *moduleInfo
+	GetModuleInfo() *types.DaprModuleInfo
 }
 
+//
+//type ModuleInfo struct {
+//	Version   int
+//	Namespace string
+//
+//	PkgPath    string // 包所在的路径
+//	ModuleName string // 结构体的全名, e,g: xxxModule
+//}
+
 var (
-	regModuleName        = regexp.MustCompile(`^[vV]([0-9]+)_([a-zA-Z0-9]+)`)
-	errInvalidModule     = errors.New("invalid module, it must be struct")
-	errInvalidModuleName = errors.New("invalid module name, it should be: v<number>_name, e,g: v1_abc")
-	handlerNameSuffix    = "Handler"
+	errInvalidModule = errors.New("invalid module, it must be struct")
+	moduleNameSuffix = "Module"
 )
 
 type baseModule struct {
-	app        string      // 应用名称
-	moduleInfo *moduleInfo // 模块的信息
-}
-
-type moduleInfo struct {
-	StructName    string // 模块结构体的全名, 格式: "v<模块版本号>_<模块名>"
-	ModuleName    string // 模块名
-	ModuleVersion int    // 模块版本号
+	app        string                // 应用名称
+	moduleInfo *types.DaprModuleInfo // 模块的信息
 }
 
 // newModule 从约定的结构名中解析模块名和版本, 结构名需要为v<number>_<module>
-func newModule(app string, moduleObject any) (moduler, error) {
+func newModule(app string, moduleObject any) (Module, error) {
 	structName := reflectUtils.GetStructName(moduleObject)
 	if structName == "" {
 		return nil, errInvalidModule
@@ -52,14 +53,18 @@ func newModule(app string, moduleObject any) (moduler, error) {
 		return nil, fmt.Errorf("module object: %s must be a pointer to struct", structName)
 	}
 
-	mInfo, err := parseModuleInfo(structName)
+	// 模块结构体所在的包路径
+	pkgPath := getPkgPath(moduleObject)
+
+	// 通过包路径来解析模块信息
+	moduleInfo, err := ParseDaprModuleInfo(pkgPath, structName)
 	if err != nil {
 		return nil, err
 	}
 
 	return &baseModule{
 		app:        app,
-		moduleInfo: mInfo,
+		moduleInfo: moduleInfo,
 	}, nil
 }
 
@@ -68,24 +73,38 @@ func (m *baseModule) GetApp() string {
 }
 
 // GetModuleInfo 获取模块元数据信息
-func (m *baseModule) GetModuleInfo() *moduleInfo {
+func (m *baseModule) GetModuleInfo() *types.DaprModuleInfo {
 	return m.moduleInfo
 }
 
-func parseModuleInfo(structName string) (*moduleInfo, error) {
-	tokens := regModuleName.FindStringSubmatch(structName)
-	if len(tokens) != 3 {
-		return nil, errInvalidModuleName
+// ParseDaprModuleInfo 合法的包路径为下列
+// /path/to/v1
+// /path/to/v1/pc
+// /path/to/v2/wxmp
+func ParseDaprModuleInfo(pkgPath, moduleName string) (*types.DaprModuleInfo, error) {
+	strVer, subDirs := getSubDirsAfterFirstV(pkgPath)
+	if strVer == "" {
+		return nil, errors.New("invalid module path, e,g: /path/to/v1")
 	}
 
-	moduleVersion, err := strconv.Atoi(tokens[1])
+	version, err := strconv.Atoi(strVer)
 	if err != nil {
-		return nil, errInvalidModuleName
+		return nil, errors.New("invalid version")
 	}
 
-	return &moduleInfo{
-		StructName:    structName,
-		ModuleName:    tokens[2],
-		ModuleVersion: moduleVersion,
+	var namespace string
+	switch len(subDirs) {
+	case 0:
+		namespace = ""
+	case 1:
+		namespace = subDirs[0]
+	default:
+		return nil, errors.New("invalid module path, only supports one sub level")
+	}
+
+	return &types.DaprModuleInfo{
+		Version:   version,
+		Namespace: namespace,
+		Name:      trimSuffixIgnoreCase(moduleName, moduleNameSuffix),
 	}, nil
 }

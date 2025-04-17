@@ -23,7 +23,7 @@ type invocationHandler interface {
 }
 
 type invocationHandlerImpl struct {
-	module moduler
+	module Module
 	// handler的别名，
 	// 如果DiscoverHandlers调用, 会将函数名作为入参，matchFunction的返回值当作别名，缺省是去除Handler后缀并小写
 	// 如果RegisterHandlers调用，会直接用map的key值当为别名
@@ -44,7 +44,7 @@ func (h invocationHandlerImpl) GetName() string {
 }
 
 func (h invocationHandlerImpl) GetInvokeName() string {
-	return buildServiceInvocationName(h.module.GetModuleInfo().ModuleVersion, h.module.GetModuleInfo().ModuleName, h.handlerAlias)
+	return generateMethodName(h.module.GetModuleInfo(), h.handlerAlias)
 }
 
 func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) common.ServiceInvocationHandler {
@@ -58,7 +58,8 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) com
 
 		result, err := h.fn(ctx, event)
 		if err != nil {
-			logger.Error("service invoke", "module", h.module.GetModuleInfo().StructName, "Handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
+			moduleInfo := h.module.GetModuleInfo()
+			logger.Error("service invoke", "namespace", moduleInfo.Namespace, "module", moduleInfo.Name, "Handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
 			return h.replyError(err)
 		}
 

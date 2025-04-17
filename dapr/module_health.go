@@ -8,12 +8,12 @@ import (
 )
 
 type HealthModule interface {
-	moduler
+	Module
 	GetHandler() common.HealthCheckHandler
 }
 
 type healthModuleImpl struct {
-	moduler
+	Module
 	fn HealthCheckFunction
 }
 
@@ -24,10 +24,10 @@ var (
 	EmptyHealthCheckFunction              = func(ctx context.Context) (err error) { return nil }
 )
 
-// NewHealthModule 健康模块
-func NewHealthModule(app string, moduleObject HealthModule, fn HealthCheckFunction) error {
+// Register 注册健康模块
+func (impl *healthModuleImpl) Register(app string, moduleObject HealthModule, fn HealthCheckFunction) error {
 	// 首先实例化module
-	module, err := AsHealthModule(app, moduleObject, fn)
+	module, err := asHealthModule(impl, app, fn)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func NewHealthModule(app string, moduleObject HealthModule, fn HealthCheckFuncti
 	return nil
 }
 
-// AsHealthModule 将一个any类型的结构体转换成HealthModule
+// asHealthModule 将一个any类型的结构体转换成HealthModule
 //
 // e,g:
 //
@@ -47,19 +47,19 @@ func NewHealthModule(app string, moduleObject HealthModule, fn HealthCheckFuncti
 //		}
 //
 //		 v := &v1_test{}
-//		 im, err := AsHealthModule("app",v)
+//		 im, err := asHealthModule("app",v)
 //	     if err != nil {
 //	      ...
 //	     }
-func AsHealthModule(app string, moduleObject any, fn HealthCheckFunction) (HealthModule, error) {
+func asHealthModule(moduleObject any, app string, fn HealthCheckFunction) (HealthModule, error) {
 	m, err := newModule(app, moduleObject)
 	if err != nil {
 		return nil, err
 	}
 
 	moduleInstance := &healthModuleImpl{
-		moduler: m,
-		fn:      fn,
+		Module: m,
+		fn:     fn,
 	}
 
 	// 初始化module
@@ -76,12 +76,12 @@ func AsHealthModule(app string, moduleObject any, fn HealthCheckFunction) (Healt
 	return module, nil
 }
 
-func (m *healthModuleImpl) GetHandler() common.HealthCheckHandler {
-	if m.fn == nil {
+func (impl *healthModuleImpl) GetHandler() common.HealthCheckHandler {
+	if impl.fn == nil {
 		return EmptyHealthCheckFunction
 	}
 
 	return func(ctx context.Context) error {
-		return m.fn(ctx)
+		return impl.fn(ctx)
 	}
 }

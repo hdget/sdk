@@ -2,21 +2,18 @@ package dapr
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/dapr/go-sdk/client"
+	"github.com/hdget/common/types"
 	"github.com/hdget/utils/convert"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 const ContentTypeJson = "application/json"
 
-// as we use gogoprotobuf which doesn't has protojson.RecvMessage interface
-//var jsonpb = protojson.MarshalOptions{
-//	EmitUnpopulated: true,
-//}
-//var jsonpbMarshaler = jsonpb.Marshaler{EmitDefaults: true}
-
 // Invoke 调用dapr服务
-func (a apiImpl) Invoke(app string, moduleVersion int, moduleName, handler string, data any) ([]byte, error) {
+func (a apiImpl) Invoke(app string, moduleInfo *types.DaprModuleInfo, handler string, data any) ([]byte, error) {
 	var value []byte
 	switch t := data.(type) {
 	case string:
@@ -39,11 +36,8 @@ func (a apiImpl) Invoke(app string, moduleVersion int, moduleName, handler strin
 		return nil, errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
-	// IMPORTANT: daprClient是全局的连接, 不能关闭
-	//defer daprClient.Close()
-
-	fullMethodName := buildServiceInvocationName(moduleVersion, moduleName, handler)
-	resp, err := daprClient.InvokeMethodWithContent(a.ctx, a.normalize(app), fullMethodName, "post", &client.DataContent{
+	// IMPORTANT: daprClient是全局的连接
+	resp, err := daprClient.InvokeMethodWithContent(a.ctx, a.normalize(app), generateMethodName(moduleInfo, handler), "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
 	})
@@ -52,4 +46,20 @@ func (a apiImpl) Invoke(app string, moduleVersion int, moduleName, handler strin
 	}
 
 	return resp, nil
+}
+
+func generateMethodName(moduleInfo *types.DaprModuleInfo, handler string) string {
+	if moduleInfo == nil {
+		return ""
+	}
+	tokens := []string{
+		fmt.Sprintf("v%d", moduleInfo.Version),
+		moduleInfo.Name,
+		handler,
+	}
+	// 去掉module后面的可能的module后缀
+	if moduleInfo.Namespace != "" {
+		tokens = append(tokens, moduleInfo.Namespace)
+	}
+	return strings.Join(tokens, ":")
 }
