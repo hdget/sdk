@@ -7,7 +7,6 @@ import (
 
 type InvocationModule interface {
 	Module
-	Register(app string, alias2handler map[string]InvocationFunction) error
 	RegisterHandlers(functions map[string]InvocationFunction) error // 注册Handlers
 	GetHandlers() []invocationHandler                               // 获取handlers
 	//DiscoverHandlers(args ...HandlerMatcher) ([]invocationHandler, error)                   // 通过反射发现Handlers
@@ -25,9 +24,9 @@ var (
 	_ InvocationModule = (*invocationModuleImpl)(nil)
 )
 
-func (impl *invocationModuleImpl) Register(app string, alias2handler map[string]InvocationFunction) error {
+func NewInvocationModule(moduleObject any, app string, alias2handler map[string]InvocationFunction) error {
 	// 首先实例化module
-	module, err := asInvocationModule(impl, app)
+	module, err := asInvocationModule(moduleObject, app)
 	if err != nil {
 		return err
 	}

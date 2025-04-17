@@ -26,10 +26,10 @@ var (
 	defaultAckTimeout             = 29 * time.Minute // rabbitmq的默认超时时间为30分钟这里设置为29分钟保持
 )
 
-// Register 新建事件模块会执行下列操作:
-func (impl *eventModuleImpl) Register(app, pubsub string, functions map[string]EventFunction, options ...EventModuleOption) error {
+// NewEventModule 新建事件模块会执行下列操作:
+func NewEventModule(moduleObject any, app, pubsub string, functions map[string]EventFunction, options ...EventModuleOption) error {
 	// 首先实例化module
-	module, err := asEventModule(impl, app, pubsub, options...)
+	module, err := asEventModule(moduleObject, app, pubsub, options...)
 	if err != nil {
 		return err
 	}

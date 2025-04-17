@@ -24,10 +24,10 @@ var (
 	EmptyHealthCheckFunction              = func(ctx context.Context) (err error) { return nil }
 )
 
-// Register 注册健康模块
-func (impl *healthModuleImpl) Register(app string, moduleObject HealthModule, fn HealthCheckFunction) error {
+// NewHealthModule 注册健康模块
+func NewHealthModule(moduleObject any, app string, fn HealthCheckFunction) error {
 	// 首先实例化module
-	module, err := asHealthModule(impl, app, fn)
+	module, err := asHealthModule(moduleObject, app, fn)
 	if err != nil {
 		return err
 	}

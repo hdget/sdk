@@ -26,10 +26,10 @@ var (
 	_ DelayEventModule = (*delayEventModuleImpl)(nil)
 )
 
-// Register new delay event module
-func (impl *delayEventModuleImpl) Register(app string, functions map[string]DelayEventFunction, options ...DelayEventModuleOption) error {
+// NewDelayEventModule 初始化延迟消息模块
+func NewDelayEventModule(moduleObject any, app string, functions map[string]DelayEventFunction, options ...DelayEventModuleOption) error {
 	// 首先实例化module
-	module, err := asDelayEventModule(impl, app, options...)
+	module, err := asDelayEventModule(moduleObject, app, options...)
 	if err != nil {
 		return err
 	}
