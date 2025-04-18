@@ -16,12 +16,14 @@ import (
 
 type daprServerImpl struct {
 	common.Service
-	ctx                context.Context
-	cancel             context.CancelFunc
-	hooks              map[intf.HookPoint][]intf.HookFunction
-	providers          []intf.Provider
-	fnAppRegister      AppRegisterFunction // 向系统注册appServer的函数
-	invocationHandlers []*protobuf.DaprHandler
+	ctx    context.Context
+	cancel context.CancelFunc
+	// 自定义参数
+	app              string                                 // 运行的app
+	hooks            map[intf.HookPoint][]intf.HookFunction // 钩子函数
+	providers        []intf.Provider                        // sdk的providers
+	registerFunction RegisterFunction                       // 向系统注册appServer的函数
+	registerHandlers []*protobuf.DaprHandler                // 向系统注册的方法
 }
 
 var (
@@ -35,7 +37,7 @@ func GetInvocationModules() []InvocationModule {
 	return _invocationModules
 }
 
-func NewGrpcServer(address string, options ...ServerOption) (intf.AppServer, error) {
+func NewGrpcServer(app, address string, options ...ServerOption) (intf.AppServer, error) {
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		return nil, fmt.Errorf("grpc server failed to listen on %s: %w", address, err)
@@ -50,6 +52,7 @@ func NewGrpcServer(address string, options ...ServerOption) (intf.AppServer, err
 		ctx:     ctx,
 		cancel:  cancel,
 		hooks:   make(map[intf.HookPoint][]intf.HookFunction),
+		app:     app,
 	}
 
 	for _, apply := range options {
@@ -63,7 +66,7 @@ func NewGrpcServer(address string, options ...ServerOption) (intf.AppServer, err
 	return appServer, nil
 }
 
-func NewHttpServer(address string, options ...ServerOption) (intf.AppServer, error) {
+func NewHttpServer(app, address string, options ...ServerOption) (intf.AppServer, error) {
 	httpServer := http.NewServiceWithMux(address, nil)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -72,6 +75,7 @@ func NewHttpServer(address string, options ...ServerOption) (intf.AppServer, err
 		ctx:     ctx,
 		cancel:  cancel,
 		hooks:   make(map[intf.HookPoint][]intf.HookFunction),
+		app:     app,
 	}
 
 	for _, apply := range options {
@@ -93,12 +97,12 @@ func (impl *daprServerImpl) Start() error {
 	}
 
 	// 启动前调用AppRegister函数
-	fnAppRegister := impl.fnAppRegister
-	if fnAppRegister == nil {
-		fnAppRegister = defaultGatewayRegisterFunction
+	fnRegister := impl.registerFunction
+	if fnRegister == nil {
+		fnRegister = defaultRegisterFunction
 	}
 
-	if err := fnAppRegister(impl.invocationHandlers); err != nil {
+	if err := fnRegister(impl.app, impl.registerHandlers); err != nil {
 		return err
 	}
 
@@ -257,12 +261,12 @@ func (impl *daprServerImpl) addInvocationHandlers(logger intf.LoggerProvider) er
 	return nil
 }
 
-// defaultGatewayRegisterFunction 缺省的将AppServer注册到系统的函数
-func defaultGatewayRegisterFunction(handlers []*protobuf.DaprHandler) error {
+// defaultRegisterFunction 缺省的将AppServer注册到系统的函数
+func defaultRegisterFunction(app string, handlers []*protobuf.DaprHandler) error {
 	if len(handlers) == 0 {
 		return nil
 	}
-	_, err := Api().Invoke("gateway", 1, "app", "register", handlers)
+	_, err := Api().Invoke("gateway", 1, "route", "update", handlers)
 	if err != nil {
 		return err
 	}

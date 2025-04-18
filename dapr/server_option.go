@@ -5,8 +5,8 @@ import (
 	"github.com/hdget/common/protobuf"
 )
 
-// AppRegisterFunction app向gateway注册的函数
-type AppRegisterFunction func([]*protobuf.DaprHandler) error
+// RegisterFunction app向gateway注册的函数
+type RegisterFunction func(string, []*protobuf.DaprHandler) error
 
 type ServerOption func(impl *daprServerImpl)
 
@@ -17,14 +17,14 @@ func WithProviders(providers ...intf.Provider) ServerOption {
 	}
 }
 
-func WithGatewayRegisterFunction(fn AppRegisterFunction) ServerOption {
+func WithRegisterFunction(fn RegisterFunction) ServerOption {
 	return func(impl *daprServerImpl) {
-		impl.fnAppRegister = fn
+		impl.registerFunction = fn
 	}
 }
 
-func WithInvocationHandlers(handlers []*protobuf.DaprHandler) ServerOption {
+func WithRegisterHandlers(handlers []*protobuf.DaprHandler) ServerOption {
 	return func(impl *daprServerImpl) {
-		impl.invocationHandlers = handlers
+		impl.registerHandlers = handlers
 	}
 }
