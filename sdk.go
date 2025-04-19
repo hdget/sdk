@@ -102,7 +102,7 @@ func (i *SdkInstance) Initialize(capabilities ...types.Capability) error {
 	// Start the DI container and initialize all configured providers
 	err := fx.New(fxOptions...).Start(context.Background())
 	if err != nil {
-		return err
+		return errors.Unwrap(err)
 	}
 
 	// try load config
