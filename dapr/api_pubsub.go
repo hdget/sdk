@@ -6,9 +6,21 @@ import (
 	"github.com/pkg/errors"
 )
 
-type daprEvent struct {
-	subscription *common.Subscription
-	handler      common.TopicEventHandler
+type event struct {
+	Subscription *common.Subscription
+	Handler      common.TopicEventHandler
+}
+
+func newEvent(pubsubName, topic string, handler common.TopicEventHandler, args ...bool) event {
+	metaOptions := getPublishMetaOptions(args...)
+	return event{
+		Subscription: &common.Subscription{
+			PubsubName: pubsubName,
+			Topic:      topic,
+			Metadata:   metaOptions,
+		},
+		Handler: handler,
+	}
 }
 
 // Publish 发布消息
@@ -39,18 +51,6 @@ func (a apiImpl) Publish(pubSubName, topic string, data interface{}, args ...boo
 	}
 
 	return nil
-}
-
-func getDaprEvent(pubsubName, topic string, handler common.TopicEventHandler, args ...bool) daprEvent {
-	metaOptions := getPublishMetaOptions(args...)
-	return daprEvent{
-		subscription: &common.Subscription{
-			PubsubName: pubsubName,
-			Topic:      topic,
-			Metadata:   metaOptions,
-		},
-		handler: handler,
-	}
 }
 
 func getPublishMetaOptions(args ...bool) map[string]string {

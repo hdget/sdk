@@ -13,7 +13,7 @@ const (
 )
 
 type APIer interface {
-	Invoke(app string, moduleVersion int, module, method string, data any) ([]byte, error)
+	Invoke(app string, version int, module string, handler string, data any) ([]byte, error)
 	Lock(lockStore, lockOwner, resource string, expiryInSeconds int) error
 	Unlock(lockStore, lockOwner, resource string) error
 	Publish(pubSubName, topic string, data interface{}, args ...bool) error

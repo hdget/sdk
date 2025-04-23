@@ -6,19 +6,14 @@ import (
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/utils/convert"
 	"github.com/pkg/errors"
+	"github.com/spf13/cast"
 	"strings"
 )
 
 const ContentTypeJson = "application/json"
 
-// as we use gogoprotobuf which doesn't has protojson.RecvMessage interface
-//var jsonpb = protojson.MarshalOptions{
-//	EmitUnpopulated: true,
-//}
-//var jsonpbMarshaler = jsonpb.Marshaler{EmitDefaults: true}
-
 // Invoke 调用dapr服务
-func (a apiImpl) Invoke(app string, moduleVersion int, moduleName, handler string, data any) ([]byte, error) {
+func (a apiImpl) Invoke(app string, version int, module, handler string, data any) ([]byte, error) {
 	var value []byte
 	switch t := data.(type) {
 	case string:
@@ -41,11 +36,9 @@ func (a apiImpl) Invoke(app string, moduleVersion int, moduleName, handler strin
 		return nil, errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
-	// IMPORTANT: daprClient是全局的连接, 不能关闭
-	//defer daprClient.Close()
-
-	fullMethodName := getServiceInvocationName(moduleVersion, moduleName, handler)
-	resp, err := daprClient.InvokeMethodWithContent(a.ctx, a.normalize(app), fullMethodName, "post", &client.DataContent{
+	// IMPORTANT: daprClient是全局的连接
+	method := generateMethodName(version, module, handler, cast.ToString(a.ctx.Value(MetaKeyAppId)))
+	resp, err := daprClient.InvokeMethodWithContent(a.ctx, a.normalize(app), method, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
 	})
@@ -56,7 +49,16 @@ func (a apiImpl) Invoke(app string, moduleVersion int, moduleName, handler strin
 	return resp, nil
 }
 
-// GetServiceInvocationName 构造version:module:realMethod的方法名
-func getServiceInvocationName(moduleVersion int, moduleName, handler string) string {
-	return strings.Join([]string{fmt.Sprintf("v%d", moduleVersion), moduleName, handler}, ":")
+func generateMethodName(version int, module, handler, appId string) string {
+	tokens := []string{
+		fmt.Sprintf("v%d", version),
+		module,
+		handler,
+	}
+
+	if appId != "" {
+		tokens = append(tokens, appId)
+	}
+
+	return strings.ToLower(strings.Join(tokens, ":"))
 }

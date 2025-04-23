@@ -23,7 +23,7 @@ type invocationHandler interface {
 }
 
 type invocationHandlerImpl struct {
-	module moduler
+	module Module
 	// handler的别名，
 	// 如果DiscoverHandlers调用, 会将函数名作为入参，matchFunction的返回值当作别名，缺省是去除Handler后缀并小写
 	// 如果RegisterHandlers调用，会直接用map的key值当为别名
@@ -33,7 +33,7 @@ type invocationHandlerImpl struct {
 }
 
 type InvocationFunction func(ctx context.Context, event *common.InvocationEvent) (any, error)
-type HandlerNameMatcher func(methodName string) (string, bool) // 传入receiver.methodName, 判断是否匹配，然后取出处理后的handlerName
+type HandlerMatcher func(methodName string) (string, bool) // 传入receiver.methodName, 判断是否匹配，然后取出处理后的handlerName
 
 func (h invocationHandlerImpl) GetAlias() string {
 	return h.handlerAlias
@@ -44,7 +44,8 @@ func (h invocationHandlerImpl) GetName() string {
 }
 
 func (h invocationHandlerImpl) GetInvokeName() string {
-	return getServiceInvocationName(h.module.GetModuleInfo().ModuleVersion, h.module.GetModuleInfo().ModuleName, h.handlerAlias)
+	mInfo := h.module.GetModuleInfo()
+	return generateMethodName(mInfo.Version, mInfo.Name, h.handlerAlias, mInfo.Namespace)
 }
 
 func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) common.ServiceInvocationHandler {
@@ -58,7 +59,8 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) com
 
 		result, err := h.fn(ctx, event)
 		if err != nil {
-			logger.Error("service invoke", "module", h.module.GetModuleInfo().StructName, "handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
+			mInfo := h.module.GetModuleInfo()
+			logger.Error("service invoke", "namespace", mInfo.Namespace, "module", mInfo.Name, "Handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
 			return h.replyError(err)
 		}
 

@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-type delayEventHandler interface {
+type DelayEventHandler interface {
 	GetTopic() string
 	Handle(ctx context.Context, logger intf.LoggerProvider, msgChan <-chan *types.Message)
 }

@@ -6,37 +6,38 @@ import (
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/dapr/go-sdk/service/grpc"
 	"github.com/dapr/go-sdk/service/http"
+	"github.com/elliotchance/pie/v2"
 	"github.com/hdget/common/intf"
+	"github.com/hdget/common/protobuf"
 	"github.com/hdget/common/types"
-	"github.com/hdget/sdk"
 	"github.com/pkg/errors"
 	"net"
 )
 
-type Server interface {
-	Start() error
-	Stop() error
-	GracefulStop() error
-	GetInvocationHandlers() map[string]common.ServiceInvocationHandler
-	GetBindingHandlers() map[string]common.BindingInvocationHandler
-	GetEvents() []daprEvent
-}
-
-type serverImpl struct {
+type daprServerImpl struct {
 	common.Service
-	logger intf.LoggerProvider
 	ctx    context.Context
 	cancel context.CancelFunc
+	// 自定义参数
+	app              string                                 // 运行的app
+	hooks            map[intf.HookPoint][]intf.HookFunction // 钩子函数
+	providers        []intf.Provider                        // sdk的providers
+	registerFunction RegisterFunction                       // 向系统注册appServer的函数
+	registerHandlers []*protobuf.DaprHandler                // 向系统注册的方法
 }
 
 var (
-	_moduleName2invocationModule = make(map[string]InvocationModule) // service invocation module
-	_moduleName2eventModule      = make(map[string]EventModule)      // topic event module
-	_moduleName2healthModule     = make(map[string]HealthModule)     // health module
-	_moduleName2delayEventModule = make(map[string]DelayEventModule) // delay event module
+	_invocationModules = make([]InvocationModule, 0) // service invocation module
+	_eventModules      = make([]EventModule, 0)      // topic event module
+	_healthModules     = make([]HealthModule, 0)     // health module
+	_delayEventModules = make([]DelayEventModule, 0) // delay event module
 )
 
-func NewGrpcServer(logger intf.LoggerProvider, address string) (Server, error) {
+func GetInvocationModules() []InvocationModule {
+	return _invocationModules
+}
+
+func NewGrpcServer(app, address string, options ...ServerOption) (intf.AppServer, error) {
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		return nil, fmt.Errorf("grpc server failed to listen on %s: %w", address, err)
@@ -46,11 +47,16 @@ func NewGrpcServer(logger intf.LoggerProvider, address string) (Server, error) {
 	grpcServer := grpc.NewServiceWithListener(lis)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	appServer := &serverImpl{
+	appServer := &daprServerImpl{
 		Service: grpcServer,
-		logger:  logger,
 		ctx:     ctx,
 		cancel:  cancel,
+		hooks:   make(map[intf.HookPoint][]intf.HookFunction),
+		app:     app,
+	}
+
+	for _, apply := range options {
+		apply(appServer)
 	}
 
 	if err = appServer.initialize(); err != nil {
@@ -60,15 +66,20 @@ func NewGrpcServer(logger intf.LoggerProvider, address string) (Server, error) {
 	return appServer, nil
 }
 
-func NewHttpServer(logger intf.LoggerProvider, address string) (Server, error) {
+func NewHttpServer(app, address string, options ...ServerOption) (intf.AppServer, error) {
 	httpServer := http.NewServiceWithMux(address, nil)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	appServer := &serverImpl{
+	appServer := &daprServerImpl{
 		Service: httpServer,
-		logger:  logger,
 		ctx:     ctx,
 		cancel:  cancel,
+		hooks:   make(map[intf.HookPoint][]intf.HookFunction),
+		app:     app,
+	}
+
+	for _, apply := range options {
+		apply(appServer)
 	}
 
 	if err := appServer.initialize(); err != nil {
@@ -78,80 +89,105 @@ func NewHttpServer(logger intf.LoggerProvider, address string) (Server, error) {
 	return appServer, nil
 }
 
-func (impl *serverImpl) Start() error {
+func (impl *daprServerImpl) Start() error {
+	for _, fn := range impl.hooks[intf.HookPointBeforeStart] {
+		if err := fn(); err != nil {
+			return err
+		}
+	}
+
+	// 启动前调用AppRegister函数
+	fnRegister := impl.registerFunction
+	if fnRegister == nil {
+		fnRegister = defaultRegisterFunction
+	}
+
+	if err := fnRegister(impl.app, impl.registerHandlers); err != nil {
+		return err
+	}
+
 	return impl.Service.Start()
 }
 
-func (impl *serverImpl) Stop() error {
-	impl.cancel()
-	return impl.Service.Stop()
-}
+func (impl *daprServerImpl) Stop(forced ...bool) error {
+	for _, fn := range impl.hooks[intf.HookPointBeforeStop] {
+		if err := fn(); err != nil {
+			return err
+		}
+	}
 
-func (impl *serverImpl) GracefulStop() error {
 	impl.cancel()
+	if len(forced) > 0 && forced[0] {
+		return impl.Service.Stop()
+	}
 	return impl.Service.GracefulStop()
 }
 
+func (impl *daprServerImpl) AddHook(hookPoint intf.HookPoint, hookFunctions ...intf.HookFunction) intf.AppServer {
+	impl.hooks[hookPoint] = append(impl.hooks[hookPoint], hookFunctions...)
+	return impl
+}
+
+///////////////////////////////////////////////////////////////////////
+// private functions
+///////////////////////////////////////////////////////////////////////
+
 // Initialize 初始化server
-func (impl *serverImpl) initialize() error {
-	// 注册health check handler
-	if err := impl.AddHealthCheckHandler("", impl.GetHealthCheckHandler()); err != nil {
+func (impl *daprServerImpl) initialize() error {
+	var (
+		loggerProvider intf.LoggerProvider
+		mqProvider     intf.MessageQueueProvider
+	)
+	for _, provider := range impl.providers {
+		switch provider.GetCapability().Category {
+		case types.ProviderCategoryLogger:
+			loggerProvider = provider.(intf.LoggerProvider)
+		case types.ProviderCategoryMq:
+			mqProvider = provider.(intf.MessageQueueProvider)
+		}
+	}
+
+	if err := impl.addHealthCheckHandler(); err != nil {
 		return errors.Wrap(err, "adding health check handler")
 	}
 
-	// 注册各种类型的handlers
-	for method, handler := range impl.GetInvocationHandlers() {
-		if err := impl.AddServiceInvocationHandler(method, handler); err != nil {
-			return errors.Wrap(err, "adding invocation handler")
-		}
+	if err := impl.addInvocationHandlers(loggerProvider); err != nil {
+		return errors.Wrap(err, "adding invocation handlers")
 	}
 
-	for name, handler := range impl.GetBindingHandlers() {
-		if err := impl.AddBindingInvocationHandler(name, handler); err != nil {
-			return errors.Wrap(err, "adding binding handler")
-		}
+	if err := impl.addEventHandlers(loggerProvider); err != nil {
+		return errors.Wrap(err, "adding event handlers")
 	}
 
-	for _, event := range impl.GetEvents() {
-		if err := impl.AddTopicEventHandler(event.subscription, event.handler); err != nil {
-			return errors.Wrap(err, "adding event handler")
-		}
-	}
-
-	err := impl.SubscribeDelayEvents()
-	if err != nil {
-		return errors.Wrap(err, "adding delay event handler")
+	if err := impl.subscribeDelayEvents(loggerProvider, mqProvider); err != nil {
+		return errors.Wrap(err, "subscribe delay events")
 	}
 
 	return nil
 }
 
-func (impl *serverImpl) GetInvocationHandlers() map[string]common.ServiceInvocationHandler {
-	// 获取handlers
-	handlers := make(map[string]common.ServiceInvocationHandler)
-	for _, invocationModule := range _moduleName2invocationModule {
-		for _, h := range invocationModule.GetHandlers() {
-			handlers[h.GetInvokeName()] = h.GetInvokeFunction(impl.logger)
-		}
+// addEventHandlers 添加事件处理函数
+func (impl *daprServerImpl) addEventHandlers(logger intf.LoggerProvider) error {
+	if logger == nil {
+		return errors.New("logger provider not found")
 	}
-	return handlers
-}
 
-func (impl *serverImpl) GetEvents() []daprEvent {
-	// 获取handlers
-	events := make([]daprEvent, 0)
-	for _, m := range _moduleName2eventModule {
+	for _, m := range _eventModules {
 		for _, h := range m.GetHandlers() {
-			events = append(events, getDaprEvent(m.GetPubSub(), h.GetTopic(), h.GetEventFunction(impl.logger)))
+			e := newEvent(m.GetPubSub(), h.GetTopic(), h.GetEventFunction(logger))
+			if err := impl.AddTopicEventHandler(e.Subscription, e.Handler); err != nil {
+				return err
+			}
 		}
 	}
-	return events
+	return nil
 }
 
-func (impl *serverImpl) SubscribeDelayEvents() error {
+// subscribeDelayEvents 添加延迟事件处理函数
+func (impl *daprServerImpl) subscribeDelayEvents(logger intf.LoggerProvider, mq intf.MessageQueueProvider) error {
 	var app string
-	topic2delayEventHandler := make(map[string]delayEventHandler)
-	for _, m := range _moduleName2delayEventModule {
+	topic2delayEventHandler := make(map[string]DelayEventHandler)
+	for _, m := range _delayEventModules {
 		if app == "" {
 			app = m.GetApp()
 		}
@@ -170,12 +206,15 @@ func (impl *serverImpl) SubscribeDelayEvents() error {
 		return errors.New("app not found")
 	}
 
-	// if we configured delay event module, but no message queue configured raise error
-	if sdk.Mq() == nil {
-		return errors.New("sdk message queue not initialized")
+	if logger == nil {
+		return errors.New("logger provider not found")
 	}
 
-	delaySubscriber, err := sdk.Mq().NewSubscriber(app, &types.SubscriberOption{SubscribeDelayMessage: true})
+	if mq == nil {
+		return errors.New("message queue provider not found")
+	}
+
+	delaySubscriber, err := mq.NewSubscriber(app, &types.SubscriberOption{SubscribeDelayMessage: true})
 	if err != nil {
 		return errors.Wrapf(err, "new delaySubscriber, name: %s", app)
 	}
@@ -186,42 +225,63 @@ func (impl *serverImpl) SubscribeDelayEvents() error {
 			return errors.Wrapf(err, "subscribe topic, topic: %s", h.GetTopic())
 		}
 
-		impl.logger.Debug("subscribe delay event", "topic", h.GetTopic())
-		go h.Handle(impl.ctx, impl.logger, msgChan)
+		logger.Debug("subscribe delay event", "topic", h.GetTopic())
+		go h.Handle(impl.ctx, logger, msgChan)
 	}
 	return nil
 }
 
-func (impl *serverImpl) GetHealthCheckHandler() common.HealthCheckHandler {
-	if len(_moduleName2healthModule) == 0 {
-		return emptyHealthCheckFunction
+// addHealthCheckHandler 添加健康检测Handler
+func (impl *daprServerImpl) addHealthCheckHandler() error {
+	var h common.HealthCheckHandler
+	if len(_healthModules) == 0 {
+		h = EmptyHealthCheckFunction
+	} else {
+		h = pie.First(_healthModules).GetHandler()
 	}
 
-	var firstModule HealthModule
-	for _, module := range _moduleName2healthModule {
-		firstModule = module
-		break
-	}
-	return firstModule.GetHandler()
+	// 注册health check handler
+	return impl.AddHealthCheckHandler("", h)
 }
 
-// GetBindingHandlers todo:需要通过反射获取bindingHandlers
-func (impl *serverImpl) GetBindingHandlers() map[string]common.BindingInvocationHandler {
+// addHealthCheckHandler 添加服务调用Handler
+func (impl *daprServerImpl) addInvocationHandlers(logger intf.LoggerProvider) error {
+	if logger == nil {
+		return errors.New("logger provider not found")
+	}
+
+	// 注册各种类型的handlers
+	for _, m := range _invocationModules {
+		for _, h := range m.GetHandlers() {
+			if err := impl.AddServiceInvocationHandler(h.GetInvokeName(), h.GetInvokeFunction(logger)); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
-func registerInvocationModule(module InvocationModule) {
-	_moduleName2invocationModule[module.GetModuleInfo().ModuleName] = module
+// defaultRegisterFunction 缺省的将AppServer注册到系统的函数
+func defaultRegisterFunction(app string, handlers []*protobuf.DaprHandler) error {
+	if len(handlers) == 0 {
+		return nil
+	}
+	_, err := Api().Invoke("gateway", 1, "route", "update", handlers)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func registerEventModule(module EventModule) {
-	_moduleName2eventModule[module.GetModuleInfo().ModuleName] = module
-}
-
-func registerDelayEventModule(module DelayEventModule) {
-	_moduleName2delayEventModule[module.GetModuleInfo().ModuleName] = module
-}
-
-func registerHealthModule(module HealthModule) {
-	_moduleName2healthModule[module.GetModuleInfo().ModuleName] = module
+func registerModule(module any) {
+	switch m := module.(type) {
+	case InvocationModule:
+		_invocationModules = append(_invocationModules, m)
+	case EventModule:
+		_eventModules = append(_eventModules, m)
+	case DelayEventModule:
+		_delayEventModules = append(_delayEventModules, m)
+	case HealthModule:
+		_healthModules = append(_healthModules, m)
+	}
 }
