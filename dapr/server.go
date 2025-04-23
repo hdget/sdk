@@ -174,7 +174,7 @@ func (impl *daprServerImpl) addEventHandlers(logger intf.LoggerProvider) error {
 
 	for _, m := range _eventModules {
 		for _, h := range m.GetHandlers() {
-			e := NewEvent(m.GetPubSub(), h.GetTopic(), h.GetEventFunction(logger))
+			e := newEvent(m.GetPubSub(), h.GetTopic(), h.GetEventFunction(logger))
 			if err := impl.AddTopicEventHandler(e.Subscription, e.Handler); err != nil {
 				return err
 			}

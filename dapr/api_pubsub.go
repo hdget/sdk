@@ -6,14 +6,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Event struct {
+type event struct {
 	Subscription *common.Subscription
 	Handler      common.TopicEventHandler
 }
 
-func NewEvent(pubsubName, topic string, handler common.TopicEventHandler, args ...bool) Event {
+func newEvent(pubsubName, topic string, handler common.TopicEventHandler, args ...bool) event {
 	metaOptions := getPublishMetaOptions(args...)
-	return Event{
+	return event{
 		Subscription: &common.Subscription{
 			PubsubName: pubsubName,
 			Topic:      topic,

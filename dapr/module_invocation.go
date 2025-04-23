@@ -9,8 +9,6 @@ type InvocationModule interface {
 	Module
 	RegisterHandlers(functions map[string]InvocationFunction) error // 注册Handlers
 	GetHandlers() []invocationHandler                               // 获取handlers
-	//DiscoverHandlers(args ...HandlerMatcher) ([]invocationHandler, error)                   // 通过反射发现Handlers
-	//GetRouteAnnotations(srcPath string, args ...HandlerMatcher) ([]*routeAnnotation, error) // 从源代码获取路由注解
 }
 
 type invocationModuleImpl struct {
@@ -20,7 +18,6 @@ type invocationModuleImpl struct {
 }
 
 var (
-	// errInvalidInvocationFunction                  = errors.New("invalid invocation function signature, it should be: func(context.Context, *common.InvocationEvent) (any, error)")
 	_ InvocationModule = (*invocationModuleImpl)(nil)
 )
 

@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-type DaprModuleInfo struct {
+type moduleInfo struct {
 	Version   int    // 版本
 	Namespace string // can be used to distinguish different client
 	Name      string // 处理后的模块名
@@ -15,22 +15,13 @@ type DaprModuleInfo struct {
 
 type Module interface {
 	GetApp() string
-	GetModuleInfo() *DaprModuleInfo
+	GetModuleInfo() *moduleInfo
 }
 
 type baseModule struct {
-	app        string          // 应用名称
-	moduleInfo *DaprModuleInfo // 模块的信息
+	app        string      // 应用名称
+	moduleInfo *moduleInfo // 模块的信息
 }
-
-//
-//type ModuleInfo struct {
-//	Version   int
-//	Namespace string
-//
-//	PkgPath    string // 包所在的路径
-//	ModuleName string // 结构体的全名, e,g: xxxModule
-//}
 
 var (
 	errInvalidModule = errors.New("invalid module, it must be struct")
@@ -68,15 +59,15 @@ func (m *baseModule) GetApp() string {
 }
 
 // GetModuleInfo 获取模块元数据信息
-func (m *baseModule) GetModuleInfo() *DaprModuleInfo {
+func (m *baseModule) GetModuleInfo() *moduleInfo {
 	return m.moduleInfo
 }
 
-// ParseDaprModuleInfo 合法的包路径为下列
-// /path/to/v1
-// /path/to/v1/pc
-// /path/to/v2/wxmp
-func ParseDaprModuleInfo(pkgPath, moduleName string) (*DaprModuleInfo, error) {
+// ParseDaprModuleInfo 合法的包路径可能为以下格式：
+// * /path/to/v1
+// * /path/to/v1/pc
+// * /path/to/v2/wxmp
+func ParseDaprModuleInfo(pkgPath, moduleName string) (*moduleInfo, error) {
 	strVer, subDirs := getSubDirsAfterFirstV(pkgPath)
 	if strVer == "" {
 		return nil, errors.New("invalid module path, e,g: /path/to/v1")
@@ -97,7 +88,7 @@ func ParseDaprModuleInfo(pkgPath, moduleName string) (*DaprModuleInfo, error) {
 		return nil, errors.New("invalid module path, only supports one sub level")
 	}
 
-	return &DaprModuleInfo{
+	return &moduleInfo{
 		Version:   version,
 		Namespace: namespace,
 		Name:      trimSuffixIgnoreCase(moduleName, moduleNameSuffix),
