@@ -216,7 +216,7 @@ func (impl *daprServerImpl) subscribeDelayEvents() error {
 
 	delaySubscriber, err := impl.mq.NewSubscriber(app, &types.SubscriberOption{SubscribeDelayMessage: true})
 	if err != nil {
-		return errors.Wrapf(err, "new delaySubscriber, name: %s", app)
+		return errors.Wrapf(err, "new delay event subscriber, name: %s", app)
 	}
 
 	for _, h := range topic2delayEventHandler {
