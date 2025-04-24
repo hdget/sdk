@@ -2,6 +2,7 @@ package dapr
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/dapr/go-sdk/service/grpc"
@@ -24,6 +25,9 @@ type daprServerImpl struct {
 	providers        []intf.Provider                        // sdk的providers
 	registerFunction RegisterFunction                       // 向系统注册appServer的函数
 	registerHandlers []*protobuf.DaprHandler                // 向系统注册的方法
+	assets           embed.FS                               // 嵌入文件系统
+	logger           intf.LoggerProvider
+	mq               intf.MessageQueueProvider
 }
 
 var (
@@ -99,7 +103,7 @@ func (impl *daprServerImpl) Start() error {
 	// 启动前调用AppRegister函数
 	fnRegister := impl.registerFunction
 	if fnRegister == nil {
-		fnRegister = defaultRegisterFunction
+		fnRegister = impl.defaultRegisterFunction
 	}
 
 	if err := fnRegister(impl.app, impl.registerHandlers); err != nil {
@@ -134,16 +138,12 @@ func (impl *daprServerImpl) AddHook(hookPoint intf.HookPoint, hookFunctions ...i
 
 // Initialize 初始化server
 func (impl *daprServerImpl) initialize() error {
-	var (
-		loggerProvider intf.LoggerProvider
-		mqProvider     intf.MessageQueueProvider
-	)
 	for _, provider := range impl.providers {
 		switch provider.GetCapability().Category {
 		case types.ProviderCategoryLogger:
-			loggerProvider = provider.(intf.LoggerProvider)
+			impl.logger = provider.(intf.LoggerProvider)
 		case types.ProviderCategoryMq:
-			mqProvider = provider.(intf.MessageQueueProvider)
+			impl.mq = provider.(intf.MessageQueueProvider)
 		}
 	}
 
@@ -151,15 +151,15 @@ func (impl *daprServerImpl) initialize() error {
 		return errors.Wrap(err, "adding health check handler")
 	}
 
-	if err := impl.addInvocationHandlers(loggerProvider); err != nil {
+	if err := impl.addInvocationHandlers(); err != nil {
 		return errors.Wrap(err, "adding invocation handlers")
 	}
 
-	if err := impl.addEventHandlers(loggerProvider); err != nil {
+	if err := impl.addEventHandlers(); err != nil {
 		return errors.Wrap(err, "adding event handlers")
 	}
 
-	if err := impl.subscribeDelayEvents(loggerProvider, mqProvider); err != nil {
+	if err := impl.subscribeDelayEvents(); err != nil {
 		return errors.Wrap(err, "subscribe delay events")
 	}
 
@@ -167,14 +167,14 @@ func (impl *daprServerImpl) initialize() error {
 }
 
 // addEventHandlers 添加事件处理函数
-func (impl *daprServerImpl) addEventHandlers(logger intf.LoggerProvider) error {
-	if logger == nil {
+func (impl *daprServerImpl) addEventHandlers() error {
+	if impl.logger == nil {
 		return errors.New("logger provider not found")
 	}
 
 	for _, m := range _eventModules {
 		for _, h := range m.GetHandlers() {
-			e := newEvent(m.GetPubSub(), h.GetTopic(), h.GetEventFunction(logger))
+			e := newEvent(m.GetPubSub(), h.GetTopic(), h.GetEventFunction(impl.logger))
 			if err := impl.AddTopicEventHandler(e.Subscription, e.Handler); err != nil {
 				return err
 			}
@@ -184,7 +184,15 @@ func (impl *daprServerImpl) addEventHandlers(logger intf.LoggerProvider) error {
 }
 
 // subscribeDelayEvents 添加延迟事件处理函数
-func (impl *daprServerImpl) subscribeDelayEvents(logger intf.LoggerProvider, mq intf.MessageQueueProvider) error {
+func (impl *daprServerImpl) subscribeDelayEvents() error {
+	if impl.logger == nil {
+		return errors.New("logger provider not found")
+	}
+
+	if impl.mq == nil {
+		return errors.New("message queue provider not found")
+	}
+
 	var app string
 	topic2delayEventHandler := make(map[string]DelayEventHandler)
 	for _, m := range _delayEventModules {
@@ -206,17 +214,9 @@ func (impl *daprServerImpl) subscribeDelayEvents(logger intf.LoggerProvider, mq 
 		return errors.New("app not found")
 	}
 
-	if logger == nil {
-		return errors.New("logger provider not found")
-	}
-
-	if mq == nil {
-		return errors.New("message queue provider not found")
-	}
-
-	delaySubscriber, err := mq.NewSubscriber(app, &types.SubscriberOption{SubscribeDelayMessage: true})
+	delaySubscriber, err := impl.mq.NewSubscriber(app, &types.SubscriberOption{SubscribeDelayMessage: true})
 	if err != nil {
-		return errors.Wrapf(err, "new delaySubscriber, name: %s", app)
+		return errors.Wrapf(err, "new delay event subscriber, name: %s", app)
 	}
 
 	for _, h := range topic2delayEventHandler {
@@ -225,8 +225,8 @@ func (impl *daprServerImpl) subscribeDelayEvents(logger intf.LoggerProvider, mq 
 			return errors.Wrapf(err, "subscribe topic, topic: %s", h.GetTopic())
 		}
 
-		logger.Debug("subscribe delay event", "topic", h.GetTopic())
-		go h.Handle(impl.ctx, logger, msgChan)
+		impl.logger.Debug("subscribe delay event", "topic", h.GetTopic())
+		go h.Handle(impl.ctx, impl.logger, msgChan)
 	}
 	return nil
 }
@@ -245,15 +245,15 @@ func (impl *daprServerImpl) addHealthCheckHandler() error {
 }
 
 // addHealthCheckHandler 添加服务调用Handler
-func (impl *daprServerImpl) addInvocationHandlers(logger intf.LoggerProvider) error {
-	if logger == nil {
+func (impl *daprServerImpl) addInvocationHandlers() error {
+	if impl.logger == nil {
 		return errors.New("logger provider not found")
 	}
 
 	// 注册各种类型的handlers
 	for _, m := range _invocationModules {
 		for _, h := range m.GetHandlers() {
-			if err := impl.AddServiceInvocationHandler(h.GetInvokeName(), h.GetInvokeFunction(logger)); err != nil {
+			if err := impl.AddServiceInvocationHandler(h.GetInvokeName(), h.GetInvokeFunction(impl.logger)); err != nil {
 				return err
 			}
 		}
@@ -262,11 +262,23 @@ func (impl *daprServerImpl) addInvocationHandlers(logger intf.LoggerProvider) er
 }
 
 // defaultRegisterFunction 缺省的将AppServer注册到系统的函数
-func defaultRegisterFunction(app string, handlers []*protobuf.DaprHandler) error {
-	if len(handlers) == 0 {
+func (impl *daprServerImpl) defaultRegisterFunction(app string, handlers []*protobuf.DaprHandler) error {
+	exposedHandlers := handlers
+
+	// 如果没有传入handlers, 尝试从资源目录的.exposed_handlers.json中加载handlers
+	if len(exposedHandlers) == 0 {
+		var err error
+		exposedHandlers, err = loadExposedHandlers(impl.assets)
+		if err != nil && impl.logger != nil {
+			impl.logger.Debug("load exposed handlers", "err", err)
+		}
+	}
+
+	if len(exposedHandlers) == 0 {
 		return nil
 	}
-	_, err := Api().Invoke("gateway", 1, "route", "update", handlers)
+
+	_, err := Api().Invoke("gateway", 1, "route", "update", exposedHandlers)
 	if err != nil {
 		return err
 	}

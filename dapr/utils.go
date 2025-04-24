@@ -1,8 +1,12 @@
 package dapr
 
 import (
+	"embed"
+	"encoding/json"
+	"github.com/hdget/common/protobuf"
 	"github.com/hdget/utils/convert"
 	"github.com/hdget/utils/text"
+	"path"
 	"reflect"
 	"regexp"
 	"strings"
@@ -11,6 +15,10 @@ import (
 var (
 	truncateSize = 200
 	regexFirstV  = regexp.MustCompile(`(?:^|\/)v(\d+)(?:\/([^\/]+.*))?`)
+)
+
+const (
+	fileExposedHandlers = ".exposed_handlers.json"
 )
 
 func truncate(data []byte) string {
@@ -61,4 +69,19 @@ func getSubDirsAfterFirstV(path string) (version string, dirs []string) {
 		}
 	}
 	return
+}
+
+func loadExposedHandlers(fs embed.FS) ([]*protobuf.DaprHandler, error) {
+	// IMPORTANT: embedfs使用的是斜杠来获取文件路径,在windows平台下如果使用filepath来处理路径会导致问题
+	data, err := fs.ReadFile(path.Join("json", fileExposedHandlers))
+	if err != nil {
+		return nil, err
+	}
+
+	var handlers []*protobuf.DaprHandler
+	err = json.Unmarshal(data, &handlers)
+	if err != nil {
+		return nil, err
+	}
+	return handlers, nil
 }
