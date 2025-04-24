@@ -1,6 +1,7 @@
 package dapr
 
 import (
+	"embed"
 	"github.com/hdget/common/intf"
 	"github.com/hdget/common/protobuf"
 )
@@ -26,5 +27,11 @@ func WithRegisterFunction(fn RegisterFunction) ServerOption {
 func WithRegisterHandlers(handlers []*protobuf.DaprHandler) ServerOption {
 	return func(impl *daprServerImpl) {
 		impl.registerHandlers = handlers
+	}
+}
+
+func WithAssets(fs embed.FS) ServerOption {
+	return func(impl *daprServerImpl) {
+		impl.assets = fs
 	}
 }
