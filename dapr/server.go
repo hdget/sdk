@@ -271,7 +271,6 @@ func (impl *daprServerImpl) defaultRegisterFunction(app string, handlers []*prot
 		exposedHandlers, err = loadExposedHandlers(impl.assets)
 		if err != nil && impl.logger != nil {
 			impl.logger.Debug("load exposed handlers", "err", err)
-			return nil
 		}
 	}
 
