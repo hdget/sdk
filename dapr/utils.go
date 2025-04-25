@@ -71,7 +71,8 @@ func getSubDirsAfterFirstV(path string) (version string, dirs []string) {
 	return
 }
 
-func loadExposedHandlers(fs embed.FS) ([]*protobuf.DaprHandler, error) {
+// LoadStoredExposedHandlers 从embed.FS中加载ast解析后保存的DaprHandlers
+func LoadStoredExposedHandlers(fs embed.FS) ([]*protobuf.DaprHandler, error) {
 	// IMPORTANT: embedfs使用的是斜杠来获取文件路径,在windows平台下如果使用filepath来处理路径会导致问题
 	data, err := fs.ReadFile(path.Join("json", fileExposedHandlers))
 	if err != nil {
