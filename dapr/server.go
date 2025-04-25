@@ -268,7 +268,7 @@ func (impl *daprServerImpl) defaultRegisterFunction(app string, handlers []*prot
 	// 如果没有传入handlers, 尝试从资源目录的.exposed_handlers.json中加载handlers
 	if len(exposedHandlers) == 0 {
 		var err error
-		exposedHandlers, err = loadExposedHandlers(impl.assets)
+		exposedHandlers, err = LoadStoredExposedHandlers(impl.assets)
 		if err != nil && impl.logger != nil {
 			impl.logger.Debug("load exposed handlers", "err", err)
 		}
