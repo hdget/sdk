@@ -185,14 +185,6 @@ func (impl *daprServerImpl) addEventHandlers() error {
 
 // subscribeDelayEvents 添加延迟事件处理函数
 func (impl *daprServerImpl) subscribeDelayEvents() error {
-	if impl.logger == nil {
-		return errors.New("logger provider not found")
-	}
-
-	if impl.mq == nil {
-		return errors.New("message queue provider not found")
-	}
-
 	var app string
 	topic2delayEventHandler := make(map[string]DelayEventHandler)
 	for _, m := range _delayEventModules {
@@ -212,6 +204,14 @@ func (impl *daprServerImpl) subscribeDelayEvents() error {
 	// delaySubscriber.SubscribeDelay需要指定subscribe的name
 	if app == "" {
 		return errors.New("app not found")
+	}
+
+	if impl.logger == nil {
+		return errors.New("logger provider not found")
+	}
+
+	if impl.mq == nil {
+		return errors.New("message queue provider not found")
 	}
 
 	delaySubscriber, err := impl.mq.NewSubscriber(app, &types.SubscriberOption{SubscribeDelayMessage: true})
