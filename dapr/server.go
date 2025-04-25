@@ -280,7 +280,7 @@ func (impl *daprServerImpl) defaultRegisterFunction(app string, handlers []*prot
 
 	_, err := Api().Invoke("gateway", 1, "route", "update", &protobuf.UpdateRouteRequest{
 		App:      app,
-		Handlers: handlers,
+		Handlers: exposedHandlers,
 	})
 	if err != nil {
 		return err
