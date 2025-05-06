@@ -57,7 +57,7 @@ func getClient(ctx context.Context) string {
 		return ""
 	}
 
-	values := md.Get(MetaKeyClientId)
+	values := md.Get(MetaKeyClient)
 	if len(values) == 0 {
 		return ""
 	}

@@ -8,20 +8,20 @@ import (
 )
 
 const (
-	MetaKeyClientId = "hd-client-id"
-	MetaKeyRelease  = "hd-release"
-	MetaKeyTid      = "hd-tid"
-	MetaKeyEtid     = "hd-etid"
-	MetaKeyEuid     = "hd-euid"  // encoded user id
-	MetaKeyErids    = "hd-erids" // encoded role ids
-	MetaKeyCaller   = "dapr-caller-app-id"
+	MetaKeyClient  = "hd-client"
+	MetaKeyRelease = "hd-release"
+	MetaKeyTid     = "hd-tid"
+	MetaKeyEtid    = "hd-etid"
+	MetaKeyEuid    = "hd-euid"  // encoded user id
+	MetaKeyErids   = "hd-erids" // encoded role ids
+	MetaKeyCaller  = "dapr-caller-app-id"
 )
 
 var (
 	// MetaKeys 所有meta的关键字
 	_httpHeaderKeys = []string{
 		MetaKeyEtid,
-		MetaKeyClientId,
+		MetaKeyClient,
 		MetaKeyRelease,
 	}
 )
@@ -50,7 +50,7 @@ func Meta() MetaManager {
 }
 
 func (m metaManagerImpl) GetClientId(ctx context.Context) string {
-	return getGrpcMdFirstValue(ctx, MetaKeyClientId)
+	return getGrpcMdFirstValue(ctx, MetaKeyClient)
 }
 
 func (m metaManagerImpl) GetHttpHeaderKeys() []string {
