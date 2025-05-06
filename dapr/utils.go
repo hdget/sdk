@@ -1,13 +1,11 @@
 package dapr
 
 import (
-	"context"
 	"embed"
 	"encoding/json"
 	"github.com/hdget/common/protobuf"
 	"github.com/hdget/utils/convert"
 	"github.com/hdget/utils/text"
-	"google.golang.org/grpc/metadata"
 	"path"
 	"reflect"
 	"regexp"
@@ -87,27 +85,4 @@ func getSubDirsAfterFirstV(path string) (version string, dirs []string) {
 		}
 	}
 	return
-}
-
-// getGrpcMdFirstValue get grpc metadata first value
-func getGrpcMdFirstValue(ctx context.Context, key string) string {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return ""
-	}
-
-	values := md.Get(key)
-	if len(values) == 0 {
-		return ""
-	}
-	return values[0]
-}
-
-// getGrpcMdValues get grpc meta all values
-func getGrpcMdValues(ctx context.Context, key string) []string {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return nil
-	}
-	return md.Get(key)
 }
