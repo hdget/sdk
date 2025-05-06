@@ -1,11 +1,13 @@
 package dapr
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/utils/convert"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc/metadata"
 	"strings"
 )
 
@@ -37,7 +39,7 @@ func (a apiImpl) Invoke(app string, version int, module, handler string, data an
 
 	// IMPORTANT: daprClient是全局的连接
 	appId := a.normalize(app)
-	method := generateMethodName(version, module, handler, getGrpcMdFirstValue(a.ctx, MetaKeyAppId))
+	method := generateMethodName(version, module, handler, getClientId(a.ctx))
 	resp, err := daprClient.InvokeMethodWithContent(a.ctx, appId, method, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
@@ -47,6 +49,19 @@ func (a apiImpl) Invoke(app string, version int, module, handler string, data an
 	}
 
 	return resp, nil
+}
+
+func getClientId(ctx context.Context) string {
+	md, ok := metadata.FromOutgoingContext(ctx)
+	if !ok {
+		return ""
+	}
+
+	values := md.Get(MetaKeyClientId)
+	if len(values) == 0 {
+		return ""
+	}
+	return values[0]
 }
 
 func generateMethodName(version int, module, handler, appId string) string {

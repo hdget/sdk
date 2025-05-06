@@ -4,30 +4,31 @@ import (
 	"context"
 	"github.com/hdget/sdk/encoding"
 	"github.com/spf13/cast"
+	"google.golang.org/grpc/metadata"
 )
 
 const (
-	MetaKeyAppId   = "Hd-App-Id"
-	MetaKeyRelease = "Hd-Release"
-	MetaKeyTid     = "Hd-Tid"
-	MetaKeyEtid    = "Hd-Etid"
-	MetaKeyEuid    = "Hd-Euid"  // encoded user id
-	MetaKeyErids   = "Hd-Erids" // encoded role ids
-	MetaKeyCaller  = "dapr-caller-app-id"
+	MetaKeyClientId = "hd-client-id"
+	MetaKeyRelease  = "hd-release"
+	MetaKeyTid      = "hd-tid"
+	MetaKeyEtid     = "hd-etid"
+	MetaKeyEuid     = "hd-euid"  // encoded user id
+	MetaKeyErids    = "hd-erids" // encoded role ids
+	MetaKeyCaller   = "dapr-caller-app-id"
 )
 
 var (
 	// MetaKeys 所有meta的关键字
 	_httpHeaderKeys = []string{
 		MetaKeyEtid,
-		MetaKeyAppId,
+		MetaKeyClientId,
 		MetaKeyRelease,
 	}
 )
 
 type MetaManager interface {
 	GetHttpHeaderKeys() []string
-	GetAppId(ctx context.Context) string
+	GetClientId(ctx context.Context) string
 	GetRelease(ctx context.Context) string
 	GetCaller(ctx context.Context) string
 	GetUserId(ctx context.Context) int64
@@ -48,8 +49,8 @@ func Meta() MetaManager {
 	return &metaManagerImpl{}
 }
 
-func (m metaManagerImpl) GetAppId(ctx context.Context) string {
-	return getGrpcMdFirstValue(ctx, MetaKeyAppId)
+func (m metaManagerImpl) GetClientId(ctx context.Context) string {
+	return getGrpcMdFirstValue(ctx, MetaKeyClientId)
 }
 
 func (m metaManagerImpl) GetHttpHeaderKeys() []string {
@@ -81,4 +82,27 @@ func (m metaManagerImpl) GetTenantId(ctx context.Context) int64 {
 
 func (m metaManagerImpl) GetEtid(ctx context.Context) string {
 	return getGrpcMdFirstValue(ctx, MetaKeyEtid)
+}
+
+// getGrpcMdFirstValue get grpc metadata first value
+func getGrpcMdFirstValue(ctx context.Context, key string) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
+	}
+
+	values := md.Get(key)
+	if len(values) == 0 {
+		return ""
+	}
+	return values[0]
+}
+
+// getGrpcMdValues get grpc meta all values
+func getGrpcMdValues(ctx context.Context, key string) []string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil
+	}
+	return md.Get(key)
 }
