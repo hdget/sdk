@@ -49,7 +49,7 @@ func Meta() MetaManager {
 }
 
 func (m metaManagerImpl) GetAppId(ctx context.Context) string {
-	return getFirstGrpcMetaValue(ctx, MetaKeyAppId)
+	return getGrpcMdFirstValue(ctx, MetaKeyAppId)
 }
 
 func (m metaManagerImpl) GetHttpHeaderKeys() []string {
@@ -57,28 +57,28 @@ func (m metaManagerImpl) GetHttpHeaderKeys() []string {
 }
 
 func (m metaManagerImpl) GetRelease(ctx context.Context) string {
-	return getFirstGrpcMetaValue(ctx, MetaKeyRelease)
+	return getGrpcMdFirstValue(ctx, MetaKeyRelease)
 }
 
 func (m metaManagerImpl) GetCaller(ctx context.Context) string {
-	return getFirstGrpcMetaValue(ctx, MetaKeyCaller)
+	return getGrpcMdFirstValue(ctx, MetaKeyCaller)
 }
 
 func (m metaManagerImpl) GetRoleIds(ctx context.Context) []int64 {
-	return encoding.New().DecodeInt64Slice(getFirstGrpcMetaValue(ctx, MetaKeyErids))
+	return encoding.New().DecodeInt64Slice(getGrpcMdFirstValue(ctx, MetaKeyErids))
 }
 
 func (m metaManagerImpl) GetUserId(ctx context.Context) int64 {
-	return encoding.New().DecodeInt64(getFirstGrpcMetaValue(ctx, MetaKeyEuid))
+	return encoding.New().DecodeInt64(getGrpcMdFirstValue(ctx, MetaKeyEuid))
 }
 
 func (m metaManagerImpl) GetTenantId(ctx context.Context) int64 {
-	if v := getFirstGrpcMetaValue(ctx, MetaKeyTid); v != "" {
+	if v := getGrpcMdFirstValue(ctx, MetaKeyTid); v != "" {
 		return cast.ToInt64(v)
 	}
-	return encoding.New().DecodeInt64(getFirstGrpcMetaValue(ctx, MetaKeyEtid))
+	return encoding.New().DecodeInt64(getGrpcMdFirstValue(ctx, MetaKeyEtid))
 }
 
 func (m metaManagerImpl) GetEtid(ctx context.Context) string {
-	return getFirstGrpcMetaValue(ctx, MetaKeyEtid)
+	return getGrpcMdFirstValue(ctx, MetaKeyEtid)
 }

@@ -36,7 +36,7 @@ func (a apiImpl) Invoke(app string, version int, module, handler string, data an
 	}
 
 	// IMPORTANT: daprClient是全局的连接
-	method := generateMethodName(version, module, handler, getFirstGrpcMetaValue(a.ctx, MetaKeyAppId))
+	method := generateMethodName(version, module, handler, getGrpcMdFirstValue(a.ctx, MetaKeyAppId))
 	resp, err := daprClient.InvokeMethodWithContent(a.ctx, a.normalize(app), method, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,

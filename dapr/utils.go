@@ -89,8 +89,8 @@ func getSubDirsAfterFirstV(path string) (version string, dirs []string) {
 	return
 }
 
-// get the first grpc meta value
-func getFirstGrpcMetaValue(ctx context.Context, key string) string {
+// getGrpcMdFirstValue get grpc metadata first value
+func getGrpcMdFirstValue(ctx context.Context, key string) string {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return ""
@@ -103,8 +103,8 @@ func getFirstGrpcMetaValue(ctx context.Context, key string) string {
 	return values[0]
 }
 
-// get grpc meta values
-func getGrpcMetaValues(ctx context.Context, key string) []string {
+// getGrpcMdValues get grpc meta all values
+func getGrpcMdValues(ctx context.Context, key string) []string {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil
