@@ -45,7 +45,7 @@ func (h invocationHandlerImpl) GetName() string {
 
 func (h invocationHandlerImpl) GetInvokeName() string {
 	mInfo := h.module.GetModuleInfo()
-	return generateMethodName(mInfo.Version, mInfo.Name, h.handlerAlias, mInfo.Namespace)
+	return generateMethodName(mInfo.Version, mInfo.Name, h.handlerAlias, mInfo.AppId)
 }
 
 func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) common.ServiceInvocationHandler {
@@ -60,7 +60,7 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) com
 		result, err := h.fn(ctx, event)
 		if err != nil {
 			mInfo := h.module.GetModuleInfo()
-			logger.Error("service invoke", "namespace", mInfo.Namespace, "module", mInfo.Name, "Handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
+			logger.Error("service invoke", "namespace", mInfo.AppId, "module", mInfo.Name, "Handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
 			return h.replyError(err)
 		}
 

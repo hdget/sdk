@@ -6,7 +6,6 @@ import (
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/utils/convert"
 	"github.com/pkg/errors"
-	"github.com/spf13/cast"
 	"strings"
 )
 
@@ -37,7 +36,7 @@ func (a apiImpl) Invoke(app string, version int, module, handler string, data an
 	}
 
 	// IMPORTANT: daprClient是全局的连接
-	method := generateMethodName(version, module, handler, cast.ToString(a.ctx.Value(MetaKeyAppId)))
+	method := generateMethodName(version, module, handler, getFirstGrpcMetaValue(a.ctx, MetaKeyAppId))
 	resp, err := daprClient.InvokeMethodWithContent(a.ctx, a.normalize(app), method, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,

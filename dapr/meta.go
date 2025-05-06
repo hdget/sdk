@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/hdget/sdk/encoding"
 	"github.com/spf13/cast"
-	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -28,8 +27,6 @@ var (
 
 type MetaManager interface {
 	GetHttpHeaderKeys() []string
-	GetValue(ctx context.Context, key string) string
-	GetValues(ctx context.Context, key string) []string
 	GetAppId(ctx context.Context) string
 	GetRelease(ctx context.Context) string
 	GetCaller(ctx context.Context) string
@@ -52,7 +49,7 @@ func Meta() MetaManager {
 }
 
 func (m metaManagerImpl) GetAppId(ctx context.Context) string {
-	return m.GetValue(ctx, MetaKeyAppId)
+	return getFirstGrpcMetaValue(ctx, MetaKeyAppId)
 }
 
 func (m metaManagerImpl) GetHttpHeaderKeys() []string {
@@ -60,51 +57,28 @@ func (m metaManagerImpl) GetHttpHeaderKeys() []string {
 }
 
 func (m metaManagerImpl) GetRelease(ctx context.Context) string {
-	return m.GetValue(ctx, MetaKeyRelease)
+	return getFirstGrpcMetaValue(ctx, MetaKeyRelease)
 }
 
 func (m metaManagerImpl) GetCaller(ctx context.Context) string {
-	return m.GetValue(ctx, MetaKeyCaller)
+	return getFirstGrpcMetaValue(ctx, MetaKeyCaller)
 }
 
 func (m metaManagerImpl) GetRoleIds(ctx context.Context) []int64 {
-	return encoding.New().DecodeInt64Slice(m.GetValue(ctx, MetaKeyErids))
+	return encoding.New().DecodeInt64Slice(getFirstGrpcMetaValue(ctx, MetaKeyErids))
 }
 
 func (m metaManagerImpl) GetUserId(ctx context.Context) int64 {
-	return encoding.New().DecodeInt64(m.GetValue(ctx, MetaKeyEuid))
+	return encoding.New().DecodeInt64(getFirstGrpcMetaValue(ctx, MetaKeyEuid))
 }
 
 func (m metaManagerImpl) GetTenantId(ctx context.Context) int64 {
-	if v := m.GetValue(ctx, MetaKeyTid); v != "" {
+	if v := getFirstGrpcMetaValue(ctx, MetaKeyTid); v != "" {
 		return cast.ToInt64(v)
 	}
-	return encoding.New().DecodeInt64(m.GetValue(ctx, MetaKeyEtid))
+	return encoding.New().DecodeInt64(getFirstGrpcMetaValue(ctx, MetaKeyEtid))
 }
 
 func (m metaManagerImpl) GetEtid(ctx context.Context) string {
-	return m.GetValue(ctx, MetaKeyEtid)
-}
-
-// GetValues get grpc meta values
-func (m metaManagerImpl) GetValues(ctx context.Context, key string) []string {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return nil
-	}
-	return md.Get(key)
-}
-
-// GetValue get the first grpc meta value
-func (m metaManagerImpl) GetValue(ctx context.Context, key string) string {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return ""
-	}
-
-	values := md.Get(key)
-	if len(values) == 0 {
-		return ""
-	}
-	return values[0]
+	return getFirstGrpcMetaValue(ctx, MetaKeyEtid)
 }
