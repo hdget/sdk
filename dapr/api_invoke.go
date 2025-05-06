@@ -39,7 +39,7 @@ func (a apiImpl) Invoke(app string, version int, module, handler string, data an
 
 	// IMPORTANT: daprClient是全局的连接
 	appId := a.normalize(app)
-	method := generateMethodName(version, module, handler, getClientId(a.ctx))
+	method := generateMethodName(version, module, handler, getClient(a.ctx))
 	resp, err := daprClient.InvokeMethodWithContent(a.ctx, appId, method, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
@@ -51,7 +51,7 @@ func (a apiImpl) Invoke(app string, version int, module, handler string, data an
 	return resp, nil
 }
 
-func getClientId(ctx context.Context) string {
+func getClient(ctx context.Context) string {
 	md, ok := metadata.FromOutgoingContext(ctx)
 	if !ok {
 		return ""
@@ -64,15 +64,15 @@ func getClientId(ctx context.Context) string {
 	return values[0]
 }
 
-func generateMethodName(version int, module, handler, appId string) string {
+func generateMethodName(version int, module, handler, client string) string {
 	tokens := []string{
 		fmt.Sprintf("v%d", version),
 		module,
 		handler,
 	}
 
-	if appId != "" {
-		tokens = append(tokens, appId)
+	if client != "" {
+		tokens = append(tokens, client)
 	}
 
 	return strings.ToLower(strings.Join(tokens, ":"))
