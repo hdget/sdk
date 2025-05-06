@@ -35,3 +35,9 @@ func WithAssets(fs embed.FS) ServerOption {
 		impl.assets = fs
 	}
 }
+
+func WithDebug(debug bool) ServerOption {
+	return func(impl *daprServerImpl) {
+		impl.debug = debug
+	}
+}

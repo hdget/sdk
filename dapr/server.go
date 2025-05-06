@@ -19,6 +19,7 @@ type daprServerImpl struct {
 	common.Service
 	ctx    context.Context
 	cancel context.CancelFunc
+	debug  bool
 	// 自定义参数
 	app              string                                 // 运行的app
 	hooks            map[intf.HookPoint][]intf.HookFunction // 钩子函数
@@ -253,6 +254,9 @@ func (impl *daprServerImpl) addInvocationHandlers() error {
 	// 注册各种类型的handlers
 	for _, m := range _invocationModules {
 		for _, h := range m.GetHandlers() {
+			if impl.debug {
+				impl.logger.Debug("add invocation handler", "method", h.GetInvokeName())
+			}
 			if err := impl.AddServiceInvocationHandler(h.GetInvokeName(), h.GetInvokeFunction(impl.logger)); err != nil {
 				return err
 			}
