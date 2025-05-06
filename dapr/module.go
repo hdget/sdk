@@ -8,9 +8,9 @@ import (
 )
 
 type moduleInfo struct {
-	Version   int    // 版本
-	Namespace string // can be used to distinguish different client
-	Name      string // 处理后的模块名
+	Version int    // 版本
+	AppId   string // can be used to distinguish different client
+	Name    string // 处理后的模块名
 }
 
 type Module interface {
@@ -78,19 +78,19 @@ func ParseDaprModuleInfo(pkgPath, moduleName string) (*moduleInfo, error) {
 		return nil, errors.New("invalid version")
 	}
 
-	var namespace string
+	var appId string
 	switch len(subDirs) {
 	case 0:
-		namespace = ""
+		appId = "" // 内部调用
 	case 1:
-		namespace = subDirs[0]
+		appId = subDirs[0]
 	default:
 		return nil, errors.New("invalid module path, only supports one sub level")
 	}
 
 	return &moduleInfo{
-		Version:   version,
-		Namespace: namespace,
-		Name:      trimSuffixIgnoreCase(moduleName, moduleNameSuffix),
+		Version: version,
+		AppId:   appId,
+		Name:    trimSuffixIgnoreCase(moduleName, moduleNameSuffix),
 	}, nil
 }

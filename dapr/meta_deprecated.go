@@ -21,7 +21,7 @@ const (
 
 func (m metaManagerImpl) OldGetRoles(ctx context.Context) []*Role {
 	roles := make([]*Role, 0)
-	for _, roleValue := range m.GetValues(ctx, MetaKeyRoleValues) {
+	for _, roleValue := range getGrpcMdValues(ctx, MetaKeyRoleValues) {
 		tokens := strings.Split(roleValue, ":")
 		if len(tokens) != 2 {
 			return nil
@@ -35,16 +35,16 @@ func (m metaManagerImpl) OldGetRoles(ctx context.Context) []*Role {
 }
 
 func (m metaManagerImpl) OldGetRoleValues(ctx context.Context) []string {
-	return m.GetValues(ctx, MetaKeyRoleValues)
+	return getGrpcMdValues(ctx, MetaKeyRoleValues)
 }
 
 func (m metaManagerImpl) OldGetUserId(ctx context.Context) int64 {
-	return cast.ToInt64(m.GetValue(ctx, MetaKeyUserId))
+	return cast.ToInt64(getGrpcMdFirstValue(ctx, MetaKeyUserId))
 }
 
 func (m metaManagerImpl) OldGetRoleIds(ctx context.Context) []int64 {
 	roleIds := make([]int64, 0)
-	for _, v := range m.GetValues(ctx, MetaKeyRoleIds) {
+	for _, v := range getGrpcMdValues(ctx, MetaKeyRoleIds) {
 		roleIds = append(roleIds, cast.ToInt64(v))
 	}
 	return roleIds
@@ -52,7 +52,7 @@ func (m metaManagerImpl) OldGetRoleIds(ctx context.Context) []int64 {
 
 func (m metaManagerImpl) OldGetPermIds(ctx context.Context) []int64 {
 	permIds := make([]int64, 0)
-	for _, v := range m.GetValues(ctx, MetaKeyPermIds) {
+	for _, v := range getGrpcMdValues(ctx, MetaKeyPermIds) {
 		permIds = append(permIds, cast.ToInt64(v))
 	}
 	return permIds

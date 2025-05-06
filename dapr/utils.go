@@ -1,11 +1,13 @@
 package dapr
 
 import (
+	"context"
 	"embed"
 	"encoding/json"
 	"github.com/hdget/common/protobuf"
 	"github.com/hdget/utils/convert"
 	"github.com/hdget/utils/text"
+	"google.golang.org/grpc/metadata"
 	"path"
 	"reflect"
 	"regexp"
@@ -20,6 +22,22 @@ var (
 const (
 	fileExposedHandlers = ".exposed_handlers.json"
 )
+
+// LoadStoredExposedHandlers 从embed.FS中加载ast解析后保存的DaprHandlers
+func LoadStoredExposedHandlers(fs embed.FS) ([]*protobuf.DaprHandler, error) {
+	// IMPORTANT: embedfs使用的是斜杠来获取文件路径,在windows平台下如果使用filepath来处理路径会导致问题
+	data, err := fs.ReadFile(path.Join("json", fileExposedHandlers))
+	if err != nil {
+		return nil, err
+	}
+
+	var handlers []*protobuf.DaprHandler
+	err = json.Unmarshal(data, &handlers)
+	if err != nil {
+		return nil, err
+	}
+	return handlers, nil
+}
 
 func truncate(data []byte) string {
 	return text.Truncate(convert.BytesToString(data), truncateSize)
@@ -71,18 +89,25 @@ func getSubDirsAfterFirstV(path string) (version string, dirs []string) {
 	return
 }
 
-// LoadStoredExposedHandlers 从embed.FS中加载ast解析后保存的DaprHandlers
-func LoadStoredExposedHandlers(fs embed.FS) ([]*protobuf.DaprHandler, error) {
-	// IMPORTANT: embedfs使用的是斜杠来获取文件路径,在windows平台下如果使用filepath来处理路径会导致问题
-	data, err := fs.ReadFile(path.Join("json", fileExposedHandlers))
-	if err != nil {
-		return nil, err
+// getGrpcMdFirstValue get grpc metadata first value
+func getGrpcMdFirstValue(ctx context.Context, key string) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
 	}
 
-	var handlers []*protobuf.DaprHandler
-	err = json.Unmarshal(data, &handlers)
-	if err != nil {
-		return nil, err
+	values := md.Get(key)
+	if len(values) == 0 {
+		return ""
 	}
-	return handlers, nil
+	return values[0]
+}
+
+// getGrpcMdValues get grpc meta all values
+func getGrpcMdValues(ctx context.Context, key string) []string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil
+	}
+	return md.Get(key)
 }
