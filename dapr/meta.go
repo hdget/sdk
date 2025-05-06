@@ -28,7 +28,7 @@ var (
 
 type MetaManager interface {
 	GetHttpHeaderKeys() []string
-	GetClientId(ctx context.Context) string
+	GetClient(ctx context.Context) string
 	GetRelease(ctx context.Context) string
 	GetCaller(ctx context.Context) string
 	GetUserId(ctx context.Context) int64
@@ -49,7 +49,7 @@ func Meta() MetaManager {
 	return &metaManagerImpl{}
 }
 
-func (m metaManagerImpl) GetClientId(ctx context.Context) string {
+func (m metaManagerImpl) GetClient(ctx context.Context) string {
 	return getGrpcMdFirstValue(ctx, MetaKeyClient)
 }
 
