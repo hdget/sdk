@@ -24,6 +24,14 @@ func WithRegisterFunction(fn RegisterFunction) ServerOption {
 	}
 }
 
+func WithSkipRegister() ServerOption {
+	return func(impl *daprServerImpl) {
+		impl.registerFunction = func(string, []*protobuf.DaprHandler) error {
+			return nil
+		}
+	}
+}
+
 func WithRegisterHandlers(handlers []*protobuf.DaprHandler) ServerOption {
 	return func(impl *daprServerImpl) {
 		impl.registerHandlers = handlers
