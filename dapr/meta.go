@@ -9,8 +9,8 @@ import (
 const (
 	MetaKeyClient  = "hd-client"
 	MetaKeyRelease = "hd-release"
-	MetaKeyTid     = "hd-tid"  // 租户id
-	MetaKeyUid     = "hd-uid"  // userId
+	MetaKeyTsn     = "hd-tsn"  // tenant sn
+	MetaKeyUsn     = "hd-usn"  // user sn
 	MetaKeyRids    = "hd-rids" // encoded role ids
 	MetaKeyCaller  = "dapr-caller-app-id"
 )
@@ -18,8 +18,8 @@ const (
 var (
 	// MetaKeys 所有meta的关键字
 	_httpHeaderKeys = []string{
-		MetaKeyTid,
-		MetaKeyUid,
+		MetaKeyTsn,
+		MetaKeyUsn,
 		MetaKeyRids,
 		MetaKeyClient,
 		MetaKeyRelease,
@@ -30,8 +30,8 @@ type MetaManager interface {
 	GetHttpHeaderKeys() []string
 	GetClient(ctx context.Context) string
 	GetRelease(ctx context.Context) string
-	GetUid(ctx context.Context) string // 获取用户的sn
-	GetTid(ctx context.Context) string // 获取租户的sn
+	GetUsn(ctx context.Context) string // 获取用户的sn
+	GetTsn(ctx context.Context) string // 获取租户的sn
 	GetRoleIds(ctx context.Context) []int64
 	GetCaller(ctx context.Context) string
 	// DEPRECATED
@@ -68,12 +68,12 @@ func (m metaManagerImpl) GetRoleIds(ctx context.Context) []int64 {
 	return encoding.New().DecodeInt64Slice(getGrpcMdFirstValue(ctx, MetaKeyRids))
 }
 
-func (m metaManagerImpl) GetUid(ctx context.Context) string {
-	return getGrpcMdFirstValue(ctx, MetaKeyUid)
+func (m metaManagerImpl) GetUsn(ctx context.Context) string {
+	return getGrpcMdFirstValue(ctx, MetaKeyUsn)
 }
 
-func (m metaManagerImpl) GetTid(ctx context.Context) string {
-	return getGrpcMdFirstValue(ctx, MetaKeyTid)
+func (m metaManagerImpl) GetTsn(ctx context.Context) string {
+	return getGrpcMdFirstValue(ctx, MetaKeyTsn)
 }
 
 // getGrpcMdFirstValue get grpc metadata first value

@@ -41,7 +41,7 @@ func Api(kvs ...string) APIer {
 }
 
 func TenantApi(tid int64) APIer {
-	return Api(MetaKeyTid, cast.ToString(tid))
+	return Api(MetaKeyTsn, cast.ToString(tid))
 }
 
 func (a apiImpl) normalize(input string) string {
