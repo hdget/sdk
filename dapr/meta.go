@@ -9,9 +9,9 @@ import (
 const (
 	MetaKeyClient  = "hd-client"
 	MetaKeyRelease = "hd-release"
-	MetaKeyTsn     = "hd-tsn"  // tenant sn
-	MetaKeyUsn     = "hd-usn"  // user sn
-	MetaKeyRids    = "hd-rids" // encoded role ids
+	MetaKeyTsn     = "hd-tsn" // tenant sn
+	MetaKeyUsn     = "hd-usn" // user sn
+	MetaKeyRsn     = "hd-rsn" // encoded role ids
 	MetaKeyCaller  = "dapr-caller-app-id"
 )
 
@@ -20,7 +20,7 @@ var (
 	_httpHeaderKeys = []string{
 		MetaKeyTsn,
 		MetaKeyUsn,
-		MetaKeyRids,
+		MetaKeyRsn,
 		MetaKeyClient,
 		MetaKeyRelease,
 	}
@@ -65,7 +65,7 @@ func (m metaManagerImpl) GetCaller(ctx context.Context) string {
 }
 
 func (m metaManagerImpl) GetRoleIds(ctx context.Context) []int64 {
-	return encoding.New().DecodeInt64Slice(getGrpcMdFirstValue(ctx, MetaKeyRids))
+	return encoding.New().DecodeInt64Slice(getGrpcMdFirstValue(ctx, MetaKeyRsn))
 }
 
 func (m metaManagerImpl) GetUsn(ctx context.Context) string {
