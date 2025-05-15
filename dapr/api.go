@@ -43,7 +43,7 @@ func TenantApi(tsn string) APIer {
 	return Api(MetaKeyTsn, tsn)
 }
 
-func (a apiImpl) normalize(input string) string {
+func normalize(input string) string {
 	if namespace, exists := os.LookupEnv(_envVarNamespace); exists {
 		return namespace + "_" + input
 	}

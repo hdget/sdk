@@ -38,7 +38,7 @@ func (a apiImpl) Invoke(app string, version int, module, handler string, data an
 	}
 
 	// IMPORTANT: daprClient是全局的连接
-	appId := a.normalize(app)
+	appId := normalize(app)
 	method := generateMethodName(version, module, handler, getClient(a.ctx))
 	resp, err := daprClient.InvokeMethodWithContent(a.ctx, appId, method, "post", &client.DataContent{
 		ContentType: "application/json",
