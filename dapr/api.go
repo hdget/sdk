@@ -13,6 +13,7 @@ const (
 
 type APIer interface {
 	Invoke(app string, version int, module string, handler string, data any) ([]byte, error)
+	ExternalInvoke(app string, version int, module string, handler string, data any) ([]byte, error) // 外部调用，需要关心client
 	Lock(lockStore, lockOwner, resource string, expiryInSeconds int) error
 	Unlock(lockStore, lockOwner, resource string) error
 	Publish(pubSubName, topic string, data interface{}, args ...bool) error

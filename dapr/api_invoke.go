@@ -13,8 +13,18 @@ import (
 
 const ContentTypeJson = "application/json"
 
-// Invoke 调用dapr服务
+// Invoke 内部调用
 func (a apiImpl) Invoke(app string, version int, module, handler string, data any) ([]byte, error) {
+	return a.daprInvoke(app, version, module, handler, data, true)
+}
+
+// ExternalInvoke 外部调用
+func (a apiImpl) ExternalInvoke(app string, version int, module, handler string, data any) ([]byte, error) {
+	return a.daprInvoke(app, version, module, handler, data, false)
+}
+
+// daprInvoke 调用dapr服务
+func (a apiImpl) daprInvoke(app string, version int, module, handler string, data any, ignoreClient bool) ([]byte, error) {
 	var value []byte
 	switch t := data.(type) {
 	case string:
@@ -24,7 +34,7 @@ func (a apiImpl) Invoke(app string, version int, module, handler string, data an
 	default:
 		v, err := json.Marshal(data)
 		if err != nil {
-			return nil, errors.Wrap(err, "marshal invoke data")
+			return nil, errors.Wrap(err, "marshal daprInvoke data")
 		}
 		value = v
 	}
@@ -38,14 +48,20 @@ func (a apiImpl) Invoke(app string, version int, module, handler string, data an
 	}
 
 	// IMPORTANT: daprClient是全局的连接
-	appId := normalize(app)
-	method := generateMethodName(version, module, handler, getClient(a.ctx))
+	var appId, method string
+	appId = normalize(app)
+	if ignoreClient {
+		method = generateMethod(version, module, handler, "")
+	} else {
+		method = generateMethod(version, module, handler, getClient(a.ctx))
+	}
+
 	resp, err := daprClient.InvokeMethodWithContent(a.ctx, appId, method, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
 	})
 	if err != nil {
-		return nil, errors.Wrapf(err, "dapr invoke method, appId:%s, method: %s", appId, method)
+		return nil, errors.Wrapf(err, "dapr daprInvoke method, appId:%s, method: %s", appId, method)
 	}
 
 	return resp, nil
@@ -64,7 +80,7 @@ func getClient(ctx context.Context) string {
 	return values[0]
 }
 
-func generateMethodName(version int, module, handler, client string) string {
+func generateMethod(version int, module, handler, client string) string {
 	tokens := []string{
 		fmt.Sprintf("v%d", version),
 		module,
