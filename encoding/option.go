@@ -8,7 +8,7 @@ import (
 
 type encodingConfig struct {
 	sqidsOption *sqids.Options
-	salt        []byte
+	salt        string
 }
 
 type Option func(o *encodingConfig)
@@ -31,7 +31,7 @@ func WithMinLength(minLength uint8) Option {
 
 func WithSalt(salt string) Option {
 	return func(o *encodingConfig) {
-		o.salt = []byte(salt)
+		o.salt = salt
 	}
 }
 
@@ -39,7 +39,7 @@ func WithRandomSalt(saltLength int) Option {
 	return func(o *encodingConfig) {
 		salt := make([]byte, saltLength) // 生成8字节的盐
 		if _, err := io.ReadFull(rand.Reader, salt); err == nil {
-			o.salt = salt
+			o.salt = string(salt)
 		}
 	}
 }
