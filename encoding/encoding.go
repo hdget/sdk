@@ -2,8 +2,8 @@ package encoding
 
 import (
 	"encoding/base64"
+	"fmt"
 	"github.com/elliotchance/pie/v2"
-	"github.com/pkg/errors"
 	"github.com/sqids/sqids-go"
 	"strings"
 	"sync"
@@ -17,7 +17,7 @@ type Coder interface {
 
 type encodingImpl struct {
 	sqids *sqids.Sqids
-	salt  []byte
+	salt  string
 }
 
 var (
@@ -58,11 +58,8 @@ func (impl encodingImpl) Encode(ids ...int64) string {
 		return ""
 	}
 
-	if len(impl.salt) > 0 {
-		value, err = addSalt(value, impl.salt)
-		if err != nil {
-			return ""
-		}
+	if impl.salt != "" {
+		return addSalt(value, impl.salt)
 	}
 
 	return value
@@ -73,7 +70,7 @@ func (impl encodingImpl) DecodeInt64(value string) int64 {
 		return 0
 	}
 
-	if len(impl.salt) > 0 {
+	if impl.salt != "" {
 		var err error
 		value, err = removeSalt(value, impl.salt)
 		if err != nil {
@@ -89,43 +86,46 @@ func (impl encodingImpl) DecodeInt64(value string) int64 {
 	return int64(uint64s[0])
 }
 
-func (impl encodingImpl) DecodeInt64Slice(code string) []int64 {
-	if strings.TrimSpace(code) == "" {
+func (impl encodingImpl) DecodeInt64Slice(value string) []int64 {
+	if strings.TrimSpace(value) == "" {
 		return nil
 	}
 
-	uint64s := impl.sqids.Decode(code)
+	if impl.salt != "" {
+		var err error
+		value, err = removeSalt(value, impl.salt)
+		if err != nil {
+			return nil
+		}
+	}
+
+	uint64s := impl.sqids.Decode(value)
 	return pie.Map(uint64s, func(v uint64) int64 { return int64(v) })
 }
 
 // 加密函数
-func addSalt(plaintext string, salt []byte) (string, error) {
+func addSalt(plaintext, salt string) string {
 	// 将盐和明文拼接在一起
-	data := append(salt, []byte(plaintext)...)
-	// 使用固定密钥进行XOR加密
-	for i := range data {
-		data[i] ^= salt[i%len(salt)]
-	}
-	// 返回Base64编码后的结果
-	return base64.URLEncoding.EncodeToString(data), nil
+	salted := salt + plaintext
+	encoded := base64.URLEncoding.EncodeToString([]byte(salted))
+	return strings.TrimRight(encoded, "=")
 }
 
 // 解密函数
-func removeSalt(ciphertextBase64 string, salt []byte) (string, error) {
-	data, err := base64.URLEncoding.DecodeString(ciphertextBase64)
+func removeSalt(encoded, salt string) (string, error) {
+	// 补全Base64填充
+	if len(encoded)%4 != 0 {
+		encoded += strings.Repeat("=", 4-len(encoded)%4)
+	}
+
+	decoded, err := base64.URLEncoding.DecodeString(encoded)
 	if err != nil {
 		return "", err
 	}
 
-	// 使用固定密钥进行XOR解密
-	for i := range data {
-		data[i] ^= salt[i%len(salt)]
+	// 去除盐值
+	if len(decoded) < len(salt) {
+		return "", fmt.Errorf("invalid encoded string")
 	}
-
-	// 检查并移除盐
-	if len(data) < len(salt) {
-		return "", errors.New("ciphertext too short")
-	}
-
-	return string(data[len(salt):]), nil
+	return string(decoded[len(salt):]), nil
 }
