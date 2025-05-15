@@ -152,16 +152,16 @@ func (impl *daprServerImpl) initialize() error {
 		return errors.Wrap(err, "adding health check handler")
 	}
 
-	if err := impl.addInvocationHandlers(); err != nil {
-		return errors.Wrap(err, "adding invocation handlers")
-	}
-
 	if err := impl.addEventHandlers(); err != nil {
 		return errors.Wrap(err, "adding event handlers")
 	}
 
 	if err := impl.subscribeDelayEvents(); err != nil {
 		return errors.Wrap(err, "subscribe delay events")
+	}
+
+	if err := impl.addInvocationHandlers(); err != nil {
+		return errors.Wrap(err, "adding invocation handlers")
 	}
 
 	return nil
