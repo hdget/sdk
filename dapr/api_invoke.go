@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dapr/go-sdk/client"
+	"github.com/hdget/common/constant"
 	"github.com/hdget/utils/convert"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/metadata"
@@ -73,7 +74,7 @@ func getClient(ctx context.Context) string {
 		return ""
 	}
 
-	values := md.Get(MetaKeyClient)
+	values := md.Get(constant.MetaKeyClient)
 	if len(values) == 0 {
 		return ""
 	}
