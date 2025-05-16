@@ -3,12 +3,9 @@ package dapr
 import (
 	"context"
 	"github.com/dapr/go-sdk/client"
+	"github.com/hdget/common/constant"
 	"google.golang.org/grpc/metadata"
 	"os"
-)
-
-const (
-	_envVarNamespace = "HD_NAMESPACE"
 )
 
 type APIer interface {
@@ -41,11 +38,11 @@ func Api(kvs ...string) APIer {
 }
 
 func TenantApi(tsn string) APIer {
-	return Api(MetaKeyTsn, tsn)
+	return Api(constant.MetaKeyTsn, tsn)
 }
 
 func normalize(input string) string {
-	if namespace, exists := os.LookupEnv(_envVarNamespace); exists {
+	if namespace, exists := os.LookupEnv(constant.EnvKeyNamespace); exists {
 		return namespace + "_" + input
 	}
 	return input

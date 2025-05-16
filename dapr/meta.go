@@ -2,17 +2,9 @@ package dapr
 
 import (
 	"context"
+	"github.com/hdget/common/constant"
 	"github.com/hdget/sdk/encoding"
 	"google.golang.org/grpc/metadata"
-)
-
-const (
-	MetaKeyClient  = "hd-client"
-	MetaKeyRelease = "hd-release"
-	MetaKeyTsn     = "hd-tsn" // tenant sn
-	MetaKeyUsn     = "hd-usn" // user sn
-	MetaKeyRsn     = "hd-rsn" // encoded role ids
-	MetaKeyCaller  = "dapr-caller-app-id"
 )
 
 type MetaManager interface {
@@ -37,27 +29,27 @@ func Meta() MetaManager {
 }
 
 func (m metaManagerImpl) GetClient(ctx context.Context) string {
-	return getGrpcMdFirstValue(ctx, MetaKeyClient)
+	return getGrpcMdFirstValue(ctx, constant.MetaKeyClient)
 }
 
 func (m metaManagerImpl) GetRelease(ctx context.Context) string {
-	return getGrpcMdFirstValue(ctx, MetaKeyRelease)
+	return getGrpcMdFirstValue(ctx, constant.MetaKeyRelease)
 }
 
 func (m metaManagerImpl) GetCaller(ctx context.Context) string {
-	return getGrpcMdFirstValue(ctx, MetaKeyCaller)
+	return getGrpcMdFirstValue(ctx, constant.MetaKeyCaller)
 }
 
 func (m metaManagerImpl) GetRoleIds(ctx context.Context) []int64 {
-	return encoding.New().DecodeInt64Slice(getGrpcMdFirstValue(ctx, MetaKeyRsn))
+	return encoding.New().DecodeInt64Slice(getGrpcMdFirstValue(ctx, constant.MetaKeyRsn))
 }
 
 func (m metaManagerImpl) GetUsn(ctx context.Context) string {
-	return getGrpcMdFirstValue(ctx, MetaKeyUsn)
+	return getGrpcMdFirstValue(ctx, constant.MetaKeyUsn)
 }
 
 func (m metaManagerImpl) GetTsn(ctx context.Context) string {
-	return getGrpcMdFirstValue(ctx, MetaKeyTsn)
+	return getGrpcMdFirstValue(ctx, constant.MetaKeyTsn)
 }
 
 // getGrpcMdFirstValue get grpc metadata first value
