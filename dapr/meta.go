@@ -15,19 +15,7 @@ const (
 	MetaKeyCaller  = "dapr-caller-app-id"
 )
 
-var (
-	// MetaKeys 所有meta的关键字
-	_httpHeaderKeys = []string{
-		MetaKeyTsn,
-		MetaKeyUsn,
-		MetaKeyRsn,
-		MetaKeyClient,
-		MetaKeyRelease,
-	}
-)
-
 type MetaManager interface {
-	GetHttpHeaderKeys() []string
 	GetClient(ctx context.Context) string
 	GetRelease(ctx context.Context) string
 	GetUsn(ctx context.Context) string // 获取用户的sn
@@ -50,10 +38,6 @@ func Meta() MetaManager {
 
 func (m metaManagerImpl) GetClient(ctx context.Context) string {
 	return getGrpcMdFirstValue(ctx, MetaKeyClient)
-}
-
-func (m metaManagerImpl) GetHttpHeaderKeys() []string {
-	return _httpHeaderKeys
 }
 
 func (m metaManagerImpl) GetRelease(ctx context.Context) string {
