@@ -9,7 +9,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/hdget/common v0.0.10
 	github.com/hdget/provider-config-viper v0.0.4
-	github.com/hdget/provider-logger-zerolog v0.0.4
+	github.com/hdget/provider-logger-zerolog v0.0.5
 	github.com/hdget/utils v0.0.1
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cast v1.7.1
