@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/common/constant"
+	"github.com/spf13/cast"
 	"google.golang.org/grpc/metadata"
 	"os"
 )
@@ -36,8 +37,8 @@ func Api(kvs ...string) APIer {
 	}
 }
 
-func TenantApi(tsn string) APIer {
-	return Api(constant.MetaKeyTsn, tsn)
+func TenantApi(tid int64) APIer {
+	return Api(constant.MetaKeyTid, cast.ToString(tid))
 }
 
 func normalize(input string) string {
