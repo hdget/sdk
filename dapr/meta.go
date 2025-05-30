@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/hdget/common/constant"
 	"github.com/hdget/sdk/encoding"
+	"github.com/spf13/cast"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -12,6 +13,7 @@ type MetaManager interface {
 	GetRelease(ctx context.Context) string
 	GetUsn(ctx context.Context) string // 获取用户的sn
 	GetTsn(ctx context.Context) string // 获取租户的sn
+	GetTid(ctx context.Context) int64  // 获取租户的id
 	GetRoleIds(ctx context.Context) []int64
 	GetCaller(ctx context.Context) string
 	// DEPRECATED
@@ -50,6 +52,10 @@ func (m metaManagerImpl) GetUsn(ctx context.Context) string {
 
 func (m metaManagerImpl) GetTsn(ctx context.Context) string {
 	return getGrpcMdFirstValue(ctx, constant.MetaKeyTsn)
+}
+
+func (m metaManagerImpl) GetTid(ctx context.Context) int64 {
+	return cast.ToInt64(getGrpcMdFirstValue(ctx, constant.MetaKeyTid))
 }
 
 // getGrpcMdFirstValue get grpc metadata first value
