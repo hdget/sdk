@@ -36,28 +36,28 @@ func (a apiImpl) Invoke(app string, version int, module, handler string, data an
 	}
 
 	// IMPORTANT: daprClient是全局的连接
-	appId := normalize(app)
+	daprAppId := normalize(app)
 	method := generateMethod(version, module, handler, clientName...)
-	resp, err := daprClient.InvokeMethodWithContent(a.ctx, appId, method, "post", &client.DataContent{
+	resp, err := daprClient.InvokeMethodWithContent(a.ctx, daprAppId, method, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
 	})
 	if err != nil {
-		return nil, errors.Wrapf(err, "dapr daprInvoke method, appId:%s, method: %s", appId, method)
+		return nil, errors.Wrapf(err, "dapr daprInvoke method, daprAppId:%s, method: %s", daprAppId, method)
 	}
 
 	return resp, nil
 }
 
-func generateMethod(version int, module, handler string, clientName ...string) string {
+func generateMethod(version int, module, handler string, client ...string) string {
 	tokens := []string{
 		fmt.Sprintf("v%d", version),
 		module,
 		handler,
 	}
 
-	if len(clientName) > 0 && clientName[0] != "" {
-		tokens = append(tokens, clientName[0])
+	if len(client) > 0 && client[0] != "" {
+		tokens = append(tokens, client[0])
 	}
 
 	return strings.ToLower(strings.Join(tokens, ":"))
