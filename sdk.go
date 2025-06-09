@@ -2,9 +2,11 @@ package sdk
 
 import (
 	"context"
+	"fmt"
 	"github.com/hdget/common/intf"
 	"github.com/hdget/common/types"
 	"github.com/hdget/provider-config-viper"
+	"github.com/hdget/provider-config-viper/param"
 	"github.com/hdget/provider-logger-zerolog"
 	"github.com/hdget/utils/logger"
 	"github.com/pkg/errors"
@@ -13,8 +15,6 @@ import (
 )
 
 type SdkInstance struct {
-	config *types.SdkConfig
-
 	configProvider intf.ConfigProvider
 	loggerProvider intf.LoggerProvider
 	dbProvider     intf.DbProvider
@@ -22,26 +22,29 @@ type SdkInstance struct {
 	mqProvider     intf.MessageQueueProvider
 	ossProvider    intf.OssProvider
 
-	configVar any // 配置数据
+	app         string
+	debug       bool
+	configParam *param.Param // 配置选项
+	configVar   any          // 配置变量
 }
 
 var (
-	_instance *SdkInstance
-	once      sync.Once
-
-	errInvalidCapability = errors.New("invalid capability")
+	_instance                *SdkInstance
+	once                     sync.Once
+	errUnsupportedCapability = errors.New("unsupported capability")
 )
 
 func New(app string, options ...Option) *SdkInstance {
 	once.Do(
 		func() {
-			sdkConfig := newSdkConfig(app)
-			for _, apply := range options {
-				apply(sdkConfig)
-			}
 			_instance = &SdkInstance{
-				config: sdkConfig,
+				app:         app,
+				configParam: param.GetDefaultParam(),
 			}
+			for _, apply := range options {
+				apply(_instance)
+			}
+
 		},
 	)
 	return _instance
@@ -71,7 +74,15 @@ func (i *SdkInstance) UseConfig(configVar any) *SdkInstance {
 func (i *SdkInstance) Initialize(capabilities ...types.Capability) error {
 	// Prepare fxOptions for DI configuration
 	fxOptions := []fx.Option{
-		fx.Provide(func() *types.SdkConfig { return i.config }),
+		fx.Provide(
+			func() (string, *param.Param) {
+				if i.configParam.Remote != nil && i.configParam.WatchCallback == nil {
+					i.configParam.Remote.WatchCallback = i.unmarshalConfig
+				}
+
+				return i.app, i.configParam
+			},
+		), // provider config provider params
 		viper.Capability.Module, // Initialize configProvider
 		fx.Populate(&_instance.configProvider),
 		zerolog.Capability.Module, // Initialize loggerProvider
@@ -90,12 +101,12 @@ func (i *SdkInstance) Initialize(capabilities ...types.Capability) error {
 		case types.ProviderCategoryOss:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.ossProvider))
 		default:
-			return errors.Wrapf(errInvalidCapability, "capability: %s", c.Name)
+			return errors.Wrapf(errUnsupportedCapability, "capability: %s", c.Name)
 		}
 	}
 
 	// Disable fx internal logger in production mode
-	if !i.config.Debug {
+	if !i.debug {
 		fxOptions = append(fxOptions, fx.NopLogger)
 	}
 
@@ -105,27 +116,38 @@ func (i *SdkInstance) Initialize(capabilities ...types.Capability) error {
 		return errors.Unwrap(err)
 	}
 
-	// try load config
-	i.loadConfig()
+	// try load config to config var
+	i.unmarshalConfig()
 
 	return nil
 }
 
-func (i *SdkInstance) loadConfig() {
-	// 如果没有赋值，则直接返回
-	if i.configVar == nil {
-		return
+func (i *SdkInstance) unmarshalConfig() {
+	var fatal, outputError func(msg string, keyvals ...interface{})
+
+	if i.loggerProvider != nil {
+		fatal = i.loggerProvider.Fatal
+		outputError = i.loggerProvider.Error
+	} else {
+		fatal = logger.Fatal
+		outputError = logger.Error
 	}
+
 	// 检查配置提供者是否已初始化。
 	if i.configProvider == nil {
 		// 如果未初始化，则记录致命错误并终止程序。
-		logger.Fatal("config provider not initialized")
+		fatal("config provider not initialized")
 	}
 
-	// 将配置数据解析到配置变量中。
-	err := i.configProvider.Unmarshal(i.configVar)
-	if err != nil {
-		// 如果解析失败，则记录致命错误并终止程序。
-		logger.Fatal("unmarshal to config variable", "err", err)
+	// 如果没有赋值，则直接返回
+	if i.configVar != nil {
+		// 将配置数据解析到局部配置变量中
+		err := i.configProvider.Unmarshal(i.configVar)
+		if err != nil {
+			// 如果解析失败，则记录致命错误并终止程序。
+			outputError("unmarshal to config variable", "err", err)
+		}
+
+		fmt.Println("config variable:", i.configVar)
 	}
 }

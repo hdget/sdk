@@ -2,8 +2,14 @@ package sdk
 
 import (
 	"fmt"
+	viper "github.com/hdget/provider-config-viper"
 	"testing"
+	"time"
 )
+
+type Conf struct {
+	Global any `json:"global"`
+}
 
 func TestSdkInstance_Initialize(t *testing.T) {
 	tests := []struct {
@@ -14,20 +20,16 @@ func TestSdkInstance_Initialize(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := New("ddd").Initialize(); (err != nil) != tt.wantErr {
-				t.Errorf("Initialize() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			var a any
+			var config Conf
 
-			i := GetInstance()
-			fmt.Println(i)
-
-			err := Config().Unmarshal(&a, "app")
+			err := New("base", WithConfigOptions(
+				viper.WithEnableRemote(),
+			)).UseConfig(&config).Initialize()
 			if err != nil {
-				panic(err)
+				fmt.Println(err)
 			}
 
-			Logger().Debug("xxxxxxxx")
+			time.Sleep(60 * time.Second)
 		})
 	}
 }

@@ -9,6 +9,7 @@ import (
 )
 
 type MetaManager interface {
+	GetAppId(ctx context.Context) string
 	GetClient(ctx context.Context) string
 	GetRelease(ctx context.Context) string
 	GetUsn(ctx context.Context) string // 获取用户的sn
@@ -28,6 +29,10 @@ type metaManagerImpl struct {
 
 func Meta() MetaManager {
 	return &metaManagerImpl{}
+}
+
+func (m metaManagerImpl) GetAppId(ctx context.Context) string {
+	return getGrpcMdFirstValue(ctx, constant.MetaKeyAppId)
 }
 
 func (m metaManagerImpl) GetClient(ctx context.Context) string {

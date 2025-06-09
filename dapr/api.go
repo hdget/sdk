@@ -10,7 +10,7 @@ import (
 )
 
 type APIer interface {
-	Invoke(app string, version int, module string, handler string, data any, clientName ...string) ([]byte, error)
+	Invoke(app string, version int, module string, handler string, data any, client ...string) ([]byte, error)
 	Lock(lockStore, lockOwner, resource string, expiryInSeconds int) error
 	Unlock(lockStore, lockOwner, resource string) error
 	Publish(pubSubName, topic string, data interface{}, args ...bool) error
