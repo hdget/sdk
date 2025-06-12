@@ -2,7 +2,6 @@ package sdk
 
 import (
 	"context"
-	"fmt"
 	"github.com/hdget/common/intf"
 	"github.com/hdget/common/types"
 	"github.com/hdget/provider-config-viper"
@@ -147,7 +146,5 @@ func (i *SdkInstance) unmarshalConfig() {
 			// 如果解析失败，则记录致命错误并终止程序。
 			outputError("unmarshal to config variable", "err", err)
 		}
-
-		fmt.Println("config variable:", i.configVar)
 	}
 }
