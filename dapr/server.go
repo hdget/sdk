@@ -111,9 +111,7 @@ func (impl *daprServerImpl) Start() error {
 		}
 	}
 
-	if len(impl.hooks[hookPointPreStop]) > 0 {
-		impl.setupPreStopMonitor()
-	}
+	impl.setupPreStopNotifier()
 
 	// 启动前调用AppRegister函数
 	fnRegister := impl.registerFunction
@@ -313,7 +311,7 @@ func registerModule(module any) {
 	}
 }
 
-func (impl *daprServerImpl) setupPreStopMonitor() {
+func (impl *daprServerImpl) setupPreStopNotifier() {
 	// 监听中断信号
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(
