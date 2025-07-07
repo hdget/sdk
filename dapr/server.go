@@ -34,7 +34,6 @@ type daprServerImpl struct {
 	// 自定义参数
 	app              string                            // 运行的app
 	hooks            map[hookPoint][]intf.HookFunction // 钩子函数
-	providers        []intf.Provider                   // sdk的providers
 	registerFunction RegisterFunction                  // 向系统注册appServer的函数
 	registerHandlers []*protobuf.DaprHandler           // 向系统注册的方法
 	assets           embed.FS                          // 嵌入文件系统
@@ -73,16 +72,6 @@ func NewGrpcServer(app, address string, options ...ServerOption) (intf.AppServer
 
 	for _, apply := range options {
 		apply(appServer)
-	}
-
-	// try initialize provider
-	for _, provider := range appServer.providers {
-		switch provider.GetCapability().Category {
-		case types.ProviderCategoryLogger:
-			appServer.logger = provider.(intf.LoggerProvider)
-		case types.ProviderCategoryMq:
-			appServer.mq = provider.(intf.MessageQueueProvider)
-		}
 	}
 
 	if err = appServer.initialize(); err != nil {
@@ -158,7 +147,6 @@ func (impl *daprServerImpl) hook(hookPoint hookPoint, hookFunctions ...intf.Hook
 
 // Initialize 初始化server
 func (impl *daprServerImpl) initialize() error {
-
 	if err := impl.addHealthCheckHandler(); err != nil {
 		return errors.Wrap(err, "adding health check handler")
 	}
