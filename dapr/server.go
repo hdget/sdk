@@ -18,6 +18,14 @@ import (
 	"syscall"
 )
 
+type hookPoint int
+
+const (
+	hookPointUnknown hookPoint = iota
+	hookPointPreStart
+	hookPointPreStop
+)
+
 type daprServerImpl struct {
 	common.Service
 	ctx    context.Context
@@ -33,14 +41,6 @@ type daprServerImpl struct {
 	logger           intf.LoggerProvider
 	mq               intf.MessageQueueProvider
 }
-
-type hookPoint int
-
-const (
-	hookPointUnknown hookPoint = iota
-	hookPointPreStart
-	hookPointPreStop
-)
 
 var (
 	_invocationModules = make([]InvocationModule, 0) // service invocation module
