@@ -128,6 +128,15 @@ func (impl *daprServerImpl) Start() error {
 	return impl.Service.Start()
 }
 
+func (impl *daprServerImpl) Stop(forced ...bool) error {
+	impl.onPreStop()
+
+	if len(forced) > 0 && forced[0] {
+		return impl.Service.Stop()
+	}
+	return impl.Service.GracefulStop()
+}
+
 func (impl *daprServerImpl) HookPreStart(hookFunctions ...intf.HookFunction) intf.AppServer {
 	impl.hook(hookPointPreStart, hookFunctions...)
 	return impl
@@ -314,16 +323,18 @@ func (impl *daprServerImpl) setupPreStopMonitor() {
 
 	go func() {
 		<-sigCh
+		impl.onPreStop()
+	}()
+}
 
-		for _, fn := range impl.hooks[hookPointPreStop] {
-			if err := fn(); err != nil {
-				if impl.logger != nil {
-					impl.logger.Error("pre stop", "err", err)
-				}
+func (impl *daprServerImpl) onPreStop() {
+	for _, fn := range impl.hooks[hookPointPreStop] {
+		if err := fn(); err != nil {
+			if impl.logger != nil {
+				impl.logger.Error("pre stop", "err", err)
 			}
 		}
+	}
 
-		impl.cancel()
-	}()
-
+	impl.cancel()
 }
