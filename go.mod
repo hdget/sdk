@@ -7,7 +7,7 @@ require (
 	github.com/dapr/go-sdk v1.11.0
 	github.com/elliotchance/pie/v2 v2.9.1
 	github.com/gogo/protobuf v1.3.2
-	github.com/hdget/common v0.0.13
+	github.com/hdget/common v0.0.14
 	github.com/hdget/provider-config-viper v0.0.5
 	github.com/hdget/provider-logger-zerolog v0.0.5
 	github.com/hdget/utils v0.0.1
@@ -33,10 +33,10 @@ require (
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
-	github.com/go-chi/chi/v5 v5.1.0 // indirect
+	github.com/go-chi/chi/v5 v5.2.2 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
