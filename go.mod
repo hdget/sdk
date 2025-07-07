@@ -7,7 +7,7 @@ require (
 	github.com/dapr/go-sdk v1.11.0
 	github.com/elliotchance/pie/v2 v2.9.1
 	github.com/gogo/protobuf v1.3.2
-	github.com/hdget/common v0.0.12
+	github.com/hdget/common v0.0.13
 	github.com/hdget/provider-config-viper v0.0.5
 	github.com/hdget/provider-logger-zerolog v0.0.5
 	github.com/hdget/utils v0.0.1
@@ -100,6 +100,6 @@ require (
 	google.golang.org/genproto v0.0.0-20241118233622-e639e219e697 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250303144028-a0af3efb3deb // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250303144028-a0af3efb3deb // indirect
-	google.golang.org/protobuf v1.36.5 // indirect
+	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

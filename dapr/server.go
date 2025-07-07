@@ -13,6 +13,17 @@ import (
 	"github.com/hdget/common/types"
 	"github.com/pkg/errors"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
+)
+
+type hookPoint int
+
+const (
+	hookPointUnknown hookPoint = iota
+	hookPointPreStart
+	hookPointPreStop
 )
 
 type daprServerImpl struct {
@@ -21,12 +32,11 @@ type daprServerImpl struct {
 	cancel context.CancelFunc
 	debug  bool
 	// 自定义参数
-	app              string                                 // 运行的app
-	hooks            map[intf.HookPoint][]intf.HookFunction // 钩子函数
-	providers        []intf.Provider                        // sdk的providers
-	registerFunction RegisterFunction                       // 向系统注册appServer的函数
-	registerHandlers []*protobuf.DaprHandler                // 向系统注册的方法
-	assets           embed.FS                               // 嵌入文件系统
+	app              string                            // 运行的app
+	hooks            map[hookPoint][]intf.HookFunction // 钩子函数
+	registerFunction RegisterFunction                  // 向系统注册appServer的函数
+	registerHandlers []*protobuf.DaprHandler           // 向系统注册的方法
+	assets           embed.FS                          // 嵌入文件系统
 	logger           intf.LoggerProvider
 	mq               intf.MessageQueueProvider
 }
@@ -56,7 +66,7 @@ func NewGrpcServer(app, address string, options ...ServerOption) (intf.AppServer
 		Service: grpcServer,
 		ctx:     ctx,
 		cancel:  cancel,
-		hooks:   make(map[intf.HookPoint][]intf.HookFunction),
+		hooks:   make(map[hookPoint][]intf.HookFunction),
 		app:     app,
 	}
 
@@ -79,7 +89,7 @@ func NewHttpServer(app, address string, options ...ServerOption) (intf.AppServer
 		Service: httpServer,
 		ctx:     ctx,
 		cancel:  cancel,
-		hooks:   make(map[intf.HookPoint][]intf.HookFunction),
+		hooks:   make(map[hookPoint][]intf.HookFunction),
 		app:     app,
 	}
 
@@ -95,10 +105,14 @@ func NewHttpServer(app, address string, options ...ServerOption) (intf.AppServer
 }
 
 func (impl *daprServerImpl) Start() error {
-	for _, fn := range impl.hooks[intf.HookPointBeforeStart] {
+	for _, fn := range impl.hooks[hookPointPreStart] {
 		if err := fn(); err != nil {
 			return err
 		}
+	}
+
+	if len(impl.hooks[hookPointPreStop]) > 0 {
+		impl.setupPreStopMonitor()
 	}
 
 	// 启动前调用AppRegister函数
@@ -114,40 +128,25 @@ func (impl *daprServerImpl) Start() error {
 	return impl.Service.Start()
 }
 
-func (impl *daprServerImpl) Stop(forced ...bool) error {
-	for _, fn := range impl.hooks[intf.HookPointBeforeStop] {
-		if err := fn(); err != nil {
-			return err
-		}
-	}
-
-	impl.cancel()
-	if len(forced) > 0 && forced[0] {
-		return impl.Service.Stop()
-	}
-	return impl.Service.GracefulStop()
-}
-
-func (impl *daprServerImpl) AddHook(hookPoint intf.HookPoint, hookFunctions ...intf.HookFunction) intf.AppServer {
-	impl.hooks[hookPoint] = append(impl.hooks[hookPoint], hookFunctions...)
+func (impl *daprServerImpl) HookPreStart(hookFunctions ...intf.HookFunction) intf.AppServer {
+	impl.hook(hookPointPreStart, hookFunctions...)
 	return impl
 }
 
-///////////////////////////////////////////////////////////////////////
+func (impl *daprServerImpl) HookPreStop(hookFunctions ...intf.HookFunction) intf.AppServer {
+	impl.hook(hookPointPreStop, hookFunctions...)
+	return impl
+}
+
+// /////////////////////////////////////////////////////////////////////
 // private functions
-///////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////
+func (impl *daprServerImpl) hook(hookPoint hookPoint, hookFunctions ...intf.HookFunction) {
+	impl.hooks[hookPoint] = append(impl.hooks[hookPoint], hookFunctions...)
+}
 
 // Initialize 初始化server
 func (impl *daprServerImpl) initialize() error {
-	for _, provider := range impl.providers {
-		switch provider.GetCapability().Category {
-		case types.ProviderCategoryLogger:
-			impl.logger = provider.(intf.LoggerProvider)
-		case types.ProviderCategoryMq:
-			impl.mq = provider.(intf.MessageQueueProvider)
-		}
-	}
-
 	if err := impl.addHealthCheckHandler(); err != nil {
 		return errors.Wrap(err, "adding health check handler")
 	}
@@ -303,4 +302,28 @@ func registerModule(module any) {
 	case HealthModule:
 		_healthModules = append(_healthModules, m)
 	}
+}
+
+func (impl *daprServerImpl) setupPreStopMonitor() {
+	// 监听中断信号
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(
+		sigCh,
+		syscall.SIGTERM, // 系统终止信号
+	)
+
+	go func() {
+		<-sigCh
+
+		for _, fn := range impl.hooks[hookPointPreStop] {
+			if err := fn(); err != nil {
+				if impl.logger != nil {
+					impl.logger.Error("pre stop", "err", err)
+				}
+			}
+		}
+
+		impl.cancel()
+	}()
+
 }

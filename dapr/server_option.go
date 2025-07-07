@@ -4,6 +4,7 @@ import (
 	"embed"
 	"github.com/hdget/common/intf"
 	"github.com/hdget/common/protobuf"
+	"github.com/hdget/common/types"
 )
 
 // RegisterFunction app向gateway注册的函数
@@ -14,7 +15,15 @@ type ServerOption func(impl *daprServerImpl)
 // WithProviders 提供的providers
 func WithProviders(providers ...intf.Provider) ServerOption {
 	return func(impl *daprServerImpl) {
-		impl.providers = append(impl.providers, providers...)
+		// try initialize provider
+		for _, provider := range providers {
+			switch provider.GetCapability().Category {
+			case types.ProviderCategoryLogger:
+				impl.logger = provider.(intf.LoggerProvider)
+			case types.ProviderCategoryMq:
+				impl.mq = provider.(intf.MessageQueueProvider)
+			}
+		}
 	}
 }
 
