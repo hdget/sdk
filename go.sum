@@ -172,8 +172,8 @@ github.com/hashicorp/memberlist v0.5.0 h1:EtYPN8DpAURiapus508I4n9CzHs2W+8NZGbmmR
 github.com/hashicorp/memberlist v0.5.0/go.mod h1:yvyXLpo0QaGE59Y7hDTsTzDD25JYBZ4mHgHUZ8lrOI0=
 github.com/hashicorp/serf v0.10.1 h1:Z1H2J60yRKvfDYAOZLd2MU0ND4AH/WDz7xYHDWQsIPY=
 github.com/hashicorp/serf v0.10.1/go.mod h1:yL2t6BqATOLGc5HF7qbFkTfXoPIY0WZdWHfEvMqbG+4=
-github.com/hdget/common v0.0.13 h1:Bx1BQuS19oOdmlb9yoCrDvzaQ/hv/1NCdFWQ6fvZQXg=
-github.com/hdget/common v0.0.13/go.mod h1:fR/Wm84fVGv3FSBoJSIOzMwrhaR9ZPg7p9tLxmDI1V8=
+github.com/hdget/common v0.0.14 h1:6qCAjDhm89dnZr44WADC+POxUcGjLHYTjFd1iJ8RyRU=
+github.com/hdget/common v0.0.14/go.mod h1:fR/Wm84fVGv3FSBoJSIOzMwrhaR9ZPg7p9tLxmDI1V8=
 github.com/hdget/provider-config-viper v0.0.5 h1:hYj9IEuW5/uuVL9YmbfryuAYc6xauaMGBghmCG+eSWE=
 github.com/hdget/provider-config-viper v0.0.5/go.mod h1:zfSbFidqTKk3MZ8XUbA+Ix0QHhk7S4BQJfjH4OzVYQk=
 github.com/hdget/provider-logger-zerolog v0.0.5 h1:T6yWQ2tIPUzM4A/+91g2FzxY33D7Y/RyjoSlN9GOOMg=

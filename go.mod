@@ -7,7 +7,7 @@ require (
 	github.com/dapr/go-sdk v1.11.0
 	github.com/elliotchance/pie/v2 v2.9.1
 	github.com/gogo/protobuf v1.3.2
-	github.com/hdget/common v0.0.13
+	github.com/hdget/common v0.0.14
 	github.com/hdget/provider-config-viper v0.0.5
 	github.com/hdget/provider-logger-zerolog v0.0.5
 	github.com/hdget/utils v0.0.1
