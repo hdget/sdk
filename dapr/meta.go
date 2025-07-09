@@ -13,6 +13,7 @@ type MetaManager interface {
 	GetClient(ctx context.Context) string
 	GetRelease(ctx context.Context) string
 	GetUsn(ctx context.Context) string // 获取用户的sn
+	GetUid(ctx context.Context) int64  // 获取用户的id
 	GetTsn(ctx context.Context) string // 获取租户的sn
 	GetTid(ctx context.Context) int64  // 获取租户的id
 	GetRoleIds(ctx context.Context) []int64
@@ -53,6 +54,10 @@ func (m metaManagerImpl) GetRoleIds(ctx context.Context) []int64 {
 
 func (m metaManagerImpl) GetUsn(ctx context.Context) string {
 	return getGrpcMdFirstValue(ctx, constant.MetaKeyUsn)
+}
+
+func (m metaManagerImpl) GetUid(ctx context.Context) int64 {
+	return cast.ToInt64(getGrpcMdFirstValue(ctx, constant.MetaKeyUid))
 }
 
 func (m metaManagerImpl) GetTsn(ctx context.Context) string {
