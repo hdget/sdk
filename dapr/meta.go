@@ -3,7 +3,7 @@ package dapr
 import (
 	"context"
 	"github.com/hdget/common/constant"
-	"github.com/hdget/sdk/encoding"
+	"github.com/hdget/utils/convert"
 	"github.com/spf13/cast"
 	"google.golang.org/grpc/metadata"
 )
@@ -12,7 +12,6 @@ type MetaManager interface {
 	GetAppId(ctx context.Context) string
 	GetClient(ctx context.Context) string
 	GetRelease(ctx context.Context) string
-	GetUsn(ctx context.Context) string // 获取用户的sn
 	GetUid(ctx context.Context) int64  // 获取用户的id
 	GetTsn(ctx context.Context) string // 获取租户的sn
 	GetTid(ctx context.Context) int64  // 获取租户的id
@@ -49,11 +48,7 @@ func (m metaManagerImpl) GetCaller(ctx context.Context) string {
 }
 
 func (m metaManagerImpl) GetRoleIds(ctx context.Context) []int64 {
-	return encoding.New().DecodeInt64Slice(getGrpcMdFirstValue(ctx, constant.MetaKeyRsn))
-}
-
-func (m metaManagerImpl) GetUsn(ctx context.Context) string {
-	return getGrpcMdFirstValue(ctx, constant.MetaKeyUsn)
+	return convert.CsvToInt64s(getGrpcMdFirstValue(ctx, constant.MetaKeyRoleIds))
 }
 
 func (m metaManagerImpl) GetUid(ctx context.Context) int64 {
