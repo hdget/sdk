@@ -30,6 +30,7 @@ func New(options ...Option) Coder {
 		c := &encodingConfig{
 			sqidsOption: &sqids.Options{
 				MinLength: defaultMinLength,
+				Alphabet:  defaultAlphabet, // 同ulid
 			},
 		}
 
