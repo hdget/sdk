@@ -15,6 +15,7 @@ type Option func(o *encodingConfig)
 
 const (
 	defaultMinLength = 6
+	defaultAlphabet  = "0123456789ABCDEFGHJKMNPQRSTVWXYZ" // 去除I（避免与数字1混淆）,L（避免与数字1混淆）,O（避免与数字0混淆）, U（避免与V混淆）
 )
 
 func WithAlphabet(alphabet string) Option {
