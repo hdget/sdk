@@ -3,7 +3,6 @@ package dapr
 import (
 	"context"
 	"github.com/cenkalti/backoff/v4"
-	"github.com/hdget/common/intf"
 	"github.com/hdget/common/types"
 	panicUtils "github.com/hdget/utils/panic"
 	"time"
@@ -11,7 +10,7 @@ import (
 
 type DelayEventHandler interface {
 	GetTopic() string
-	Handle(ctx context.Context, logger intf.LoggerProvider, msgChan <-chan *types.Message)
+	Handle(ctx context.Context, logger types.LoggerProvider, msgChan <-chan *types.Message)
 }
 
 type delayEventHandlerImpl struct {
@@ -31,7 +30,7 @@ func (h delayEventHandlerImpl) GetTopic() string {
 // err: nil 只要错误为空，则消息成功消费, 不管retry的值为什么样
 // err: not nil + retry: false 打印DROP status消息
 // err: not nil + retry: true  进行重试，最后重试次数结束, 打印日志
-func (h delayEventHandlerImpl) Handle(ctx context.Context, logger intf.LoggerProvider, msgChan <-chan *types.Message) {
+func (h delayEventHandlerImpl) Handle(ctx context.Context, logger types.LoggerProvider, msgChan <-chan *types.Message) {
 	// 挂载defer函数
 	defer func() {
 		if r := recover(); r != nil {

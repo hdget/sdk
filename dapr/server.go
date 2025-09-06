@@ -8,7 +8,6 @@ import (
 	"github.com/dapr/go-sdk/service/grpc"
 	"github.com/dapr/go-sdk/service/http"
 	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/common/intf"
 	"github.com/hdget/common/protobuf"
 	"github.com/hdget/common/types"
 	"github.com/pkg/errors"
@@ -32,13 +31,13 @@ type daprServerImpl struct {
 	cancel context.CancelFunc
 	debug  bool
 	// 自定义参数
-	app              string                            // 运行的app
-	hooks            map[hookPoint][]intf.HookFunction // 钩子函数
-	registerFunction RegisterFunction                  // 向系统注册appServer的函数
-	registerHandlers []*protobuf.DaprHandler           // 向系统注册的方法
-	assets           embed.FS                          // 嵌入文件系统
-	logger           intf.LoggerProvider
-	mq               intf.MessageQueueProvider
+	app              string                             // 运行的app
+	hooks            map[hookPoint][]types.HookFunction // 钩子函数
+	registerFunction RegisterFunction                   // 向系统注册appServer的函数
+	registerHandlers []*protobuf.DaprHandler            // 向系统注册的方法
+	assets           embed.FS                           // 嵌入文件系统
+	logger           types.LoggerProvider
+	mq               types.MessageQueueProvider
 }
 
 var (
@@ -52,7 +51,7 @@ func GetInvocationModules() []InvocationModule {
 	return _invocationModules
 }
 
-func NewGrpcServer(app, address string, options ...ServerOption) (intf.AppServer, error) {
+func NewGrpcServer(app, address string, options ...ServerOption) (types.AppServer, error) {
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		return nil, fmt.Errorf("grpc server failed to listen on %s: %w", address, err)
@@ -66,7 +65,7 @@ func NewGrpcServer(app, address string, options ...ServerOption) (intf.AppServer
 		Service: grpcServer,
 		ctx:     ctx,
 		cancel:  cancel,
-		hooks:   make(map[hookPoint][]intf.HookFunction),
+		hooks:   make(map[hookPoint][]types.HookFunction),
 		app:     app,
 	}
 
@@ -81,7 +80,7 @@ func NewGrpcServer(app, address string, options ...ServerOption) (intf.AppServer
 	return appServer, nil
 }
 
-func NewHttpServer(app, address string, options ...ServerOption) (intf.AppServer, error) {
+func NewHttpServer(app, address string, options ...ServerOption) (types.AppServer, error) {
 	httpServer := http.NewServiceWithMux(address, nil)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -89,7 +88,7 @@ func NewHttpServer(app, address string, options ...ServerOption) (intf.AppServer
 		Service: httpServer,
 		ctx:     ctx,
 		cancel:  cancel,
-		hooks:   make(map[hookPoint][]intf.HookFunction),
+		hooks:   make(map[hookPoint][]types.HookFunction),
 		app:     app,
 	}
 
@@ -135,12 +134,12 @@ func (impl *daprServerImpl) Stop(forced ...bool) error {
 	return impl.Service.GracefulStop()
 }
 
-func (impl *daprServerImpl) HookPreStart(hookFunctions ...intf.HookFunction) intf.AppServer {
+func (impl *daprServerImpl) HookPreStart(hookFunctions ...types.HookFunction) types.AppServer {
 	impl.hook(hookPointPreStart, hookFunctions...)
 	return impl
 }
 
-func (impl *daprServerImpl) HookPreStop(hookFunctions ...intf.HookFunction) intf.AppServer {
+func (impl *daprServerImpl) HookPreStop(hookFunctions ...types.HookFunction) types.AppServer {
 	impl.hook(hookPointPreStop, hookFunctions...)
 	return impl
 }
@@ -148,7 +147,7 @@ func (impl *daprServerImpl) HookPreStop(hookFunctions ...intf.HookFunction) intf
 // /////////////////////////////////////////////////////////////////////
 // private functions
 // /////////////////////////////////////////////////////////////////////
-func (impl *daprServerImpl) hook(hookPoint hookPoint, hookFunctions ...intf.HookFunction) {
+func (impl *daprServerImpl) hook(hookPoint hookPoint, hookFunctions ...types.HookFunction) {
 	impl.hooks[hookPoint] = append(impl.hooks[hookPoint], hookFunctions...)
 }
 
