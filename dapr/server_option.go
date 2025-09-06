@@ -2,7 +2,6 @@ package dapr
 
 import (
 	"embed"
-	"github.com/hdget/common/intf"
 	"github.com/hdget/common/protobuf"
 	"github.com/hdget/common/types"
 )
@@ -13,15 +12,15 @@ type RegisterFunction func(string, []*protobuf.DaprHandler) error
 type ServerOption func(impl *daprServerImpl)
 
 // WithProviders 提供的providers
-func WithProviders(providers ...intf.Provider) ServerOption {
+func WithProviders(providers ...types.Provider) ServerOption {
 	return func(impl *daprServerImpl) {
 		// try initialize provider
 		for _, provider := range providers {
 			switch provider.GetCapability().Category {
 			case types.ProviderCategoryLogger:
-				impl.logger = provider.(intf.LoggerProvider)
+				impl.logger = provider.(types.LoggerProvider)
 			case types.ProviderCategoryMq:
-				impl.mq = provider.(intf.MessageQueueProvider)
+				impl.mq = provider.(types.MessageQueueProvider)
 			}
 		}
 	}

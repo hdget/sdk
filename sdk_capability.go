@@ -1,27 +1,29 @@
 package sdk
 
-import "github.com/hdget/common/intf"
+import (
+	"github.com/hdget/common/types"
+)
 
-func Logger() intf.LoggerProvider {
+func Logger() types.LoggerProvider {
 	return _instance.loggerProvider
 }
 
-func Db() intf.DbProvider {
+func Db() types.DbProvider {
 	return _instance.dbProvider
 }
 
-func Redis() intf.RedisProvider {
+func Redis() types.RedisProvider {
 	return _instance.redisProvider
 }
 
-func Config() intf.ConfigProvider {
+func Config() types.ConfigProvider {
 	return _instance.configProvider
 }
 
-func Mq() intf.MessageQueueProvider {
+func Mq() types.MessageQueueProvider {
 	return _instance.mqProvider
 }
 
-func Oss() intf.OssProvider {
+func Oss() types.OssProvider {
 	return _instance.ossProvider
 }

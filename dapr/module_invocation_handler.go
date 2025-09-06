@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/dapr/go-sdk/service/common"
-	"github.com/hdget/common/intf"
 	"github.com/hdget/common/protobuf"
+	"github.com/hdget/common/types"
 	"github.com/hdget/sdk/bizerr"
 	"github.com/hdget/utils/convert"
 	panicUtils "github.com/hdget/utils/panic"
@@ -18,8 +18,8 @@ import (
 type invocationHandler interface {
 	GetAlias() string
 	GetName() string
-	GetInvokeName() string                                                        // 调用名字
-	GetInvokeFunction(logger intf.LoggerProvider) common.ServiceInvocationHandler // 具体的调用函数
+	GetInvokeName() string                                                         // 调用名字
+	GetInvokeFunction(logger types.LoggerProvider) common.ServiceInvocationHandler // 具体的调用函数
 }
 
 type invocationHandlerImpl struct {
@@ -48,7 +48,7 @@ func (h invocationHandlerImpl) GetInvokeName() string {
 	return generateMethod(mInfo.Version, mInfo.Name, h.handlerAlias, mInfo.Client)
 }
 
-func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) common.ServiceInvocationHandler {
+func (h invocationHandlerImpl) GetInvokeFunction(logger types.LoggerProvider) common.ServiceInvocationHandler {
 	return func(ctx context.Context, event *common.InvocationEvent) (*common.Content, error) {
 		// 挂载defer函数
 		defer func() {

@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/dapr/go-sdk/service/common"
-	"github.com/hdget/common/intf"
+	"github.com/hdget/common/types"
 	panicUtils "github.com/hdget/utils/panic"
 )
 
 type eventHandler interface {
 	GetTopic() string
-	GetEventFunction(logger intf.LoggerProvider) common.TopicEventHandler
+	GetEventFunction(logger types.LoggerProvider) common.TopicEventHandler
 }
 
 type eventHandlerImpl struct {
@@ -34,7 +34,7 @@ func (h eventHandlerImpl) GetTopic() string {
 // err: nil 只要错误为空，则消息成功消费, 不管retry的值为什么样
 // err: not nil + retry: false DAPR打印DROP status消息
 // err: not nil + retry: true  根据DAPR resilience策略进行重试，最后重试次数结束, DAPR打印日志
-func (h eventHandlerImpl) GetEventFunction(logger intf.LoggerProvider) common.TopicEventHandler {
+func (h eventHandlerImpl) GetEventFunction(logger types.LoggerProvider) common.TopicEventHandler {
 	return func(ctx context.Context, event *common.TopicEvent) (bool, error) {
 		ctxWithTimeout, cancel := context.WithTimeout(ctx, h.module.GetAckTimeout())
 		defer cancel() // 重要：释放资源

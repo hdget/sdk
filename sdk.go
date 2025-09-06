@@ -2,7 +2,6 @@ package sdk
 
 import (
 	"context"
-	"github.com/hdget/common/intf"
 	"github.com/hdget/common/types"
 	"github.com/hdget/provider-config-viper"
 	"github.com/hdget/provider-config-viper/param"
@@ -14,12 +13,12 @@ import (
 )
 
 type SdkInstance struct {
-	configProvider intf.ConfigProvider
-	loggerProvider intf.LoggerProvider
-	dbProvider     intf.DbProvider
-	redisProvider  intf.RedisProvider
-	mqProvider     intf.MessageQueueProvider
-	ossProvider    intf.OssProvider
+	configProvider types.ConfigProvider
+	loggerProvider types.LoggerProvider
+	dbProvider     types.DbProvider
+	redisProvider  types.RedisProvider
+	mqProvider     types.MessageQueueProvider
+	ossProvider    types.OssProvider
 
 	app         string
 	debug       bool
