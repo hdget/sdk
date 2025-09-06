@@ -7,10 +7,10 @@ require (
 	github.com/dapr/go-sdk v1.11.0
 	github.com/elliotchance/pie/v2 v2.9.1
 	github.com/gogo/protobuf v1.3.2
-	github.com/hdget/common v0.0.23
+	github.com/hdget/common v0.0.24
 	github.com/hdget/provider-config-viper v0.0.6
 	github.com/hdget/provider-logger-zerolog v0.0.6
-	github.com/hdget/utils v0.0.2
+	github.com/hdget/utils v0.0.4
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cast v1.7.1
 	github.com/sqids/sqids-go v0.4.1
