@@ -2,8 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
-	"strings"
 
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/sdk/dapr/utils"
@@ -39,7 +37,7 @@ func (a apiImpl) Invoke(app string, version int, module, handler string, data an
 
 	// IMPORTANT: daprClient是全局的连接
 	daprAppId := utils.Normalize(app)
-	method := generateMethod(version, module, handler, clientName...)
+	method := utils.GenerateMethod(version, module, handler, clientName...)
 	resp, err := daprClient.InvokeMethodWithContent(a.ctx, daprAppId, method, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
@@ -49,20 +47,6 @@ func (a apiImpl) Invoke(app string, version int, module, handler string, data an
 	}
 
 	return resp, nil
-}
-
-func generateMethod(version int, module, handler string, client ...string) string {
-	tokens := []string{
-		fmt.Sprintf("v%d", version),
-		module,
-		handler,
-	}
-
-	if len(client) > 0 && client[0] != "" {
-		tokens = append(tokens, client[0])
-	}
-
-	return strings.ToLower(strings.Join(tokens, ":"))
 }
 
 //
