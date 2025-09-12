@@ -2,6 +2,8 @@ package sdk
 
 import (
 	"context"
+	"sync"
+
 	"github.com/hdget/common/types"
 	"github.com/hdget/provider-config-viper"
 	"github.com/hdget/provider-config-viper/param"
@@ -9,7 +11,6 @@ import (
 	"github.com/hdget/utils/logger"
 	"github.com/pkg/errors"
 	"go.uber.org/fx"
-	"sync"
 )
 
 type SdkInstance struct {
@@ -75,7 +76,7 @@ func (i *SdkInstance) Initialize(capabilities ...types.Capability) error {
 		fx.Provide(
 			func() (string, *param.Param) {
 				if i.configParam.Remote != nil && i.configParam.WatchCallback == nil {
-					i.configParam.Remote.WatchCallback = i.unmarshalConfig
+					i.configParam.WatchCallback = i.unmarshalConfig
 				}
 
 				return i.app, i.configParam

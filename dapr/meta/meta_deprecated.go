@@ -1,9 +1,10 @@
-package dapr
+package meta
 
 import (
 	"context"
-	"github.com/spf13/cast"
 	"strings"
+
+	"github.com/spf13/cast"
 )
 
 type Role struct {
@@ -19,7 +20,7 @@ const (
 	MetaKeyPermIds    = "Hd-Perm-Ids"
 )
 
-func (m metaManagerImpl) OldGetRoles(ctx context.Context) []*Role {
+func (m metaImpl) OldGetRoles(ctx context.Context) []*Role {
 	roles := make([]*Role, 0)
 	for _, roleValue := range getGrpcMdValues(ctx, MetaKeyRoleValues) {
 		tokens := strings.Split(roleValue, ":")
@@ -34,15 +35,15 @@ func (m metaManagerImpl) OldGetRoles(ctx context.Context) []*Role {
 	return roles
 }
 
-func (m metaManagerImpl) OldGetRoleValues(ctx context.Context) []string {
+func (m metaImpl) OldGetRoleValues(ctx context.Context) []string {
 	return getGrpcMdValues(ctx, MetaKeyRoleValues)
 }
 
-func (m metaManagerImpl) OldGetUserId(ctx context.Context) int64 {
+func (m metaImpl) OldGetUserId(ctx context.Context) int64 {
 	return cast.ToInt64(getGrpcMdFirstValue(ctx, MetaKeyUserId))
 }
 
-func (m metaManagerImpl) OldGetRoleIds(ctx context.Context) []int64 {
+func (m metaImpl) OldGetRoleIds(ctx context.Context) []int64 {
 	roleIds := make([]int64, 0)
 	for _, v := range getGrpcMdValues(ctx, MetaKeyRoleIds) {
 		roleIds = append(roleIds, cast.ToInt64(v))
@@ -50,7 +51,7 @@ func (m metaManagerImpl) OldGetRoleIds(ctx context.Context) []int64 {
 	return roleIds
 }
 
-func (m metaManagerImpl) OldGetPermIds(ctx context.Context) []int64 {
+func (m metaImpl) OldGetPermIds(ctx context.Context) []int64 {
 	permIds := make([]int64, 0)
 	for _, v := range getGrpcMdValues(ctx, MetaKeyPermIds) {
 		permIds = append(permIds, cast.ToInt64(v))

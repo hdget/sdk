@@ -1,4 +1,4 @@
-package dapr
+package module
 
 import (
 	reflectUtils "github.com/hdget/utils/reflect"
@@ -35,7 +35,7 @@ func NewInvocationModule(moduleObject any, app string, alias2handler map[string]
 	}
 
 	// 最后注册module
-	registerModule(module)
+	register(module)
 
 	return nil
 }
@@ -47,6 +47,10 @@ func (impl *invocationModuleImpl) RegisterHandlers(functions map[string]Invocati
 		impl.handlers = append(impl.handlers, impl.newInvocationHandler(impl.Module, handlerAlias, fn))
 	}
 	return nil
+}
+
+func (impl *invocationModuleImpl) GetKind() ModuleKind {
+	return ModuleKindInvocation
 }
 
 func (impl *invocationModuleImpl) GetHandlers() []invocationHandler {

@@ -1,10 +1,11 @@
-package dapr
+package module
 
 import (
+	"time"
+
 	"github.com/cenkalti/backoff/v4"
 	reflectUtils "github.com/hdget/utils/reflect"
 	"github.com/pkg/errors"
-	"time"
 )
 
 type DelayEventModule interface {
@@ -41,7 +42,7 @@ func NewDelayEventModule(moduleObject any, app string, functions map[string]Dela
 	}
 
 	// 最后注册module
-	registerModule(module)
+	register(module)
 
 	return nil
 }
@@ -88,6 +89,10 @@ func asDelayEventModule(moduleObject any, app string, options ...DelayEventModul
 	}
 
 	return module, nil
+}
+
+func (impl *delayEventModuleImpl) GetKind() ModuleKind {
+	return ModuleKindDelayEvent
 }
 
 // RegisterHandlers 参数handlers为alias=>receiver.fnName, 保存为handler.id=>*invocationHandler

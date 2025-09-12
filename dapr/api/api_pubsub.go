@@ -1,8 +1,9 @@
-package dapr
+package api
 
 import (
 	"github.com/dapr/go-sdk/client"
 	"github.com/dapr/go-sdk/service/common"
+	"github.com/hdget/sdk/dapr/utils"
 	"github.com/pkg/errors"
 )
 
@@ -11,7 +12,7 @@ type event struct {
 	Handler      common.TopicEventHandler
 }
 
-func newEvent(pubsubName, topic string, handler common.TopicEventHandler, args ...bool) event {
+func NewEvent(pubsubName, topic string, handler common.TopicEventHandler, args ...bool) event {
 	metaOptions := getPublishMetaOptions(args...)
 	return event{
 		Subscription: &common.Subscription{
@@ -41,9 +42,9 @@ func (a apiImpl) Publish(pubSubName, topic string, data interface{}, args ...boo
 	metaOptions := getPublishMetaOptions(args...)
 	if metaOptions != nil {
 		opt = client.PublishEventWithMetadata(metaOptions)
-		err = daprClient.PublishEvent(a.ctx, normalize(pubSubName), topic, data, opt)
+		err = daprClient.PublishEvent(a.ctx, utils.Normalize(pubSubName), topic, data, opt)
 	} else {
-		err = daprClient.PublishEvent(a.ctx, normalize(pubSubName), topic, data)
+		err = daprClient.PublishEvent(a.ctx, utils.Normalize(pubSubName), topic, data)
 	}
 
 	if err != nil {

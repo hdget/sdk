@@ -1,12 +1,10 @@
-package dapr
+package api
 
 import (
 	"context"
+
 	"github.com/dapr/go-sdk/client"
-	"github.com/hdget/common/constant"
-	"github.com/spf13/cast"
 	"google.golang.org/grpc/metadata"
-	"os"
 )
 
 type APIer interface {
@@ -26,8 +24,7 @@ type apiImpl struct {
 	ctx context.Context
 }
 
-func Api(kvs ...string) APIer {
-	ctx := context.Background()
+func New(ctx context.Context, kvs ...string) APIer {
 	if len(kvs) > 0 {
 		md := metadata.Pairs(kvs...)
 		ctx = metadata.NewOutgoingContext(ctx, md)
@@ -35,15 +32,4 @@ func Api(kvs ...string) APIer {
 	return &apiImpl{
 		ctx: ctx,
 	}
-}
-
-func TenantApi(tid int64) APIer {
-	return Api(constant.MetaKeyTid, cast.ToString(tid))
-}
-
-func normalize(input string) string {
-	if namespace, exists := os.LookupEnv(constant.EnvKeyNamespace); exists {
-		return namespace + "_" + input
-	}
-	return input
 }
