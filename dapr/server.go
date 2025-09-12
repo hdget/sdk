@@ -3,18 +3,23 @@ package dapr
 import (
 	"context"
 	"embed"
+	"encoding/json"
 	"fmt"
+	"net"
+	"os"
+	"os/signal"
+	"path"
+	"syscall"
+
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/dapr/go-sdk/service/grpc"
 	"github.com/dapr/go-sdk/service/http"
 	"github.com/elliotchance/pie/v2"
 	"github.com/hdget/common/protobuf"
 	"github.com/hdget/common/types"
+	"github.com/hdget/sdk/dapr/api"
+	"github.com/hdget/sdk/dapr/module"
 	"github.com/pkg/errors"
-	"net"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 type hookPoint int
@@ -23,6 +28,7 @@ const (
 	hookPointUnknown hookPoint = iota
 	hookPointPreStart
 	hookPointPreStop
+	fileExposedHandlers = ".exposed_handlers.json"
 )
 
 type daprServerImpl struct {
@@ -40,15 +46,8 @@ type daprServerImpl struct {
 	mq               types.MessageQueueProvider
 }
 
-var (
-	_invocationModules = make([]InvocationModule, 0) // service invocation module
-	_eventModules      = make([]EventModule, 0)      // topic event module
-	_healthModules     = make([]HealthModule, 0)     // health module
-	_delayEventModules = make([]DelayEventModule, 0) // delay event module
-)
-
-func GetInvocationModules() []InvocationModule {
-	return _invocationModules
+func GetInvocationModules() []module.InvocationModule {
+	return module.Get[module.InvocationModule](module.ModuleKindInvocation)
 }
 
 func NewGrpcServer(app, address string, options ...ServerOption) (types.AppServer, error) {
@@ -131,7 +130,7 @@ func (impl *daprServerImpl) Stop(forced ...bool) error {
 	if len(forced) > 0 && forced[0] {
 		return impl.Service.Stop()
 	}
-	return impl.Service.GracefulStop()
+	return impl.GracefulStop()
 }
 
 func (impl *daprServerImpl) HookPreStart(hookFunctions ...types.HookFunction) types.AppServer {
@@ -178,9 +177,9 @@ func (impl *daprServerImpl) addEventHandlers() error {
 		return errors.New("logger provider not found")
 	}
 
-	for _, m := range _eventModules {
+	for _, m := range module.Get[module.EventModule](module.ModuleKindEvent) {
 		for _, h := range m.GetHandlers() {
-			e := newEvent(m.GetPubSub(), h.GetTopic(), h.GetEventFunction(impl.logger))
+			e := api.NewEvent(m.GetPubSub(), h.GetTopic(), h.GetEventFunction(impl.logger))
 			if err := impl.AddTopicEventHandler(e.Subscription, e.Handler); err != nil {
 				return err
 			}
@@ -192,8 +191,8 @@ func (impl *daprServerImpl) addEventHandlers() error {
 // subscribeDelayEvents 添加延迟事件处理函数
 func (impl *daprServerImpl) subscribeDelayEvents() error {
 	var app string
-	topic2delayEventHandler := make(map[string]DelayEventHandler)
-	for _, m := range _delayEventModules {
+	topic2delayEventHandler := make(map[string]module.DelayEventHandler)
+	for _, m := range module.Get[module.DelayEventModule](module.ModuleKindDelayEvent) {
 		if app == "" {
 			app = m.GetApp()
 		}
@@ -240,10 +239,12 @@ func (impl *daprServerImpl) subscribeDelayEvents() error {
 // addHealthCheckHandler 添加健康检测Handler
 func (impl *daprServerImpl) addHealthCheckHandler() error {
 	var h common.HealthCheckHandler
-	if len(_healthModules) == 0 {
-		h = EmptyHealthCheckFunction
+
+	healthModules := module.Get[module.HealthModule](module.ModuleKindHealth)
+	if len(healthModules) == 0 {
+		h = module.EmptyHealthCheckFunction
 	} else {
-		h = pie.First(_healthModules).GetHandler()
+		h = pie.First(healthModules).GetHandler()
 	}
 
 	// 注册health check handler
@@ -257,7 +258,7 @@ func (impl *daprServerImpl) addInvocationHandlers() error {
 	}
 
 	// 注册各种类型的handlers
-	for _, m := range _invocationModules {
+	for _, m := range GetInvocationModules() {
 		for _, h := range m.GetHandlers() {
 			if impl.debug {
 				impl.logger.Debug("add invocation handler", "method", h.GetInvokeName())
@@ -287,7 +288,7 @@ func (impl *daprServerImpl) defaultRegisterFunction(app string, handlers []*prot
 		return nil
 	}
 
-	_, err := Api().Invoke("gateway", 1, "route", "update", &protobuf.UpdateRouteRequest{
+	_, err := api.New(context.Background()).Invoke("gateway", 1, "route", "update", &protobuf.UpdateRouteRequest{
 		App:      app,
 		Handlers: exposedHandlers,
 	})
@@ -295,19 +296,6 @@ func (impl *daprServerImpl) defaultRegisterFunction(app string, handlers []*prot
 		return err
 	}
 	return nil
-}
-
-func registerModule(module any) {
-	switch m := module.(type) {
-	case InvocationModule:
-		_invocationModules = append(_invocationModules, m)
-	case EventModule:
-		_eventModules = append(_eventModules, m)
-	case DelayEventModule:
-		_delayEventModules = append(_delayEventModules, m)
-	case HealthModule:
-		_healthModules = append(_healthModules, m)
-	}
 }
 
 func (impl *daprServerImpl) setupPreStopNotifier() {
@@ -334,4 +322,20 @@ func (impl *daprServerImpl) onPreStop() {
 	}
 
 	impl.cancel()
+}
+
+// LoadStoredExposedHandlers 从embed.FS中加载ast解析后保存的DaprHandlers
+func LoadStoredExposedHandlers(fs embed.FS) ([]*protobuf.DaprHandler, error) {
+	// IMPORTANT: embedfs使用的是斜杠来获取文件路径,在windows平台下如果使用filepath来处理路径会导致问题
+	data, err := fs.ReadFile(path.Join("json", fileExposedHandlers))
+	if err != nil {
+		return nil, err
+	}
+
+	var handlers []*protobuf.DaprHandler
+	err = json.Unmarshal(data, &handlers)
+	if err != nil {
+		return nil, err
+	}
+	return handlers, nil
 }

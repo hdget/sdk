@@ -1,6 +1,7 @@
-package dapr
+package module
 
 import (
+	"github.com/hdget/sdk/dapr/utils"
 	reflectUtils "github.com/hdget/utils/reflect"
 	"github.com/pkg/errors"
 	"time"
@@ -29,7 +30,7 @@ var (
 // NewEventModule 新建事件模块会执行下列操作:
 func NewEventModule(moduleObject any, app, pubsub string, functions map[string]EventFunction, options ...EventModuleOption) error {
 	// 首先实例化module
-	module, err := asEventModule(moduleObject, app, normalize(pubsub), options...)
+	module, err := asEventModule(moduleObject, app, utils.Normalize(pubsub), options...)
 	if err != nil {
 		return err
 	}
@@ -41,7 +42,7 @@ func NewEventModule(moduleObject any, app, pubsub string, functions map[string]E
 	}
 
 	// 最后注册module
-	registerModule(module)
+	register(module)
 
 	return nil
 }
@@ -88,6 +89,10 @@ func asEventModule(moduleObject any, app, pubsub string, options ...EventModuleO
 	}
 
 	return module, nil
+}
+
+func (m *eventModuleImpl) GetKind() ModuleKind {
+	return ModuleKindEvent
 }
 
 // RegisterHandlers 参数handlers为alias=>receiver.fnName, 保存为handler.id=>*invocationHandler

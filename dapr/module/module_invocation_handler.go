@@ -1,18 +1,17 @@
-package dapr
+package module
 
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/dapr/go-sdk/service/common"
-	"github.com/hdget/common/protobuf"
 	"github.com/hdget/common/types"
-	"github.com/hdget/sdk/bizerr"
+	"github.com/hdget/sdk/biz"
+	"github.com/hdget/sdk/dapr/api"
+	"github.com/hdget/sdk/dapr/utils"
 	"github.com/hdget/utils/convert"
 	panicUtils "github.com/hdget/utils/panic"
 	reflectUtils "github.com/hdget/utils/reflect"
-	"github.com/pkg/errors"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type invocationHandler interface {
@@ -45,7 +44,7 @@ func (h invocationHandlerImpl) GetName() string {
 
 func (h invocationHandlerImpl) GetInvokeName() string {
 	mInfo := h.module.GetModuleInfo()
-	return generateMethod(mInfo.Version, mInfo.Name, h.handlerAlias, mInfo.Client)
+	return utils.GenerateMethod(mInfo.Version, mInfo.Name, h.handlerAlias, mInfo.Client)
 }
 
 func (h invocationHandlerImpl) GetInvokeFunction(logger types.LoggerProvider) common.ServiceInvocationHandler {
@@ -69,16 +68,7 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger types.LoggerProvider) co
 }
 
 func (h invocationHandlerImpl) replyError(err error) (*common.Content, error) {
-	var be *bizerr.BizError
-	ok := errors.As(err, &be)
-	if ok {
-		st, _ := status.New(codes.Internal, "internal error").WithDetails(&protobuf.Error{
-			Code: be.Code,
-			Msg:  be.Msg,
-		})
-		return nil, st.Err()
-	}
-	return nil, err
+	return nil, biz.ToGrpcError(err)
 }
 
 func (h invocationHandlerImpl) replySuccess(event *common.InvocationEvent, result any) (*common.Content, error) {
@@ -97,7 +87,7 @@ func (h invocationHandlerImpl) replySuccess(event *common.InvocationEvent, resul
 	}
 
 	return &common.Content{
-		ContentType: ContentTypeJson,
+		ContentType: api.ContentTypeJson,
 		Data:        data,
 		DataTypeURL: event.DataTypeURL,
 	}, nil

@@ -1,4 +1,4 @@
-package dapr
+package module
 
 import (
 	"context"
@@ -33,7 +33,7 @@ func NewHealthModule(moduleObject any, app string, fn HealthCheckFunction) error
 	}
 
 	// 最后注册module
-	registerModule(module)
+	register(module)
 
 	return nil
 }
@@ -74,6 +74,10 @@ func asHealthModule(moduleObject any, app string, fn HealthCheckFunction) (Healt
 	}
 
 	return module, nil
+}
+
+func (impl *healthModuleImpl) GetKind() ModuleKind {
+	return ModuleKindHealth
 }
 
 func (impl *healthModuleImpl) GetHandler() common.HealthCheckHandler {

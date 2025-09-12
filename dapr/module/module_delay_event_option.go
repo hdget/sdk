@@ -1,4 +1,4 @@
-package dapr
+package module
 
 import (
 	"github.com/cenkalti/backoff/v4"

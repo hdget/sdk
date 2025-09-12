@@ -1,8 +1,9 @@
-package dapr
+package module
 
 import (
 	"context"
 	"fmt"
+
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/common/types"
 	panicUtils "github.com/hdget/utils/panic"

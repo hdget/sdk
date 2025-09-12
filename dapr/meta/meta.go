@@ -1,14 +1,15 @@
-package dapr
+package meta
 
 import (
 	"context"
+
 	"github.com/hdget/common/constant"
 	"github.com/hdget/utils/convert"
 	"github.com/spf13/cast"
 	"google.golang.org/grpc/metadata"
 )
 
-type MetaManager interface {
+type Meta interface {
 	GetAppId(ctx context.Context) string
 	GetClient(ctx context.Context) string
 	GetRelease(ctx context.Context) string
@@ -24,42 +25,42 @@ type MetaManager interface {
 	OldGetPermIds(ctx context.Context) []int64
 }
 
-type metaManagerImpl struct {
+type metaImpl struct {
 }
 
-func Meta() MetaManager {
-	return &metaManagerImpl{}
+func New() Meta {
+	return &metaImpl{}
 }
 
-func (m metaManagerImpl) GetAppId(ctx context.Context) string {
+func (m metaImpl) GetAppId(ctx context.Context) string {
 	return getGrpcMdFirstValue(ctx, constant.MetaKeyAppId)
 }
 
-func (m metaManagerImpl) GetClient(ctx context.Context) string {
+func (m metaImpl) GetClient(ctx context.Context) string {
 	return getGrpcMdFirstValue(ctx, constant.MetaKeyClient)
 }
 
-func (m metaManagerImpl) GetRelease(ctx context.Context) string {
+func (m metaImpl) GetRelease(ctx context.Context) string {
 	return getGrpcMdFirstValue(ctx, constant.MetaKeyRelease)
 }
 
-func (m metaManagerImpl) GetCaller(ctx context.Context) string {
+func (m metaImpl) GetCaller(ctx context.Context) string {
 	return getGrpcMdFirstValue(ctx, constant.MetaKeyCaller)
 }
 
-func (m metaManagerImpl) GetRoleIds(ctx context.Context) []int64 {
+func (m metaImpl) GetRoleIds(ctx context.Context) []int64 {
 	return convert.CsvToInt64s(getGrpcMdFirstValue(ctx, constant.MetaKeyRoleIds))
 }
 
-func (m metaManagerImpl) GetUid(ctx context.Context) int64 {
+func (m metaImpl) GetUid(ctx context.Context) int64 {
 	return cast.ToInt64(getGrpcMdFirstValue(ctx, constant.MetaKeyUid))
 }
 
-func (m metaManagerImpl) GetTsn(ctx context.Context) string {
+func (m metaImpl) GetTsn(ctx context.Context) string {
 	return getGrpcMdFirstValue(ctx, constant.MetaKeyTsn)
 }
 
-func (m metaManagerImpl) GetTid(ctx context.Context) int64 {
+func (m metaImpl) GetTid(ctx context.Context) int64 {
 	return cast.ToInt64(getGrpcMdFirstValue(ctx, constant.MetaKeyTid))
 }
 
