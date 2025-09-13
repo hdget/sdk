@@ -43,7 +43,7 @@ func (h invocationHandlerImpl) GetName() string {
 }
 
 func (h invocationHandlerImpl) GetInvokeName() string {
-	mInfo := h.module.GetModuleInfo()
+	mInfo := h.module.GetInfo()
 	return utils.GenerateMethod(mInfo.Version, mInfo.Name, h.handlerAlias, mInfo.Client)
 }
 
@@ -58,7 +58,7 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger types.LoggerProvider) co
 
 		result, err := h.fn(ctx, event)
 		if err != nil {
-			mInfo := h.module.GetModuleInfo()
+			mInfo := h.module.GetInfo()
 			logger.Error("service daprInvoke", "client", mInfo.Client, "module", mInfo.Name, "Handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
 			return h.replyError(err)
 		}
