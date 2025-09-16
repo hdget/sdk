@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hdget/common/meta"
+	sdkContext "github.com/hdget/sdk/context"
 )
 
 type Service interface {
@@ -12,6 +13,7 @@ type Service interface {
 	GetUid() int64
 	GetAppId() string
 	GetTsn() string
+	GetClient() string
 }
 
 type bizSvcImpl struct {
@@ -19,7 +21,7 @@ type bizSvcImpl struct {
 }
 
 func NewService(ctx context.Context) Service {
-	return &bizSvcImpl{ctx: ctx}
+	return &bizSvcImpl{ctx: sdkContext.FromIncomingGrpcContext(ctx)}
 }
 
 func (s bizSvcImpl) Context() context.Context {
@@ -40,4 +42,8 @@ func (s bizSvcImpl) GetAppId() string {
 
 func (s bizSvcImpl) GetTsn() string {
 	return meta.FromServiceContext(s.ctx).GetTsn()
+}
+
+func (s bizSvcImpl) GetClient() string {
+	return meta.FromServiceContext(s.ctx).GetClient()
 }
