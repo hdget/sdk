@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/dapr/go-sdk/client"
-	"github.com/hdget/common/servicectx"
+	sdkContext "github.com/hdget/sdk/context"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -26,7 +26,7 @@ type apiImpl struct {
 }
 
 func New(ctx context.Context, kvs ...string) APIer {
-	ctx = servicectx.NewOutgoingGrpcContext(ctx)
+	ctx = sdkContext.NewOutgoingGrpcContext(ctx)
 	if len(kvs) > 0 {
 		md := metadata.Pairs(kvs...)
 		ctx = metadata.NewOutgoingContext(ctx, md)
