@@ -42,18 +42,18 @@ func FromIncomingGrpcContext(ctx context.Context) context.Context {
 
 func NewOutgoingGrpcContext(ctx context.Context, kvs ...string) context.Context {
 	metaMap := meta.GetMetaFromContext(ctx)
-	kvMap := toMap(kvs...)
 
-	md := make(map[string][]string, len(metaMap)+len(kvMap))
+	md := make(map[string][]string, len(metaMap)+len(kvs)/2)
 	for k, v := range metaMap {
 		md[k] = []string{v}
 	}
 
 	// last one override first
+	kvMap := toMap(kvs...)
 	for k, v := range kvMap {
 		md[k] = []string{v}
 	}
-	return metadata.NewOutgoingContext(ctx, md)
+	return metadata.NewOutgoingContext(context.Background(), md)
 }
 
 func toMap(kvs ...string) map[string]string {
