@@ -16,6 +16,18 @@ var (
 	}
 )
 
+func New(kvs ...string) context.Context {
+	if len(kvs) == 0 || len(kvs)%2 == 1 {
+		return context.Background()
+	}
+	
+	md := make(map[string]string, len(kvs)/2)
+	for i := 0; i < len(kvs); i += 2 {
+		md[kvs[i]] = kvs[i+1]
+	}
+	return meta.AddMetaToContext(context.Background(), md)
+}
+
 func FromIncomingGrpcContext(ctx context.Context) context.Context {
 	// 尝试从grpc context中获取meta信息
 	md, exists := metadata.FromIncomingContext(ctx)
