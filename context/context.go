@@ -13,6 +13,7 @@ var (
 		meta.KeyUid,
 		meta.KeyAppId,
 		meta.KeyTsn,
+		meta.KeyClient,
 	}
 )
 
@@ -31,6 +32,7 @@ func FromIncomingGrpcContext(ctx context.Context) context.Context {
 		return context.Background()
 	}
 
+	// 只取关心的meta值
 	metaMap := make(map[string]string)
 	for _, key := range awareMetaKeys {
 		if values := md.Get(key); len(values) > 0 {
