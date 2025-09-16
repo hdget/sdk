@@ -3,9 +3,7 @@ package biz
 import (
 	"context"
 
-	"github.com/hdget/common/constant"
 	"github.com/hdget/common/meta"
-	"github.com/hdget/common/servicectx"
 )
 
 type Service interface {
@@ -21,7 +19,7 @@ type bizSvcImpl struct {
 }
 
 func NewService(ctx context.Context) Service {
-	return &bizSvcImpl{ctx: servicectx.New(ctx)}
+	return &bizSvcImpl{ctx: ctx}
 }
 
 func (s bizSvcImpl) Context() context.Context {
@@ -29,17 +27,17 @@ func (s bizSvcImpl) Context() context.Context {
 }
 
 func (s bizSvcImpl) GetTid() int64 {
-	return meta.FromServiceContext(s.ctx).GetInt64(constant.MetaKeyTid)
+	return meta.FromServiceContext(s.ctx).GetTid()
 }
 
 func (s bizSvcImpl) GetUid() int64 {
-	return meta.FromServiceContext(s.ctx).GetInt64(constant.MetaKeyTid)
+	return meta.FromServiceContext(s.ctx).GetUid()
 }
 
 func (s bizSvcImpl) GetAppId() string {
-	return meta.FromServiceContext(s.ctx).GetString(constant.MetaKeyAppId)
+	return meta.FromServiceContext(s.ctx).GetAppId()
 }
 
 func (s bizSvcImpl) GetTsn() string {
-	return meta.FromServiceContext(s.ctx).GetString(constant.MetaKeyTsn)
+	return meta.FromServiceContext(s.ctx).GetTsn()
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/common/types"
 	"github.com/hdget/sdk/biz"
+	sdkContext "github.com/hdget/sdk/context"
 	"github.com/hdget/sdk/dapr/api"
 	"github.com/hdget/sdk/dapr/utils"
 	"github.com/hdget/utils/convert"
@@ -56,7 +57,7 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger types.LoggerProvider) co
 			}
 		}()
 
-		result, err := h.fn(ctx, event)
+		result, err := h.fn(sdkContext.FromIncomingGrpcContext(ctx), event)
 		if err != nil {
 			mInfo := h.module.GetInfo()
 			logger.Error("service daprInvoke", "client", mInfo.Client, "module", mInfo.Name, "Handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
