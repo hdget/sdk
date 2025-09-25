@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/dapr/go-sdk/client"
-	sdkContext "github.com/hdget/sdk/context"
+	"github.com/hdget/common/biz"
 )
 
 type APIer interface {
@@ -24,8 +24,8 @@ type apiImpl struct {
 	ctx context.Context
 }
 
-func New(ctx context.Context, kvs ...string) APIer {
+func New(ctx biz.Context) APIer {
 	return &apiImpl{
-		ctx: sdkContext.NewOutgoingGrpcContext(ctx, kvs...),
+		ctx: biz.NewOutgoingGrpcContext(ctx),
 	}
 }

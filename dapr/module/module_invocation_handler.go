@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 
 	"github.com/dapr/go-sdk/service/common"
+	"github.com/hdget/common/biz"
 	"github.com/hdget/common/types"
-	"github.com/hdget/sdk/biz"
 	"github.com/hdget/sdk/dapr/api"
 	"github.com/hdget/sdk/dapr/utils"
 	"github.com/hdget/utils/convert"
@@ -31,7 +31,7 @@ type invocationHandlerImpl struct {
 	fn           InvocationFunction // 调用函数
 }
 
-type InvocationFunction func(ctx context.Context, event *common.InvocationEvent) (any, error)
+type InvocationFunction func(ctx biz.Context, data []byte) (any, error)
 type HandlerMatcher func(methodName string) (string, bool) // 传入receiver.methodName, 判断是否匹配，然后取出处理后的handlerName
 
 func (h invocationHandlerImpl) GetAlias() string {
@@ -56,7 +56,7 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger types.LoggerProvider) co
 			}
 		}()
 
-		result, err := h.fn(ctx, event)
+		result, err := h.fn(biz.NewFromIncomingGrpcContext(ctx), event.Data)
 		if err != nil {
 			mInfo := h.module.GetInfo()
 			logger.Error("service daprInvoke", "client", mInfo.Client, "module", mInfo.Name, "Handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
