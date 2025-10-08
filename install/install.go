@@ -22,11 +22,6 @@ type Installer interface {
 	InstallTables(dbExecutor types.DbExecutor, force bool, tableNames ...string) error
 }
 
-type DbInstaller struct {
-	createSQL    string
-	initFunction TableInitFunction
-}
-
 type appInstallerImpl struct {
 	project            string
 	app                string
