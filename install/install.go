@@ -53,6 +53,7 @@ func New(assetFs embed.FS, name string, tableInitFunctions map[string]TableInitF
 
 func (impl *appInstallerImpl) InstallDatabase(dbExecutor types.DbExecutor) (string, error) {
 	dbName := fmt.Sprintf("%s_%s", impl.project, impl.app)
+	fmt.Printf("=== install database: %s ===\n", dbName)
 
 	sql := fmt.Sprintf(psqlCreateDatabase, dbName)
 
@@ -93,7 +94,7 @@ func (impl *appInstallerImpl) InstallTables(dbExecutor types.DbExecutor, force b
 	}
 
 	for _, tableName := range installTables {
-		fmt.Printf("=== install %s table ===\n", tableName)
+		fmt.Printf("=== install table: %s ===\n", tableName)
 		if force {
 			fmt.Printf(" * drop table: %s\n", tableName)
 			sqlDrop := fmt.Sprintf(psqlDropTable, tableName)
@@ -113,9 +114,7 @@ func (impl *appInstallerImpl) InstallTables(dbExecutor types.DbExecutor, force b
 		}
 
 		// init table
-		ctx := biz.NewContext()
-		ctx.SetTx(dbExecutor)
-
+		ctx := biz.WithTxContext(biz.NewContext(), dbExecutor)
 		if tableInitFunction, exists := impl.tableInitFunctions[tableName]; exists {
 			fmt.Printf(" * init table: %s\n", tableName)
 			if err = tableInitFunction(ctx, impl.assetFs); err != nil {
