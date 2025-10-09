@@ -80,7 +80,7 @@ func asDelayEventModule(moduleObject any, app string, options ...DelayEventModul
 	// 初始化module
 	err = reflectUtils.StructSet(moduleObject, (*DelayEventModule)(nil), moduleInstance)
 	if err != nil {
-		return nil, errors.Wrapf(err, "install module: %+v", m)
+		return nil, errors.Wrapf(err, "devops module: %+v", m)
 	}
 
 	module, ok := moduleObject.(DelayEventModule)

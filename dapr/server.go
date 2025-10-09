@@ -57,7 +57,7 @@ func NewGrpcServer(app, address string, options ...ServerOption) (types.AppServe
 		return nil, fmt.Errorf("grpc server failed to listen on %s: %w", address, err)
 	}
 
-	// install health check handler
+	// devops health check handler
 	grpcServer := grpc.NewServiceWithListener(lis)
 
 	ctx, cancel := context.WithCancel(context.Background())

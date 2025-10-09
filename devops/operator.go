@@ -1,4 +1,4 @@
-package install
+package devops
 
 import (
 	"embed"
@@ -15,18 +15,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-type TableInitFunction func(ctx biz.Context, fs embed.FS) error
-
-type Installer interface {
-	InstallDatabase(dbExecutor types.DbExecutor) (string, error)
-	InstallTables(dbExecutor types.DbExecutor, force bool, tableNames ...string) error
-}
-
-type appInstallerImpl struct {
-	project            string
-	app                string
-	assetFs            embed.FS
-	tableInitFunctions map[string]TableInitFunction
+type devOpsImpl struct {
+	project        string
+	app            string
+	fs             embed.FS
+	tableOperators []TableOperator
 }
 
 const (
@@ -37,27 +30,32 @@ DEALLOCATE ALL;       -- 清除当前会话的所有预处理语句
 DISCARD PLANS;        -- PostgreSQL ≥13 替代方案`
 )
 
-func New(assetFs embed.FS, name string, tableInitFunctions map[string]TableInitFunction) (Installer, error) {
+func New(name string, fs embed.FS, options ...Option) (Operator, error) {
 	project, exists := os.LookupEnv(constant.EnvKeyNamespace)
 	if !exists || project == "" {
 		return nil, fmt.Errorf("project name not found in %s", constant.EnvKeyNamespace)
 	}
 
-	return &appInstallerImpl{
-		project:            project,
-		app:                name,
-		assetFs:            assetFs,
-		tableInitFunctions: tableInitFunctions,
-	}, nil
+	impl := &devOpsImpl{
+		project: project,
+		app:     name,
+		fs:      fs,
+	}
+
+	for _, option := range options {
+		option(impl)
+	}
+
+	return impl, nil
 }
 
-func (impl *appInstallerImpl) InstallDatabase(dbExecutor types.DbExecutor) (string, error) {
+func (impl *devOpsImpl) InstallDatabase(executor types.DbExecutor) (string, error) {
 	dbName := fmt.Sprintf("%s_%s", impl.project, impl.app)
 	fmt.Printf("=== install database: %s ===\n", dbName)
 
 	sql := fmt.Sprintf(psqlCreateDatabase, dbName)
 
-	_, err := dbExecutor.Exec(sql)
+	_, err := executor.Exec(sql)
 	if err != nil {
 		return "", errors.Wrap(err, "create database")
 	}
@@ -65,7 +63,7 @@ func (impl *appInstallerImpl) InstallDatabase(dbExecutor types.DbExecutor) (stri
 	return dbName, nil
 }
 
-func (impl *appInstallerImpl) InstallTables(dbExecutor types.DbExecutor, force bool, tableNames ...string) error {
+func (impl *devOpsImpl) InstallTables(executor types.DbExecutor, force bool, tableNames ...string) error {
 	var sqlDir string
 	dbKind := strings.Split(sdk.Db().GetCapability().Name, "-")[0]
 	switch dbKind {
@@ -77,7 +75,7 @@ func (impl *appInstallerImpl) InstallTables(dbExecutor types.DbExecutor, force b
 	}
 
 	// 清除所有预处理语句
-	_, err := dbExecutor.Exec(psqlClearPrepareStatements)
+	_, err := executor.Exec(psqlClearPrepareStatements)
 	if err != nil {
 		return err
 	}
@@ -93,12 +91,13 @@ func (impl *appInstallerImpl) InstallTables(dbExecutor types.DbExecutor, force b
 		installTables = pie.Keys(tableName2sqlCreate)
 	}
 
+	ctx := biz.WithTxContext(biz.NewContext(), executor)
 	for _, tableName := range installTables {
 		fmt.Printf("=== install table: %s ===\n", tableName)
 		if force {
 			fmt.Printf(" * drop table: %s\n", tableName)
 			sqlDrop := fmt.Sprintf(psqlDropTable, tableName)
-			_, err = dbExecutor.Exec(sqlDrop)
+			_, err = executor.Exec(sqlDrop)
 			if err != nil {
 				return err
 			}
@@ -107,26 +106,56 @@ func (impl *appInstallerImpl) InstallTables(dbExecutor types.DbExecutor, force b
 		// create table
 		if sqlCreate, exists := tableName2sqlCreate[tableName]; exists {
 			fmt.Printf(" * create table: %s\n", tableName)
-			_, err = dbExecutor.Exec(sqlCreate)
+			_, err = executor.Exec(sqlCreate)
 			if err != nil {
 				return err
 			}
 		}
 
 		// init table
-		ctx := biz.WithTxContext(biz.NewContext(), dbExecutor)
-		if tableInitFunction, exists := impl.tableInitFunctions[tableName]; exists {
+		foundIndex := pie.FindFirstUsing(impl.tableOperators, func(v TableOperator) bool {
+			return v.GetName() == tableName
+		})
+
+		if foundIndex >= 0 {
 			fmt.Printf(" * init table: %s\n", tableName)
-			if err = tableInitFunction(ctx, impl.assetFs); err != nil {
+			if err = impl.tableOperators[foundIndex].Init(ctx, impl.fs); err != nil {
 				return err
 			}
 		}
+
 	}
 	return nil
 }
 
-func (impl *appInstallerImpl) findTableCreateSQL(dir string) (map[string]string, error) {
-	entries, err := impl.assetFs.ReadDir(dir)
+func (impl *devOpsImpl) ExportTables(executor types.DbExecutor, tableNames ...string) error {
+	// 获取要处理的表
+	exportTables := tableNames
+	if len(exportTables) == 0 {
+		exportTables = pie.Map(impl.tableOperators, func(v TableOperator) string {
+			return v.GetName()
+		})
+	}
+
+	ctx := biz.WithTxContext(biz.NewContext(), executor)
+	for _, tableName := range exportTables {
+		foundIndex := pie.FindFirstUsing(impl.tableOperators, func(v TableOperator) bool {
+			return v.GetName() == tableName
+		})
+
+		if foundIndex >= 0 {
+			fmt.Printf(" * export table: %s\n", tableName)
+			if err := impl.tableOperators[foundIndex].Export(ctx, impl.fs); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (impl *devOpsImpl) findTableCreateSQL(dir string) (map[string]string, error) {
+	entries, err := impl.fs.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +169,7 @@ func (impl *appInstallerImpl) findTableCreateSQL(dir string) (map[string]string,
 		if strings.HasPrefix(entry.Name(), "table_") {
 			tableName := strings.TrimSuffix(strings.TrimPrefix(entry.Name(), "table_"), ".sql")
 
-			sqlData, err := impl.assetFs.ReadFile(path.Join(dir, entry.Name()))
+			sqlData, err := impl.fs.ReadFile(path.Join(dir, entry.Name()))
 			if err != nil {
 				return nil, err
 			}

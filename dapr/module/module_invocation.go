@@ -85,7 +85,7 @@ func asInvocationModule(moduleObject any, app string) (InvocationModule, error) 
 	// 初始化module
 	err = reflectUtils.StructSet(moduleObject, (*InvocationModule)(nil), moduleInstance)
 	if err != nil {
-		return nil, errors.Wrapf(err, "install module: %+v", m)
+		return nil, errors.Wrapf(err, "devops module: %+v", m)
 	}
 
 	module, ok := moduleObject.(InvocationModule)
