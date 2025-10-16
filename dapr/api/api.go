@@ -2,9 +2,10 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/dapr/go-sdk/client"
-	sdkContext "github.com/hdget/sdk/context"
+	"github.com/hdget/common/biz"
 )
 
 type APIer interface {
@@ -24,8 +25,27 @@ type apiImpl struct {
 	ctx context.Context
 }
 
-func New(ctx context.Context, kvs ...string) APIer {
+func New(ctx biz.Context) APIer {
 	return &apiImpl{
-		ctx: sdkContext.NewOutgoingGrpcContext(ctx, kvs...),
+		ctx: biz.NewOutgoingGrpcContext(ctx),
 	}
+}
+
+func Call[RESULT any](ctx biz.Context, app string, version int, module, handler string, request ...any) (*RESULT, error) {
+	var req any
+	if len(request) > 0 {
+		req = request[0]
+	}
+
+	data, err := New(ctx).Invoke(app, version, module, handler, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret RESULT
+	err = json.Unmarshal(data, &ret)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
 }

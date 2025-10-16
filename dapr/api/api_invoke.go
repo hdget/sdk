@@ -48,17 +48,3 @@ func (a apiImpl) Invoke(app string, version int, module, handler string, data an
 
 	return resp, nil
 }
-
-//
-//func parseClient(ctx context.Context) string {
-//	md, ok := metadata.FromOutgoingContext(ctx)
-//	if !ok {
-//		return ""
-//	}
-//
-//	values := md.Get(constant.MetaKeyClient)
-//	if len(values) == 0 {
-//		return ""
-//	}
-//	return values[0]
-//}

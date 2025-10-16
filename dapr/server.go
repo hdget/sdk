@@ -15,6 +15,7 @@ import (
 	"github.com/dapr/go-sdk/service/grpc"
 	"github.com/dapr/go-sdk/service/http"
 	"github.com/elliotchance/pie/v2"
+	"github.com/hdget/common/biz"
 	"github.com/hdget/common/protobuf"
 	"github.com/hdget/common/types"
 	"github.com/hdget/sdk/dapr/api"
@@ -56,7 +57,7 @@ func NewGrpcServer(app, address string, options ...ServerOption) (types.AppServe
 		return nil, fmt.Errorf("grpc server failed to listen on %s: %w", address, err)
 	}
 
-	// install health check handler
+	// devops health check handler
 	grpcServer := grpc.NewServiceWithListener(lis)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -288,7 +289,7 @@ func (impl *daprServerImpl) defaultRegisterFunction(app string, handlers []*prot
 		return nil
 	}
 
-	_, err := api.New(context.Background()).Invoke("gateway", 1, "route", "update", &protobuf.UpdateRouteRequest{
+	_, err := api.New(biz.NewContext()).Invoke("gateway", 1, "route", "update", &protobuf.UpdateRouteRequest{
 		App:      app,
 		Handlers: exposedHandlers,
 	})

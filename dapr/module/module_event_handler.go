@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/dapr/go-sdk/service/common"
+	"github.com/hdget/common/biz"
 	"github.com/hdget/common/types"
 	panicUtils "github.com/hdget/utils/panic"
 )
@@ -25,7 +26,7 @@ type eventHandleResult struct {
 	err   error
 }
 
-type EventFunction func(ctx context.Context, event *common.TopicEvent) (retry bool, err error)
+type EventFunction func(ctx biz.Context, data []byte) (retry bool, err error)
 
 func (h eventHandlerImpl) GetTopic() string {
 	return h.topic
@@ -58,7 +59,7 @@ func (h eventHandlerImpl) GetEventFunction(logger types.LoggerProvider) common.T
 			}()
 
 			// 执行具体的函数
-			fnResult.retry, fnResult.err = h.fn(ctxWithTimeout, event)
+			fnResult.retry, fnResult.err = h.fn(biz.NewContext(), event.RawData)
 		}()
 
 		select {

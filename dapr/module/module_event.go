@@ -80,7 +80,7 @@ func asEventModule(moduleObject any, app, pubsub string, options ...EventModuleO
 	// 初始化module
 	err = reflectUtils.StructSet(moduleObject, (*EventModule)(nil), moduleInstance)
 	if err != nil {
-		return nil, errors.Wrapf(err, "install module: %+v", m)
+		return nil, errors.Wrapf(err, "devops module: %+v", m)
 	}
 
 	module, ok := moduleObject.(EventModule)

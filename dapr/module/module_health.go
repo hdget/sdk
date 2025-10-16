@@ -65,7 +65,7 @@ func asHealthModule(moduleObject any, app string, fn HealthCheckFunction) (Healt
 	// 初始化module
 	err = reflectUtils.StructSet(moduleObject, (*HealthModule)(nil), moduleInstance)
 	if err != nil {
-		return nil, errors.Wrapf(err, "install module: %+v", m)
+		return nil, errors.Wrapf(err, "devops module: %+v", m)
 	}
 
 	module, ok := moduleObject.(HealthModule)
