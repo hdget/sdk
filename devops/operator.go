@@ -18,7 +18,6 @@ import (
 type devOpsImpl struct {
 	project        string
 	app            string
-	fs             embed.FS
 	tableOperators []TableOperator
 }
 
@@ -30,7 +29,7 @@ DEALLOCATE ALL;       -- 清除当前会话的所有预处理语句
 DISCARD PLANS;        -- PostgreSQL ≥13 替代方案`
 )
 
-func New(name string, fs embed.FS, options ...Option) (Operator, error) {
+func New(name string, options ...Option) (Operator, error) {
 	project, exists := os.LookupEnv(constant.EnvKeyNamespace)
 	if !exists || project == "" {
 		return nil, fmt.Errorf("project name not found in %s", constant.EnvKeyNamespace)
@@ -39,7 +38,6 @@ func New(name string, fs embed.FS, options ...Option) (Operator, error) {
 	impl := &devOpsImpl{
 		project: project,
 		app:     name,
-		fs:      fs,
 	}
 
 	for _, option := range options {
@@ -63,7 +61,7 @@ func (impl *devOpsImpl) InstallDatabase(executor types.DbExecutor) (string, erro
 	return dbName, nil
 }
 
-func (impl *devOpsImpl) InstallTables(executor types.DbExecutor, force bool, tableNames ...string) error {
+func (impl *devOpsImpl) InstallTables(executor types.DbExecutor, store embed.FS, force bool, tableNames ...string) error {
 	var sqlDir string
 	dbKind := strings.Split(sdk.Db().GetCapability().Name, "-")[0]
 	switch dbKind {
@@ -80,7 +78,7 @@ func (impl *devOpsImpl) InstallTables(executor types.DbExecutor, force bool, tab
 		return err
 	}
 
-	tableName2sqlCreate, err := impl.findTableCreateSQL(sqlDir)
+	tableName2sqlCreate, err := impl.findTableCreateSQL(store, sqlDir)
 	if err != nil {
 		return err
 	}
@@ -91,7 +89,7 @@ func (impl *devOpsImpl) InstallTables(executor types.DbExecutor, force bool, tab
 		installTables = pie.Keys(tableName2sqlCreate)
 	}
 
-	ctx := biz.WithTxContext(biz.NewContext(), executor)
+	ctx := biz.NewContext().WithTx(executor)
 	for _, tableName := range installTables {
 		fmt.Printf("=== install table: %s ===\n", tableName)
 		if force {
@@ -119,7 +117,7 @@ func (impl *devOpsImpl) InstallTables(executor types.DbExecutor, force bool, tab
 
 		if foundIndex >= 0 {
 			fmt.Printf(" * init table: %s\n", tableName)
-			if err = impl.tableOperators[foundIndex].Init(ctx, impl.fs); err != nil {
+			if err = impl.tableOperators[foundIndex].Init(ctx, store); err != nil {
 				return err
 			}
 		}
@@ -128,7 +126,7 @@ func (impl *devOpsImpl) InstallTables(executor types.DbExecutor, force bool, tab
 	return nil
 }
 
-func (impl *devOpsImpl) ExportTables(executor types.DbExecutor, tableNames ...string) error {
+func (impl *devOpsImpl) ExportTables(executor types.DbExecutor, storePath string, tableNames ...string) error {
 	// 获取要处理的表
 	exportTables := tableNames
 	if len(exportTables) == 0 {
@@ -137,15 +135,15 @@ func (impl *devOpsImpl) ExportTables(executor types.DbExecutor, tableNames ...st
 		})
 	}
 
-	ctx := biz.WithTxContext(biz.NewContext(), executor)
+	ctx := biz.NewContext().WithTx(executor)
 	for _, tableName := range exportTables {
 		foundIndex := pie.FindFirstUsing(impl.tableOperators, func(v TableOperator) bool {
 			return v.GetName() == tableName
 		})
 
 		if foundIndex >= 0 {
-			fmt.Printf(" * export table: %s\n", tableName)
-			if err := impl.tableOperators[foundIndex].Export(ctx, impl.fs); err != nil {
+			fmt.Printf("=== export table: %s ===\n", tableName)
+			if err := impl.tableOperators[foundIndex].Export(ctx, storePath); err != nil {
 				return err
 			}
 		}
@@ -154,8 +152,8 @@ func (impl *devOpsImpl) ExportTables(executor types.DbExecutor, tableNames ...st
 	return nil
 }
 
-func (impl *devOpsImpl) findTableCreateSQL(dir string) (map[string]string, error) {
-	entries, err := impl.fs.ReadDir(dir)
+func (impl *devOpsImpl) findTableCreateSQL(fs embed.FS, dir string) (map[string]string, error) {
+	entries, err := fs.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +167,7 @@ func (impl *devOpsImpl) findTableCreateSQL(dir string) (map[string]string, error
 		if strings.HasPrefix(entry.Name(), "table_") {
 			tableName := strings.TrimSuffix(strings.TrimPrefix(entry.Name(), "table_"), ".sql")
 
-			sqlData, err := impl.fs.ReadFile(path.Join(dir, entry.Name()))
+			sqlData, err := fs.ReadFile(path.Join(dir, entry.Name()))
 			if err != nil {
 				return nil, err
 			}

@@ -2,6 +2,7 @@ package devops
 
 import (
 	"embed"
+	"fmt"
 
 	"github.com/hdget/common/biz"
 )
@@ -17,10 +18,12 @@ func NewTableOperator(name string) TableOperator {
 }
 
 func (impl *tableOperatorImpl) Init(ctx biz.Context, fs embed.FS) error {
+	fmt.Println(" * skipped")
 	return nil
 }
 
-func (impl *tableOperatorImpl) Export(ctx biz.Context, fs embed.FS) error {
+func (impl *tableOperatorImpl) Export(ctx biz.Context, assetPath string) error {
+	fmt.Println(" * skipped")
 	return nil
 }
 

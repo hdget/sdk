@@ -6,7 +6,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/dapr/go-sdk v1.11.0
 	github.com/elliotchance/pie/v2 v2.9.1
-	github.com/hdget/common v0.1.4
+	github.com/hdget/common v0.1.5
 	github.com/hdget/provider-config-viper v0.1.0
 	github.com/hdget/provider-logger-zerolog v0.1.0
 	github.com/hdget/utils v0.0.4
@@ -14,9 +14,6 @@ require (
 	github.com/spf13/cast v1.10.0
 	github.com/sqids/sqids-go v0.4.1
 	go.uber.org/fx v1.23.0
-	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8
-	google.golang.org/grpc v1.75.1
-	google.golang.org/protobuf v1.36.6
 )
 
 require (
@@ -91,6 +88,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/crypto v0.39.0 // indirect
+	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sync v0.15.0 // indirect
@@ -101,5 +99,7 @@ require (
 	google.golang.org/genproto v0.0.0-20241118233622-e639e219e697 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
+	google.golang.org/grpc v1.75.1 // indirect
+	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
