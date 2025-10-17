@@ -47,13 +47,13 @@ func New(name string, options ...Option) (Operator, error) {
 	return impl, nil
 }
 
-func (impl *devOpsImpl) InstallDatabase(executor types.DbExecutor) (string, error) {
+func (impl *devOpsImpl) InstallDatabase(dbExecutor types.DbExecutor) (string, error) {
 	dbName := fmt.Sprintf("%s_%s", impl.project, impl.app)
 	fmt.Printf("=== install database: %s ===\n", dbName)
 
 	sql := fmt.Sprintf(psqlCreateDatabase, dbName)
 
-	_, err := executor.Exec(sql)
+	_, err := dbExecutor.Exec(sql)
 	if err != nil {
 		return "", errors.Wrap(err, "create database")
 	}
@@ -61,7 +61,7 @@ func (impl *devOpsImpl) InstallDatabase(executor types.DbExecutor) (string, erro
 	return dbName, nil
 }
 
-func (impl *devOpsImpl) InstallTables(executor types.DbExecutor, store embed.FS, force bool, tableNames ...string) error {
+func (impl *devOpsImpl) InstallTables(ctx biz.Context, store embed.FS, force bool, tableNames ...string) error {
 	var sqlDir string
 	dbKind := strings.Split(sdk.Db().GetCapability().Name, "-")[0]
 	switch dbKind {
@@ -72,8 +72,13 @@ func (impl *devOpsImpl) InstallTables(executor types.DbExecutor, store embed.FS,
 		return fmt.Errorf("database type: %s not supported yet", dbKind)
 	}
 
+	tx, ok := ctx.Transactor().Get().(types.DbExecutor)
+	if !ok {
+		return fmt.Errorf("db transactor not found in context")
+	}
+
 	// 清除所有预处理语句
-	_, err := executor.Exec(psqlClearPrepareStatements)
+	_, err := tx.Exec(psqlClearPrepareStatements)
 	if err != nil {
 		return err
 	}
@@ -89,13 +94,12 @@ func (impl *devOpsImpl) InstallTables(executor types.DbExecutor, store embed.FS,
 		installTables = pie.Keys(tableName2sqlCreate)
 	}
 
-	ctx := biz.NewContext().WithTx(executor)
 	for _, tableName := range installTables {
 		fmt.Printf("=== install table: %s ===\n", tableName)
 		if force {
 			fmt.Printf(" * drop table: %s\n", tableName)
 			sqlDrop := fmt.Sprintf(psqlDropTable, tableName)
-			_, err = executor.Exec(sqlDrop)
+			_, err = tx.Exec(sqlDrop)
 			if err != nil {
 				return err
 			}
@@ -104,7 +108,7 @@ func (impl *devOpsImpl) InstallTables(executor types.DbExecutor, store embed.FS,
 		// create table
 		if sqlCreate, exists := tableName2sqlCreate[tableName]; exists {
 			fmt.Printf(" * create table: %s\n", tableName)
-			_, err = executor.Exec(sqlCreate)
+			_, err = tx.Exec(sqlCreate)
 			if err != nil {
 				return err
 			}
@@ -126,7 +130,7 @@ func (impl *devOpsImpl) InstallTables(executor types.DbExecutor, store embed.FS,
 	return nil
 }
 
-func (impl *devOpsImpl) ExportTables(executor types.DbExecutor, storePath string, tableNames ...string) error {
+func (impl *devOpsImpl) ExportTables(ctx biz.Context, storePath string, tableNames ...string) error {
 	// 获取要处理的表
 	exportTables := tableNames
 	if len(exportTables) == 0 {
@@ -135,7 +139,6 @@ func (impl *devOpsImpl) ExportTables(executor types.DbExecutor, storePath string
 		})
 	}
 
-	ctx := biz.NewContext().WithTx(executor)
 	for _, tableName := range exportTables {
 		foundIndex := pie.FindFirstUsing(impl.tableOperators, func(v TableOperator) bool {
 			return v.GetName() == tableName
