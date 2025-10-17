@@ -14,7 +14,7 @@ type TableOperator interface {
 }
 
 type Operator interface {
-	InstallDatabase(executor types.DbExecutor) (string, error)
-	InstallTables(executor types.DbExecutor, store embed.FS, force bool, tableNames ...string) error
-	ExportTables(executor types.DbExecutor, storePath string, tableNames ...string) error
+	InstallDatabase(dbExecutor types.DbExecutor) (string, error)
+	InstallTables(ctx biz.Context, store embed.FS, force bool, tableNames ...string) error
+	ExportTables(ctx biz.Context, storePath string, tableNames ...string) error
 }
