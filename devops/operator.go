@@ -72,7 +72,7 @@ func (impl *devOpsImpl) InstallTables(ctx biz.Context, store embed.FS, force boo
 		return fmt.Errorf("database type: %s not supported yet", dbKind)
 	}
 
-	tx, ok := ctx.Transactor().Get().(types.DbExecutor)
+	tx, ok := ctx.Transactor().GetTx().(types.DbExecutor)
 	if !ok {
 		return fmt.Errorf("db transactor not found in context")
 	}
