@@ -2,7 +2,6 @@ package dapr
 
 import (
 	"embed"
-
 	"github.com/hdget/common/protobuf"
 	"github.com/hdget/common/types"
 )

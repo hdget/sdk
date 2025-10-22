@@ -2,13 +2,12 @@ package module
 
 import (
 	"fmt"
+	reflectUtils "github.com/hdget/utils/reflect"
+	"github.com/pkg/errors"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
-
-	reflectUtils "github.com/hdget/utils/reflect"
-	"github.com/pkg/errors"
 )
 
 type ModuleKind int

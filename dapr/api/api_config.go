@@ -2,9 +2,8 @@ package api
 
 import (
 	"context"
-
 	"github.com/dapr/go-sdk/client"
-	"github.com/hdget/sdk/dapr/utils"
+	"github.com/hdget/common/namespace"
 	"github.com/pkg/errors"
 )
 
@@ -18,7 +17,7 @@ func (a apiImpl) GetConfigurationItems(configStore string, keys []string) (map[s
 		return nil, errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
-	items, err := daprClient.GetConfigurationItems(a.ctx, utils.Normalize(configStore), keys)
+	items, err := daprClient.GetConfigurationItems(a.ctx, namespace.Encapsulate(configStore), keys)
 	if err != nil {
 		return nil, errors.Wrap(err, "get configuration items")
 	}
@@ -36,7 +35,7 @@ func (a apiImpl) SubscribeConfigurationItems(ctx context.Context, configStore st
 		return "", errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
-	subscriberId, err := daprClient.SubscribeConfigurationItems(ctx, utils.Normalize(configStore), keys, handler)
+	subscriberId, err := daprClient.SubscribeConfigurationItems(ctx, namespace.Encapsulate(configStore), keys, handler)
 	if err != nil {
 		return "", errors.Wrap(err, "subscribe configuration items update")
 	}

@@ -5,12 +5,6 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	"net"
-	"os"
-	"os/signal"
-	"path"
-	"syscall"
-
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/dapr/go-sdk/service/grpc"
 	"github.com/dapr/go-sdk/service/http"
@@ -21,6 +15,11 @@ import (
 	"github.com/hdget/sdk/dapr/api"
 	"github.com/hdget/sdk/dapr/module"
 	"github.com/pkg/errors"
+	"net"
+	"os"
+	"os/signal"
+	"path"
+	"syscall"
 )
 
 type hookPoint int
