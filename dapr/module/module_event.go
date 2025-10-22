@@ -1,10 +1,11 @@
 package module
 
 import (
-	"github.com/hdget/sdk/dapr/utils"
+	"time"
+
+	"github.com/hdget/common/namespace"
 	reflectUtils "github.com/hdget/utils/reflect"
 	"github.com/pkg/errors"
-	"time"
 )
 
 type EventModule interface {
@@ -30,7 +31,7 @@ var (
 // NewEventModule 新建事件模块会执行下列操作:
 func NewEventModule(moduleObject any, app, pubsub string, functions map[string]EventFunction, options ...EventModuleOption) error {
 	// 首先实例化module
-	module, err := asEventModule(moduleObject, app, utils.Normalize(pubsub), options...)
+	module, err := asEventModule(moduleObject, app, namespace.Encapsulate(pubsub), options...)
 	if err != nil {
 		return err
 	}
