@@ -2,10 +2,9 @@ package utils
 
 import (
 	"fmt"
+	"github.com/hdget/common/constant"
 	"os"
 	"strings"
-
-	"github.com/hdget/common/constant"
 )
 
 const (
