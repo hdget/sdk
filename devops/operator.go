@@ -101,7 +101,8 @@ func (impl *devOpsImpl) InstallTables(ctx biz.Context, store embed.FS, force boo
 		fmt.Printf("=== install table: %s ===\n", tableName)
 		if force {
 			if impl.needDangerConfirm {
-				confirmed, err := impl.confirm(fmt.Sprintf("警告：您即将删除表 '%s'。此操作将永久删除该表的所有数据且不可撤销！", tableName), "ok")
+				prompt := fmt.Sprintf("WARNING: You are about to drop the table '%s'.\nThis action will permanently erase all data in the table and is IRREVERSIBLE!", tableName)
+				confirmed, err := impl.confirm(prompt, "ok")
 				if err != nil {
 					return err
 				}
@@ -197,19 +198,19 @@ func (impl *devOpsImpl) findTableCreateSQL(fs embed.FS, dir string) (map[string]
 }
 
 func (impl *devOpsImpl) confirm(prompt string, confirmAnswer string) (bool, error) {
-	fmt.Printf("%s\n请输入 '%s[%s]' 并回车以确认，或输入任何其他内容取消：", prompt, strings.ToUpper(confirmAnswer), strings.ToLower(confirmAnswer))
+	fmt.Printf("%s\n\nPlease type '%s' and press Enter to confirm deletion, or type anything else to cancel:", prompt, confirmAnswer)
 
 	// 2. 读取用户输入
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
 	if err != nil {
-		return false, fmt.Errorf("读取输入时出错：%v", err)
+		return false, fmt.Errorf("read input: %v", err)
 	}
 
 	// 3. 清理输入并检查确认信息
 	input = strings.TrimSpace(input) // 去除输入字符串两端的空白字符（如回车符）
-	if !strings.EqualFold(input, confirmAnswer) {
-		fmt.Println("操作已取消。")
+	if input != confirmAnswer {
+		fmt.Println("operation cancelled")
 		return false, nil
 	}
 
