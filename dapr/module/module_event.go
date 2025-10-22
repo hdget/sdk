@@ -1,11 +1,10 @@
 package module
 
 import (
-	"time"
-
 	"github.com/hdget/common/namespace"
 	reflectUtils "github.com/hdget/utils/reflect"
 	"github.com/pkg/errors"
+	"time"
 )
 
 type EventModule interface {

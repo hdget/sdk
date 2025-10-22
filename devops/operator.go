@@ -1,6 +1,7 @@
 package devops
 
 import (
+	"bufio"
 	"embed"
 	"fmt"
 	"os"
@@ -16,9 +17,10 @@ import (
 )
 
 type devOpsImpl struct {
-	project        string
-	app            string
-	tableOperators []TableOperator
+	project           string
+	app               string
+	tableOperators    []TableOperator
+	needDangerConfirm bool
 }
 
 const (
@@ -36,8 +38,9 @@ func New(name string, options ...Option) (Operator, error) {
 	}
 
 	impl := &devOpsImpl{
-		project: project,
-		app:     name,
+		project:           project,
+		app:               name,
+		needDangerConfirm: true,
 	}
 
 	for _, option := range options {
@@ -97,6 +100,17 @@ func (impl *devOpsImpl) InstallTables(ctx biz.Context, store embed.FS, force boo
 	for _, tableName := range installTables {
 		fmt.Printf("=== install table: %s ===\n", tableName)
 		if force {
+			if impl.needDangerConfirm {
+				confirmed, err := impl.confirm(fmt.Sprintf("警告：您即将删除表 '%s'。此操作将永久删除该表的所有数据且不可撤销！", tableName), "ok")
+				if err != nil {
+					return err
+				}
+
+				if !confirmed {
+					continue
+				}
+			}
+
 			fmt.Printf(" * drop table: %s\n", tableName)
 			sqlDrop := fmt.Sprintf(psqlDropTable, tableName)
 			_, err = tx.Exec(sqlDrop)
@@ -180,4 +194,24 @@ func (impl *devOpsImpl) findTableCreateSQL(fs embed.FS, dir string) (map[string]
 	}
 
 	return table2sql, nil
+}
+
+func (impl *devOpsImpl) confirm(prompt string, confirmAnswer string) (bool, error) {
+	fmt.Printf("%s\n请输入 '%s[%s]' 并回车以确认，或输入任何其他内容取消：", prompt, strings.ToUpper(confirmAnswer), strings.ToLower(confirmAnswer))
+
+	// 2. 读取用户输入
+	reader := bufio.NewReader(os.Stdin)
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		return false, fmt.Errorf("读取输入时出错：%v", err)
+	}
+
+	// 3. 清理输入并检查确认信息
+	input = strings.TrimSpace(input) // 去除输入字符串两端的空白字符（如回车符）
+	if !strings.EqualFold(input, confirmAnswer) {
+		fmt.Println("操作已取消。")
+		return false, nil
+	}
+
+	return true, nil
 }

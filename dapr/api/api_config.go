@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/common/namespace"
 	"github.com/pkg/errors"

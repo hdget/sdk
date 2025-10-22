@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/common/namespace"
 	"github.com/hdget/sdk/dapr/utils"

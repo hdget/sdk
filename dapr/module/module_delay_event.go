@@ -1,11 +1,10 @@
 package module
 
 import (
-	"time"
-
 	"github.com/cenkalti/backoff/v4"
 	reflectUtils "github.com/hdget/utils/reflect"
 	"github.com/pkg/errors"
+	"time"
 )
 
 type DelayEventModule interface {

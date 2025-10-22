@@ -2,11 +2,10 @@ package module
 
 import (
 	"context"
-	"time"
-
 	"github.com/cenkalti/backoff/v4"
 	"github.com/hdget/common/types"
 	panicUtils "github.com/hdget/utils/panic"
+	"time"
 )
 
 type DelayEventHandler interface {

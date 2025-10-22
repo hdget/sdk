@@ -2,7 +2,6 @@ package devops
 
 import (
 	"embed"
-
 	"github.com/hdget/common/biz"
 	"github.com/hdget/common/types"
 )
