@@ -3,8 +3,10 @@ package api
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/common/biz"
+	"github.com/pkg/errors"
 )
 
 type APIer interface {
@@ -38,13 +40,13 @@ func Call[RESULT any](ctx biz.Context, app string, version int, module, handler 
 
 	data, err := New(ctx).Invoke(app, version, module, handler, req)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "dapr call, app: %s, version: %d, module: %s, handler: %s, req: %v", app, version, module, handler, req)
 	}
 
 	var ret RESULT
 	err = json.Unmarshal(data, &ret)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "invalid dapr call result, app: %s, version: %d, module: %s, handler: %s, req: %v, ret: %v", app, version, module, handler, req, ret)
 	}
 	return &ret, nil
 }
