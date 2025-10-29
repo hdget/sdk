@@ -9,8 +9,8 @@ func WithTableOperator(items ...TableOperator) Option {
 }
 
 // WithDangerConfirm 危险命令是否需要确认
-func WithDangerConfirm(needConfirm bool) Option {
+func WithDangerConfirm(noConfirm bool) Option {
 	return func(impl *devOpsImpl) {
-		impl.needDangerConfirm = needConfirm
+		impl.needDangerConfirm = noConfirm
 	}
 }

@@ -2,12 +2,13 @@ package module
 
 import (
 	"fmt"
-	reflectUtils "github.com/hdget/utils/reflect"
-	"github.com/pkg/errors"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
+
+	reflectUtils "github.com/hdget/utils/reflect"
+	"github.com/pkg/errors"
 )
 
 type ModuleKind int
@@ -21,9 +22,9 @@ const (
 )
 
 type Info struct {
-	Version int    // 版本
-	Client  string // can be used to distinguish different client
-	Name    string // 处理后的模块名
+	Version     int    // 版本
+	Name        string // 处理后的模块名
+	ApiEndpoint string // can be used to distinguish different client
 }
 
 type Module interface {
@@ -101,20 +102,20 @@ func ParseModuleInfo(pkgPath, moduleName string) (*Info, error) {
 		return nil, errors.New("invalid version")
 	}
 
-	var client string
+	var apiEndpoint string
 	switch len(subDirs) {
 	case 0:
-		client = "" // 内部调用
+		apiEndpoint = "" // 内部调用
 	case 1:
-		client = subDirs[0]
+		apiEndpoint = subDirs[0]
 	default:
 		return nil, errors.New("invalid module path, only supports one sub level")
 	}
 
 	return &Info{
-		Version: version,
-		Client:  client,
-		Name:    trimSuffixIgnoreCase(moduleName, moduleNameSuffix),
+		Version:     version,
+		ApiEndpoint: apiEndpoint,
+		Name:        trimSuffixIgnoreCase(moduleName, moduleNameSuffix),
 	}, nil
 }
 
