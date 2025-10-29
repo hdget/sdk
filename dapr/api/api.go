@@ -3,13 +3,14 @@ package api
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/common/biz"
 	"github.com/pkg/errors"
 )
 
 type APIer interface {
-	Invoke(app string, version int, module string, handler string, data any, client ...string) ([]byte, error)
+	Invoke(app string, version int, module string, handler string, data any, apiEndpoint ...string) ([]byte, error)
 	Lock(lockStore, lockOwner, resource string, expiryInSeconds int) error
 	Unlock(lockStore, lockOwner, resource string) error
 	Publish(pubSubName, topic string, data interface{}, args ...bool) error
