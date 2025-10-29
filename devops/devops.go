@@ -35,8 +35,14 @@ type devOpsImpl struct {
 	needDangerConfirm bool
 }
 
+const (
+	dbKindPostgreSQL = "postgresql"
+	dbKindMySQL      = "mysql"
+	dbKindSqlite3    = "sqlite3"
+)
+
 var (
-	supportedDbKinds = []string{"postgres", "sqlite3", "mysql"}
+	supportedDbKinds = []string{dbKindPostgreSQL, dbKindMySQL, dbKindSqlite3}
 )
 
 func New(app string, db types.DbProvider, options ...Option) (DevOps, error) {
@@ -78,13 +84,13 @@ func (impl *devOpsImpl) InstallDatabase(dbName ...string) (string, error) {
 	fmt.Printf("=== install database: %s ===\n", databaseName)
 
 	switch impl.dbKind {
-	case "postgres":
+	case dbKindPostgreSQL:
 		sql := fmt.Sprintf(psqlCreateDatabase, databaseName)
 		_, err := impl.db.My().Exec(sql)
 		if err != nil {
 			return "", errors.Wrap(err, "create database")
 		}
-	case "sqlite3":
+	case dbKindSqlite3:
 		fmt.Println("PLEASE use below command to create database:")
 		fmt.Println()
 		fmt.Printf("sqlite3 %s\n", databaseName)
@@ -103,7 +109,7 @@ func (impl *devOpsImpl) InstallTables(ctx biz.Context, store embed.FS, force boo
 
 	// 清除所有预处理语句
 	switch impl.dbKind {
-	case "postgres":
+	case dbKindPostgreSQL:
 		_, err := tx.Exec(psqlBeforeInstallTables)
 		if err != nil {
 			return err
@@ -140,9 +146,9 @@ func (impl *devOpsImpl) InstallTables(ctx biz.Context, store embed.FS, force boo
 			fmt.Printf(" * drop table: %s\n", tableName)
 			var sqlDrop string
 			switch impl.dbKind {
-			case "postgres":
+			case dbKindPostgreSQL:
 				sqlDrop = fmt.Sprintf(psqlDropTable, tableName)
-			case "sqlite3":
+			case dbKindSqlite3:
 				sqlDrop = fmt.Sprintf(sqlite3DropTable, tableName)
 			}
 
