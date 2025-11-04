@@ -3,12 +3,11 @@ package devops
 import (
 	"embed"
 	"fmt"
-	"path"
-
 	"github.com/elliotchance/pie/v2"
 	"github.com/hdget/common/biz"
 	"github.com/hdget/common/types"
 	"github.com/pkg/errors"
+	"path"
 )
 
 const (
