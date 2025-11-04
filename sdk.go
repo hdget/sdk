@@ -6,7 +6,6 @@ import (
 
 	"github.com/hdget/common/types"
 	"github.com/hdget/provider-config-viper"
-	"github.com/hdget/provider-config-viper/param"
 	"github.com/hdget/provider-logger-zerolog"
 	"github.com/hdget/utils/logger"
 	"github.com/pkg/errors"
@@ -20,11 +19,10 @@ type SdkInstance struct {
 	redisProvider  types.RedisProvider
 	mqProvider     types.MessageQueueProvider
 	ossProvider    types.OssProvider
-
-	app         string
-	debug       bool
-	configParam *param.Param // 配置选项
-	configVar   any          // 配置变量
+	app            string
+	debug          bool
+	configVar      any            // 配置变量
+	configOptions  []viper.Option // 配置选项
 }
 
 var (
@@ -37,9 +35,12 @@ func New(app string, options ...Option) *SdkInstance {
 	once.Do(
 		func() {
 			_instance = &SdkInstance{
-				app:         app,
-				configParam: param.GetDefaultParam(),
+				app: app,
+				configOptions: []viper.Option{
+					viper.WithRemoteWatcher(_instance.unmarshalConfig),
+				},
 			}
+
 			for _, apply := range options {
 				apply(_instance)
 			}
@@ -74,12 +75,8 @@ func (i *SdkInstance) Initialize(capabilities ...types.Capability) error {
 	// Prepare fxOptions for DI configuration
 	fxOptions := []fx.Option{
 		fx.Provide(
-			func() (string, *param.Param) {
-				if i.configParam.Remote != nil && i.configParam.WatchCallback == nil {
-					i.configParam.WatchCallback = i.unmarshalConfig
-				}
-
-				return i.app, i.configParam
+			func() (string, []viper.Option) {
+				return i.app, i.configOptions
 			},
 		), // provider config provider params
 		viper.Capability.Module, // Initialize configProvider
