@@ -2,14 +2,13 @@ package sdk
 
 import (
 	"context"
-	"sync"
-
 	"github.com/hdget/common/types"
 	"github.com/hdget/provider-config-viper"
 	"github.com/hdget/provider-logger-zerolog"
 	"github.com/hdget/utils/logger"
 	"github.com/pkg/errors"
 	"go.uber.org/fx"
+	"sync"
 )
 
 type SdkInstance struct {
