@@ -5,6 +5,12 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"net"
+	"os"
+	"os/signal"
+	"path"
+	"syscall"
+
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/dapr/go-sdk/service/grpc"
 	"github.com/dapr/go-sdk/service/http"
@@ -15,11 +21,6 @@ import (
 	"github.com/hdget/sdk/dapr/api"
 	"github.com/hdget/sdk/dapr/module"
 	"github.com/pkg/errors"
-	"net"
-	"os"
-	"os/signal"
-	"path"
-	"syscall"
 )
 
 type hookPoint int
@@ -179,6 +180,9 @@ func (impl *daprServerImpl) addEventHandlers() error {
 
 	for _, m := range module.Get[module.EventModule](module.ModuleKindEvent) {
 		for _, h := range m.GetHandlers() {
+			if impl.debug {
+				impl.logger.Debug("add event handler", "topic", h.GetTopic())
+			}
 			e := api.NewEvent(m.GetPubSub(), h.GetTopic(), h.GetEventFunction(impl.logger))
 			if err := impl.AddTopicEventHandler(e.Subscription, e.Handler); err != nil {
 				return err
