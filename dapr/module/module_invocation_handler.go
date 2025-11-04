@@ -3,7 +3,6 @@ package module
 import (
 	"context"
 	"encoding/json"
-
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/common/biz"
 	"github.com/hdget/common/types"
