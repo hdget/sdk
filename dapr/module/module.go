@@ -22,9 +22,9 @@ const (
 )
 
 type Info struct {
-	Version     int    // 版本
-	Name        string // 处理后的模块名
-	ApiEndpoint string // can be used to distinguish different client
+	ApiVersion int    // API版本
+	Name       string // 处理后的模块名
+	Client     string // 属于什么客户端的模块
 }
 
 type Module interface {
@@ -82,7 +82,7 @@ func (m *baseModule) GetApp() string {
 	return m.app
 }
 
-// GetModuleInfo 获取模块元数据信息
+// GetInfo 获取模块元数据信息
 func (m *baseModule) GetInfo() *Info {
 	return m.moduleInfo
 }
@@ -97,25 +97,25 @@ func ParseModuleInfo(pkgPath, moduleName string) (*Info, error) {
 		return nil, errors.New("invalid module path, e,g: /path/to/v1")
 	}
 
-	version, err := strconv.Atoi(strVer)
+	apiVersion, err := strconv.Atoi(strVer)
 	if err != nil {
-		return nil, errors.New("invalid version")
+		return nil, errors.New("invalid apiVersion")
 	}
 
-	var apiEndpoint string
+	var client string
 	switch len(subDirs) {
 	case 0:
-		apiEndpoint = "" // 内部调用
+		client = "" // 内部调用
 	case 1:
-		apiEndpoint = subDirs[0]
+		client = subDirs[0]
 	default:
 		return nil, errors.New("invalid module path, only supports one sub level")
 	}
 
 	return &Info{
-		Version:     version,
-		ApiEndpoint: apiEndpoint,
-		Name:        trimSuffixIgnoreCase(moduleName, moduleNameSuffix),
+		ApiVersion: apiVersion,
+		Client:     client,
+		Name:       trimSuffixIgnoreCase(moduleName, moduleNameSuffix),
 	}, nil
 }
 

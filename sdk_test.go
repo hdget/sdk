@@ -2,7 +2,6 @@ package sdk
 
 import (
 	"fmt"
-	viper "github.com/hdget/provider-config-viper"
 	"testing"
 	"time"
 )
@@ -22,9 +21,7 @@ func TestSdkInstance_Initialize(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var config Conf
 
-			err := New("base", WithConfigOptions(
-				viper.WithEnableRemote(),
-			)).UseConfig(&config).Initialize()
+			err := New("core", WithDefaultRemote()).UseConfig(&config).Initialize()
 			if err != nil {
 				fmt.Println(err)
 			}
