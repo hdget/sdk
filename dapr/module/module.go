@@ -102,7 +102,7 @@ func ParseModuleInfo(pkgPath, moduleName string) (*Info, error) {
 		return nil, errors.New("invalid apiVersion")
 	}
 
-	// 如果domain为空则为内部调用
+	// 如果dir为空则为内部调用
 	var dir string
 	switch len(subDirs) {
 	case 1:
