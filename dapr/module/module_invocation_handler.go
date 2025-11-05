@@ -3,6 +3,7 @@ package module
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/common/biz"
 	"github.com/hdget/common/types"
@@ -58,7 +59,7 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger types.LoggerProvider) co
 		result, err := h.fn(biz.NewFromIncomingGrpcContext(ctx), event.Data)
 		if err != nil {
 			mInfo := h.module.GetInfo()
-			logger.Error("service daprInvoke", "client", mInfo.Domain, "module", mInfo.Name, "Handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
+			logger.Error("service invoke", "domain", mInfo.Domain, "module", mInfo.Name, "Handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
 			return h.replyError(err)
 		}
 
