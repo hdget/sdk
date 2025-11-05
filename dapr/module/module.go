@@ -23,8 +23,8 @@ const (
 
 type Info struct {
 	ApiVersion int    // API版本
-	Name       string // 处理后的模块名
-	Client     string // 属于什么客户端的模块
+	Name       string // 规范化的模块名
+	Domain     string // 模块所属领域
 }
 
 type Module interface {
@@ -102,19 +102,19 @@ func ParseModuleInfo(pkgPath, moduleName string) (*Info, error) {
 		return nil, errors.New("invalid apiVersion")
 	}
 
-	var client string
+	var domain string
 	switch len(subDirs) {
 	case 0:
-		client = "" // 内部调用
+		domain = "" // 内部调用
 	case 1:
-		client = subDirs[0]
+		domain = subDirs[0]
 	default:
 		return nil, errors.New("invalid module path, only supports one sub level")
 	}
 
 	return &Info{
 		ApiVersion: apiVersion,
-		Client:     client,
+		Domain:     domain,
 		Name:       trimSuffixIgnoreCase(moduleName, moduleNameSuffix),
 	}, nil
 }

@@ -13,19 +13,19 @@ import (
 const ContentTypeJson = "application/json"
 
 // Invoke 调用dapr服务
-func (a apiImpl) Invoke(app string, apiVersion int, module, handler string, data any, accessClient ...string) ([]byte, error) {
-	var value []byte
-	switch t := data.(type) {
+func (a apiImpl) Invoke(app string, apiVersion int, module, handler string, request any, domain ...string) ([]byte, error) {
+	var requestData []byte
+	switch t := request.(type) {
 	case string:
-		value = convert.StringToBytes(t)
+		requestData = convert.StringToBytes(t)
 	case []byte:
-		value = t
+		requestData = t
 	default:
-		v, err := json.Marshal(data)
+		v, err := json.Marshal(request)
 		if err != nil {
-			return nil, errors.Wrap(err, "marshal daprInvoke data")
+			return nil, errors.Wrap(err, "marshal invoke request")
 		}
-		value = v
+		requestData = v
 	}
 
 	daprClient, err := client.NewClient()
@@ -38,13 +38,13 @@ func (a apiImpl) Invoke(app string, apiVersion int, module, handler string, data
 
 	// IMPORTANT: daprClient是全局的连接
 	daprAppId := namespace.Encapsulate(app)
-	method := utils.GenerateMethod(apiVersion, module, handler, accessClient...)
+	method := utils.GenerateMethod(apiVersion, module, handler, domain...)
 	resp, err := daprClient.InvokeMethodWithContent(a.ctx, daprAppId, method, "post", &client.DataContent{
 		ContentType: "application/json",
-		Data:        value,
+		Data:        requestData,
 	})
 	if err != nil {
-		return nil, errors.Wrapf(err, "dapr daprInvoke method, daprAppId:%s, method: %s", daprAppId, method)
+		return nil, errors.Wrapf(err, "dapr invoke method, appId: %s, method: %s", daprAppId, method)
 	}
 
 	return resp, nil
