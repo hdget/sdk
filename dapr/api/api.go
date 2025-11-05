@@ -6,12 +6,11 @@ import (
 
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/common/biz"
-	"github.com/hdget/common/constant"
 	"github.com/pkg/errors"
 )
 
 type APIer interface {
-	Invoke(app string, apiVersion int, module string, handler string, data any, domain ...string) ([]byte, error)
+	Invoke(app string, apiVersion int, module string, handler string, data any, source ...string) ([]byte, error)
 	Lock(lockStore, lockOwner, resource string, expiryInSeconds int) error
 	Unlock(lockStore, lockOwner, resource string) error
 	Publish(pubSubName, topic string, data interface{}, args ...bool) error
@@ -40,7 +39,7 @@ func InternalCall(ctx biz.Context, app string, version int, module, handler stri
 		req = request[0]
 	}
 
-	_, err := New(ctx).Invoke(app, version, module, handler, req, constant.DomainPrivate)
+	_, err := New(ctx).Invoke(app, version, module, handler, req)
 	if err != nil {
 		return errors.Wrapf(err, "dapr internal call, app: %s, version: %d, module: %s, handler: %s, req: %v", app, version, module, handler, req)
 	}
@@ -55,7 +54,7 @@ func InternalInvoke[RESULT any](ctx biz.Context, app string, version int, module
 		req = request[0]
 	}
 
-	data, err := New(ctx).Invoke(app, version, module, handler, req, constant.DomainPrivate)
+	data, err := New(ctx).Invoke(app, version, module, handler, req)
 	if err != nil {
 		return nil, errors.Wrapf(err, "dapr internal invoke, app: %s, version: %d, module: %s, handler: %s, req: %v", app, version, module, handler, req)
 	}
