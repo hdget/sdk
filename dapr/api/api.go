@@ -6,6 +6,7 @@ import (
 
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/common/biz"
+	"github.com/hdget/common/constant"
 	"github.com/pkg/errors"
 )
 
@@ -39,15 +40,15 @@ func Call[RESULT any](ctx biz.Context, app string, version int, module, handler 
 		req = request[0]
 	}
 
-	data, err := New(ctx).Invoke(app, version, module, handler, req)
+	data, err := New(ctx).Invoke(app, version, module, handler, req, constant.DomainPrivate)
 	if err != nil {
-		return nil, errors.Wrapf(err, "dapr call, app: %s, version: %d, module: %s, handler: %s, req: %v", app, version, module, handler, req)
+		return nil, errors.Wrapf(err, "dapr internal call, app: %s, version: %d, module: %s, handler: %s, req: %v", app, version, module, handler, req)
 	}
 
 	var ret RESULT
 	err = json.Unmarshal(data, &ret)
 	if err != nil {
-		return nil, errors.Wrapf(err, "invalid dapr call result, app: %s, version: %d, module: %s, handler: %s, req: %v, ret: %v", app, version, module, handler, req, ret)
+		return nil, errors.Wrapf(err, "invalid dapr internal call result, app: %s, version: %d, module: %s, handler: %s, req: %v, ret: %v", app, version, module, handler, req, ret)
 	}
 	return &ret, nil
 }

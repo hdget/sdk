@@ -6,7 +6,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/dapr/go-sdk v1.13.0
 	github.com/elliotchance/pie/v2 v2.9.1
-	github.com/hdget/common v0.1.13
+	github.com/hdget/common v0.1.14
 	github.com/hdget/provider-config-viper v0.1.2
 	github.com/hdget/provider-logger-zerolog v0.1.1
 	github.com/hdget/utils v0.0.4
