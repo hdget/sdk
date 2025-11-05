@@ -8,9 +8,9 @@ import (
 func GenerateMethod(apiVersion int, module, handler string, source ...string) string {
 	var builder strings.Builder
 
-	var origin string
+	var from string
 	if len(source) > 0 && source[0] != "" {
-		origin = source[0]
+		from = source[0]
 	}
 
 	// 预分配足够的内存以避免扩容开销
@@ -19,13 +19,13 @@ func GenerateMethod(apiVersion int, module, handler string, source ...string) st
 	// 内部调用：v1:module:handler
 	// 估算基础长度：v (1) + 版本号（假设1位）+ 2分隔符":" + module长度 + handler长度
 	estimatedLength := 4 + len(module) + len(handler)
-	if origin != "" {
-		estimatedLength += len(origin) + 1
+	if from != "" {
+		estimatedLength += len(from) + 1
 	}
 	builder.Grow(estimatedLength)
 
-	if origin != "" {
-		builder.WriteString(origin)
+	if from != "" {
+		builder.WriteString(from)
 		builder.WriteString(":")
 	}
 
