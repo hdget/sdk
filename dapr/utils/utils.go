@@ -24,13 +24,14 @@ func GenerateMethod(apiVersion int, module, handler string, domain ...string) st
 	}
 	builder.Grow(estimatedLength)
 
+	if accessDomain != "" {
+		builder.WriteString(accessDomain)
+		builder.WriteString(":")
+	}
+
 	// 直接写入，避免任何中间的字符串拼接
 	builder.WriteString("v")
 	builder.WriteString(strconv.Itoa(apiVersion))
-	if accessDomain != "" {
-		builder.WriteString(":")
-		builder.WriteString(accessDomain)
-	}
 	builder.WriteString(":")
 	builder.WriteString(module)
 	builder.WriteString(":")
