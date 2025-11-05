@@ -10,7 +10,7 @@ import (
 )
 
 type APIer interface {
-	Invoke(app string, apiVersion int, module string, handler string, data any, accessClient ...string) ([]byte, error)
+	Invoke(app string, apiVersion int, module string, handler string, data any, domain ...string) ([]byte, error)
 	Lock(lockStore, lockOwner, resource string, expiryInSeconds int) error
 	Unlock(lockStore, lockOwner, resource string) error
 	Publish(pubSubName, topic string, data interface{}, args ...bool) error
@@ -32,6 +32,7 @@ func New(ctx biz.Context) APIer {
 	}
 }
 
+// Call 内部调用
 func Call[RESULT any](ctx biz.Context, app string, version int, module, handler string, request ...any) (*RESULT, error) {
 	var req any
 	if len(request) > 0 {
