@@ -59,7 +59,7 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger types.LoggerProvider) co
 		result, err := h.fn(biz.NewFromIncomingGrpcContext(ctx), event.Data)
 		if err != nil {
 			mInfo := h.module.GetInfo()
-			logger.Error("service invoke", "domain", mInfo.Dir, "module", mInfo.Name, "Handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
+			logger.Error("service invoke", "dir", mInfo.Dir, "module", mInfo.Name, "handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
 			return h.replyError(err)
 		}
 

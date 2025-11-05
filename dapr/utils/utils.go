@@ -15,8 +15,8 @@ func GenerateMethod(apiVersion int, module, handler string, source ...string) st
 
 	// 预分配足够的内存以避免扩容开销
 	// e,g:
-	// http调用：v1:source:module:handler
-	// 内部直接调用：v1:module:handler
+	// 外部调用：source:v1:module:handler
+	// 内部调用：v1:module:handler
 	// 估算基础长度：v (1) + 版本号（假设1位）+ 2分隔符":" + module长度 + handler长度
 	estimatedLength := 4 + len(module) + len(handler)
 	if origin != "" {
