@@ -13,7 +13,7 @@ import (
 const ContentTypeJson = "application/json"
 
 // Invoke 调用dapr服务
-func (a apiImpl) Invoke(app string, apiVersion int, module, handler string, request any, domain ...string) ([]byte, error) {
+func (a apiImpl) Invoke(app string, apiVersion int, module, handler string, request any, source ...string) ([]byte, error) {
 	var requestData []byte
 	switch t := request.(type) {
 	case string:
@@ -38,7 +38,7 @@ func (a apiImpl) Invoke(app string, apiVersion int, module, handler string, requ
 
 	// IMPORTANT: daprClient是全局的连接
 	daprAppId := namespace.Encapsulate(app)
-	method := utils.GenerateMethod(apiVersion, module, handler, domain...)
+	method := utils.GenerateMethod(apiVersion, module, handler, source...)
 	resp, err := daprClient.InvokeMethodWithContent(a.ctx, daprAppId, method, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        requestData,
