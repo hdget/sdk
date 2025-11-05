@@ -33,8 +33,23 @@ func New(ctx biz.Context) APIer {
 	}
 }
 
-// Call 内部调用
-func Call[RESULT any](ctx biz.Context, app string, version int, module, handler string, request ...any) (*RESULT, error) {
+// InternalCall 内部调用, 不返回结果
+func InternalCall(ctx biz.Context, app string, version int, module, handler string, request ...any) error {
+	var req any
+	if len(request) > 0 {
+		req = request[0]
+	}
+
+	_, err := New(ctx).Invoke(app, version, module, handler, req, constant.DomainPrivate)
+	if err != nil {
+		return errors.Wrapf(err, "dapr internal call, app: %s, version: %d, module: %s, handler: %s, req: %v", app, version, module, handler, req)
+	}
+
+	return nil
+}
+
+// InternalInvoke 内部调用, 返回结果
+func InternalInvoke[RESULT any](ctx biz.Context, app string, version int, module, handler string, request ...any) (*RESULT, error) {
 	var req any
 	if len(request) > 0 {
 		req = request[0]
@@ -42,13 +57,13 @@ func Call[RESULT any](ctx biz.Context, app string, version int, module, handler 
 
 	data, err := New(ctx).Invoke(app, version, module, handler, req, constant.DomainPrivate)
 	if err != nil {
-		return nil, errors.Wrapf(err, "dapr internal call, app: %s, version: %d, module: %s, handler: %s, req: %v", app, version, module, handler, req)
+		return nil, errors.Wrapf(err, "dapr internal invoke, app: %s, version: %d, module: %s, handler: %s, req: %v", app, version, module, handler, req)
 	}
 
 	var ret RESULT
 	err = json.Unmarshal(data, &ret)
 	if err != nil {
-		return nil, errors.Wrapf(err, "invalid dapr internal call result, app: %s, version: %d, module: %s, handler: %s, req: %v, ret: %v", app, version, module, handler, req, ret)
+		return nil, errors.Wrapf(err, "invalid dapr internal invoke result, app: %s, version: %d, module: %s, handler: %s, req: %v, ret: %v", app, version, module, handler, req, ret)
 	}
 	return &ret, nil
 }
