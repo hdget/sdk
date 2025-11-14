@@ -2,13 +2,14 @@ package sdk
 
 import (
 	"context"
+	"sync"
+
 	"github.com/hdget/common/types"
 	"github.com/hdget/provider-config-viper"
 	"github.com/hdget/provider-logger-zerolog"
 	"github.com/hdget/utils/logger"
 	"github.com/pkg/errors"
 	"go.uber.org/fx"
-	"sync"
 )
 
 type SdkInstance struct {
@@ -73,14 +74,13 @@ func (i *SdkInstance) UseConfig(configVar any) *SdkInstance {
 func (i *SdkInstance) Initialize(capabilities ...types.Capability) error {
 	// Prepare fxOptions for DI configuration
 	fxOptions := []fx.Option{
-		fx.Provide(
-			func() (string, []viper.Option) {
-				return i.app, i.configOptions
-			},
-		), // provider config provider params
-		viper.Capability.Module, // Initialize configProvider
+		// Initialize configProvider
+		fx.Provide(func() (types.ConfigProvider, error) {
+			return viper.New(i.app, i.configOptions...)
+		}),
 		fx.Populate(&_instance.configProvider),
-		zerolog.Capability.Module, // Initialize loggerProvider
+		// Initialize loggerProvider
+		zerolog.Capability.Module,
 		fx.Populate(&_instance.loggerProvider),
 	}
 
