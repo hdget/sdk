@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/hdget/common/types"
-	"github.com/hdget/provider-config-viper"
+	"github.com/hdget/provider-config-koanf"
 	"github.com/hdget/provider-logger-zerolog"
 	"github.com/hdget/utils/logger"
 	"github.com/pkg/errors"
@@ -22,7 +22,7 @@ type SdkInstance struct {
 	app            string
 	debug          bool
 	configVar      any            // 配置变量
-	configOptions  []viper.Option // 配置选项
+	configOptions  []koanf.Option // 配置选项
 }
 
 var (
@@ -35,10 +35,8 @@ func New(app string, options ...Option) *SdkInstance {
 	once.Do(
 		func() {
 			_instance = &SdkInstance{
-				app: app,
-				configOptions: []viper.Option{
-					viper.WithRemoteWatcher(_instance.unmarshalConfig),
-				},
+				app:           app,
+				configOptions: make([]koanf.Option, 0),
 			}
 
 			for _, apply := range options {
@@ -76,7 +74,7 @@ func (i *SdkInstance) Initialize(capabilities ...types.Capability) error {
 	fxOptions := []fx.Option{
 		// Initialize configProvider
 		fx.Provide(func() (types.ConfigProvider, error) {
-			return viper.New(i.app, i.configOptions...)
+			return koanf.New(i.app, i.configOptions...)
 		}),
 		fx.Populate(&_instance.configProvider),
 		// Initialize loggerProvider
