@@ -1,7 +1,7 @@
 package sdk
 
 import (
-	viper "github.com/hdget/provider-config-viper"
+	"github.com/hdget/provider-config-koanf"
 )
 
 type Option func(instance *SdkInstance)
@@ -14,18 +14,12 @@ func WithDebug() Option {
 
 func WithConfigFile(configFile string) Option {
 	return func(instance *SdkInstance) {
-		instance.configOptions = append(instance.configOptions, viper.WithConfigFile(configFile))
+		instance.configOptions = append(instance.configOptions, koanf.WithConfigFile(configFile))
 	}
 }
 
 func WithConfigContent(configContent []byte) Option {
 	return func(instance *SdkInstance) {
-		instance.configOptions = append(instance.configOptions, viper.WithConfigContent(configContent))
-	}
-}
-
-func WithDefaultRemote() Option {
-	return func(instance *SdkInstance) {
-		instance.configOptions = append(instance.configOptions, viper.WithDefaultRemote())
+		instance.configOptions = append(instance.configOptions, koanf.WithConfigContent(configContent))
 	}
 }
