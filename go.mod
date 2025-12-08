@@ -4,7 +4,7 @@ go 1.23.1
 
 require (
 	github.com/hdget/common v0.1.17
-	github.com/hdget/provider-config-koanf v0.1.0
+	github.com/hdget/provider-config-koanf v0.1.1
 	github.com/hdget/provider-logger-zerolog v0.1.2
 	github.com/hdget/utils v0.0.5
 	github.com/pkg/errors v0.9.1
