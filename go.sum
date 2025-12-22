@@ -12,8 +12,8 @@ github.com/golang/protobuf v1.5.4 h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek
 github.com/golang/protobuf v1.5.4/go.mod h1:lnTiLA8Wa4RWRcIUkrtSVa5nRhsEGBg48fD6rSs7xps=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
-github.com/hdget/common v0.1.22 h1:3aqju11GmXErQSE+lY+qAw0zoeAs2uj42ysZID9ckfc=
-github.com/hdget/common v0.1.22/go.mod h1:J6lywCu/7fTM4lerP1y476O3chSNKwq3IEBWbEeAsJE=
+github.com/hdget/common v0.1.23 h1:BuWOh8wrUbnK34WxmN/R+hhLvIkq8ZYfYMn21MJvtJw=
+github.com/hdget/common v0.1.23/go.mod h1:J6lywCu/7fTM4lerP1y476O3chSNKwq3IEBWbEeAsJE=
 github.com/hdget/provider-config-koanf v0.1.1 h1:UIk47XMdQo7S9KrZfPED0wfm93EJSWAVI4yZqsJimjo=
 github.com/hdget/provider-config-koanf v0.1.1/go.mod h1:QfuSvYkKvvOdi7CpvKsmXR8cgTLKqklAy8DQIBf5xVU=
 github.com/hdget/provider-logger-zerolog v0.1.2 h1:+VwV1WxddcbVILZZ2eZWVyltrVCBvZGcok/W0y8rSIQ=
