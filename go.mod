@@ -3,7 +3,7 @@ module github.com/hdget/sdk
 go 1.24.0
 
 require (
-	github.com/hdget/common v0.1.19
+	github.com/hdget/common v0.1.22
 	github.com/hdget/provider-config-koanf v0.1.1
 	github.com/hdget/provider-logger-zerolog v0.1.2
 	github.com/hdget/utils v0.0.5
