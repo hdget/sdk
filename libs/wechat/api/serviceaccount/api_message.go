@@ -3,7 +3,7 @@ package serviceaccount
 import (
 	"sync"
 
-	"github.com/hdget/libs/wechat/pkg/message"
+	"github.com/hdget/sdk/libs/wechat/pkg/message"
 )
 
 var (

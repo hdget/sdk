@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/hdget/libs/wechat/pkg/cache"
+	"github.com/hdget/sdk/libs/wechat/pkg/cache"
 	"github.com/hdget/utils"
 	"github.com/pkg/errors"
 )

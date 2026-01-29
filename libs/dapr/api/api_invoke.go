@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/dapr/go-sdk/client"
-	"github.com/hdget/libs/dapr/localutils"
 	"github.com/hdget/sdk/common/namespace"
+	"github.com/hdget/sdk/libs/dapr/localutils"
 	"github.com/hdget/utils"
 	"github.com/pkg/errors"
 )

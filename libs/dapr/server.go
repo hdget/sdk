@@ -15,11 +15,11 @@ import (
 	"github.com/dapr/go-sdk/service/grpc"
 	"github.com/dapr/go-sdk/service/http"
 	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/libs/dapr/api"
-	"github.com/hdget/libs/dapr/module"
 	"github.com/hdget/sdk/common/biz"
 	"github.com/hdget/sdk/common/protobuf"
 	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/libs/dapr/api"
+	"github.com/hdget/sdk/libs/dapr/module"
 	"github.com/pkg/errors"
 )
 

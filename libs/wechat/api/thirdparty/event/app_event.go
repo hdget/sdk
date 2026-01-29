@@ -3,7 +3,7 @@ package event
 import (
 	"encoding/xml"
 
-	"github.com/hdget/libs/wechat/pkg/crypt"
+	"github.com/hdget/sdk/libs/wechat/pkg/crypt"
 )
 
 type AppEventKind string

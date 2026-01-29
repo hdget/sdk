@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 
 	"github.com/dapr/go-sdk/service/common"
-	"github.com/hdget/libs/dapr/api"
-	"github.com/hdget/libs/dapr/localutils"
 	"github.com/hdget/sdk/common/biz"
 	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/libs/dapr/api"
+	"github.com/hdget/sdk/libs/dapr/localutils"
 	"github.com/hdget/utils"
 	panicUtils "github.com/hdget/utils/panic"
 	reflectUtils "github.com/hdget/utils/reflect"

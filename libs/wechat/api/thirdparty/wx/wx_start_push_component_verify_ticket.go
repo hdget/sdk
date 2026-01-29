@@ -1,7 +1,7 @@
 package wx
 
 import (
-	"github.com/hdget/libs/wechat/api"
+	"github.com/hdget/sdk/libs/wechat/api"
 	"github.com/pkg/errors"
 )
 

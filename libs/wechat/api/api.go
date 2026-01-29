@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hdget/libs/wechat/pkg/cache"
 	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/libs/wechat/pkg/cache"
 	"github.com/pkg/errors"
 )
 
