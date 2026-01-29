@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/aarondl/sqlboiler/v4 v4.19.5
 	github.com/go-sql-driver/mysql v1.9.0
-	github.com/hdget/sdk/common v0.0.2
+	github.com/hdget/sdk/common v0.0.5
 	github.com/pkg/errors v0.9.1
 	go.uber.org/fx v1.24.0
 )

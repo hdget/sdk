@@ -3,7 +3,7 @@ module github.com/hdget/sdk/providers/config/koanf
 go 1.24.0
 
 require (
-	github.com/hdget/sdk/common v0.0.2
+	github.com/hdget/sdk/common v0.0.5
 	github.com/knadh/koanf/parsers/toml/v2 v2.2.0
 	github.com/knadh/koanf/providers/env/v2 v2.0.0
 	github.com/knadh/koanf/providers/file v1.2.1
@@ -29,3 +29,5 @@ require (
 	google.golang.org/grpc v1.77.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
+
+retract v0.0.3

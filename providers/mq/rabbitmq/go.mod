@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/cenkalti/backoff/v4 v4.3.0
-	github.com/hdget/sdk/common v0.0.2
+	github.com/hdget/sdk/common v0.0.5
 	github.com/hdget/utils/text v0.0.2
 	github.com/jinzhu/copier v0.4.0
 	github.com/pkg/errors v0.9.1
