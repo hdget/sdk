@@ -2,26 +2,25 @@ package mysql_sqlboiler
 
 import (
 	"github.com/aarondl/sqlboiler/v4/boil"
-	"github.com/hdget/sdk/common/intf"
 	"github.com/hdget/sdk/common/types"
 )
 
 type mysqlProvider struct {
-	defaultDb intf.DbClient
-	masterDb  intf.DbClient
-	slaveDbs  []intf.DbClient
-	extraDbs  map[string]intf.DbClient
+	defaultDb types.DbClient
+	masterDb  types.DbClient
+	slaveDbs  []types.DbClient
+	extraDbs  map[string]types.DbClient
 }
 
-func New(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (intf.DbProvider, error) {
+func New(configProvider types.ConfigProvider, logger types.LoggerProvider) (types.DbProvider, error) {
 	config, err := newConfig(configProvider)
 	if err != nil {
 		return nil, err
 	}
 
 	p := &mysqlProvider{
-		slaveDbs: make([]intf.DbClient, len(config.Slaves)),
-		extraDbs: make(map[string]intf.DbClient),
+		slaveDbs: make([]types.DbClient, len(config.Slaves)),
+		extraDbs: make(map[string]types.DbClient),
 	}
 
 	if config.Default != nil {
@@ -68,18 +67,18 @@ func (p *mysqlProvider) GetCapability() types.Capability {
 	return Capability
 }
 
-func (p *mysqlProvider) My() intf.DbClient {
+func (p *mysqlProvider) My() types.DbClient {
 	return p.defaultDb
 }
 
-func (p *mysqlProvider) Master() intf.DbClient {
+func (p *mysqlProvider) Master() types.DbClient {
 	return p.masterDb
 }
 
-func (p *mysqlProvider) Slave(i int) intf.DbClient {
+func (p *mysqlProvider) Slave(i int) types.DbClient {
 	return p.slaveDbs[i]
 }
 
-func (p *mysqlProvider) By(name string) intf.DbClient {
+func (p *mysqlProvider) By(name string) types.DbClient {
 	return p.extraDbs[name]
 }
