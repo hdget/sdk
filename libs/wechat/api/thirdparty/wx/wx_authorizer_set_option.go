@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/libs/wechat/api"
+	"github.com/hdget/sdk/libs/wechat/api"
 	"github.com/pkg/errors"
 )
 

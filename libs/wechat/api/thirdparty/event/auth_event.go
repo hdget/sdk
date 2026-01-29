@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"strings"
 
-	"github.com/hdget/libs/wechat/pkg/crypt"
+	"github.com/hdget/sdk/libs/wechat/pkg/crypt"
 	"github.com/pkg/errors"
 )
 

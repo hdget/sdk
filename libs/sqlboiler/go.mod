@@ -1,4 +1,4 @@
-module github.com/hdget/libs/sqlboiler
+module github.com/hdget/sdk/libs/sqlboiler
 
 go 1.24.0
 

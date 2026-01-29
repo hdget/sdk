@@ -1,8 +1,8 @@
 package openplatform
 
 import (
-	"github.com/hdget/libs/wechat/api"
-	"github.com/hdget/libs/wechat/api/openplatform/wx"
+	"github.com/hdget/sdk/libs/wechat/api"
+	"github.com/hdget/sdk/libs/wechat/api/openplatform/wx"
 )
 
 type API interface {

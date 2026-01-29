@@ -1,4 +1,4 @@
-module github.com/hdget/libs/devops
+module github.com/hdget/sdk/libs/devops
 
 go 1.24.0
 

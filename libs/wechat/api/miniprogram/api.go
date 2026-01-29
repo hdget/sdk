@@ -1,10 +1,10 @@
 package miniprogram
 
 import (
-	"github.com/hdget/libs/wechat/api"
-	"github.com/hdget/libs/wechat/api/miniprogram/cache"
-	"github.com/hdget/libs/wechat/api/miniprogram/wx"
 	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/libs/wechat/api"
+	"github.com/hdget/sdk/libs/wechat/api/miniprogram/cache"
+	"github.com/hdget/sdk/libs/wechat/api/miniprogram/wx"
 )
 
 type API interface {

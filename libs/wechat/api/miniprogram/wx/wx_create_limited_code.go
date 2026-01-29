@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/hdget/libs/wechat/api"
+	"github.com/hdget/sdk/libs/wechat/api"
 	"github.com/hdget/utils/cmp"
 	"github.com/pkg/errors"
 )

@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/hdget/libs/wechat/api"
-	"github.com/hdget/libs/wechat/api/serviceaccount/wx"
 	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/libs/wechat/api"
+	"github.com/hdget/sdk/libs/wechat/api/serviceaccount/wx"
 	"github.com/pkg/errors"
 )
 

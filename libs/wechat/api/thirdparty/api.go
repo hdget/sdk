@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hdget/libs/wechat/api"
-	"github.com/hdget/libs/wechat/api/thirdparty/cache"
-	"github.com/hdget/libs/wechat/api/thirdparty/wx"
 	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/libs/wechat/api"
+	"github.com/hdget/sdk/libs/wechat/api/thirdparty/cache"
+	"github.com/hdget/sdk/libs/wechat/api/thirdparty/wx"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 )

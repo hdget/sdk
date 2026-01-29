@@ -1,4 +1,4 @@
-module github.com/hdget/libs/dapr
+module github.com/hdget/sdk/libs/dapr
 
 go 1.24.6
 
