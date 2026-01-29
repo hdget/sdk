@@ -5,6 +5,7 @@ go 1.24.0
 require (
 	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.3.0
 	github.com/elliotchance/pie/v2 v2.9.1
+	github.com/hdget/sdk/common v0.0.2
 	github.com/pkg/errors v0.9.1
 	go.uber.org/fx v1.24.0
 )

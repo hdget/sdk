@@ -3,9 +3,10 @@ package mysql_sqlboiler
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/hdget/sdk/common/intf"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/hdget/sdk/common/types"
 )
 
 type mysqlClient struct {
@@ -18,7 +19,7 @@ const (
 	dsnTemplate = "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local"
 )
 
-func newClient(c *mysqlConfig) (intf.DbClient, error) {
+func newClient(c *mysqlConfig) (types.DbClient, error) {
 	// 构造连接参数
 	dsn := fmt.Sprintf(dsnTemplate, c.User, c.Password, c.Host, c.Port, c.Database)
 	db, err := sql.Open("mysql", dsn)

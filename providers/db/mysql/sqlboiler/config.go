@@ -1,7 +1,7 @@
 package mysql_sqlboiler
 
 import (
-	"github.com/hdget/sdk/common/intf"
+	"github.com/hdget/sdk/common/types"
 	"github.com/pkg/errors"
 )
 
@@ -31,7 +31,7 @@ var (
 	errEmptyConfig   = errors.New("empty mysql provider config")
 )
 
-func newConfig(configProvider intf.ConfigProvider) (*mysqlProviderConfig, error) {
+func newConfig(configProvider types.ConfigProvider) (*mysqlProviderConfig, error) {
 	if configProvider == nil {
 		return nil, errInvalidConfig
 	}
