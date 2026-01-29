@@ -3,9 +3,9 @@ package koanf
 import (
 	"os"
 
-	"github.com/hdget/providers/config/koanf/loader"
 	"github.com/hdget/sdk/common/constant"
 	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/providers/config/koanf/loader"
 	"github.com/knadh/koanf/v2"
 	"github.com/pkg/errors"
 )

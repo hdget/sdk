@@ -2,7 +2,7 @@ package loader
 
 import (
 	"fmt"
-	"github.com/hdget/providers/config/viper/param"
+	"github.com/hdget/sdk/providers/config/viper/param"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"path/filepath"

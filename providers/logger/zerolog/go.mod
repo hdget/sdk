@@ -1,4 +1,4 @@
-module github.com/hdget/providers/logger/zerolog
+module github.com/hdget/sdk/providers/logger/zerolog
 
 go 1.23.1
 

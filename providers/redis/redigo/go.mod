@@ -1,4 +1,4 @@
-module github.com/hdget/provider-redis-redigo
+module github.com/hdget/sdk/providers/redis/redigo
 
 go 1.24.0
 

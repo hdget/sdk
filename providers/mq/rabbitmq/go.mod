@@ -1,4 +1,4 @@
-module github.com/hdget/providers/mq/rabbitmq
+module github.com/hdget/sdk/providers/mq/rabbitmq
 
 go 1.23.0
 

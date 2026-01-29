@@ -1,4 +1,4 @@
-module github.com/hdget/providers/oss/aliyun
+module github.com/hdget/sdk/providers/oss/aliyun
 
 go 1.24.0
 

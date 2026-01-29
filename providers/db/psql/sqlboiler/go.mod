@@ -1,4 +1,4 @@
-module github.com/hdget/providers/db/sqlboiler/psql
+module github.com/hdget/sdk/providers/db/psql/sqlboiler
 
 go 1.24.0
 

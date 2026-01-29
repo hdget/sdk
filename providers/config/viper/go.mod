@@ -1,4 +1,4 @@
-module github.com/hdget/providers/config/viper
+module github.com/hdget/sdk/providers/config/viper
 
 go 1.24.0
 

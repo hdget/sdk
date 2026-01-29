@@ -1,7 +1,7 @@
 package viper
 
 import (
-	"github.com/hdget/providers/config/viper/param"
+	"github.com/hdget/sdk/providers/config/viper/param"
 )
 
 type Option func(*param.Param)

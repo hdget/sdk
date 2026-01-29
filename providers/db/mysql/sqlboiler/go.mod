@@ -1,4 +1,4 @@
-module github.com/hdget/providers/mysql/sqlboiler
+module github.com/hdget/sdk/providers/mysql/sqlboiler
 
 go 1.23.1
 

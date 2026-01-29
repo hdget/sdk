@@ -1,7 +1,7 @@
 package sdk
 
 import (
-	"github.com/hdget/providers/config/koanf"
+	"github.com/hdget/sdk/providers/config/koanf"
 )
 
 type Option func(instance *SdkInstance)

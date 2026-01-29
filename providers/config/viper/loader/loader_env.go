@@ -1,7 +1,7 @@
 package loader
 
 import (
-	"github.com/hdget/providers/config/viper/param"
+	"github.com/hdget/sdk/providers/config/viper/param"
 	"github.com/spf13/viper"
 )
 

@@ -3,10 +3,10 @@ package viper
 import (
 	"os"
 
-	"github.com/hdget/providers/config/viper/loader"
-	"github.com/hdget/providers/config/viper/param"
 	"github.com/hdget/sdk/common/constant"
 	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/providers/config/viper/loader"
+	"github.com/hdget/sdk/providers/config/viper/param"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
