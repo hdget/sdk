@@ -1,0 +1,9 @@
+version: "2"
+linters:
+  settings:
+    govet:
+        disable:
+          - structtag
+    staticcheck:
+        checks:
+          - "-QF1008"

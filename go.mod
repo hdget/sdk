@@ -3,9 +3,7 @@ module github.com/hdget/sdk
 go 1.24.0
 
 require (
-	github.com/hdget/common v0.1.25
-	github.com/hdget/provider-config-koanf v0.1.4
-	github.com/hdget/provider-logger-zerolog v0.1.2
+	github.com/hdget/sdk/common v0.1.25
 	github.com/hdget/utils v0.0.5
 	github.com/pkg/errors v0.9.1
 	go.uber.org/fx v1.24.0
@@ -36,3 +34,5 @@ require (
 	google.golang.org/grpc v1.78.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
+
+retract v1.0.90

@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package protobuf;
+
+option go_package = "github.com/hdget/sdk/common/protobuf";
+
+message Error {
+  int32 code = 1;
+  string msg = 2;
+}
+
+// 按limit分页
+message ListParam {
+  int64 page = 1;      // 页码
+  int64 pageSize = 2;  // 每页数量
+}
+
+enum DaprModuleKind {
+  DaprModuleKindUnknown  = 0;
+  DaprModuleKindInvocation = 1;
+  DaprModuleKindEvent = 2;
+  DaprModuleKindDelayEvent = 3;
+  DaprModuleKindHealth = 4;
+}
+
+message DaprHandler {
+  DaprModuleKind moduleKind = 1; // 模块类型
+  string pkgPath = 2; // 包路径
+  string module = 3;  // 模块名
+  string name = 4;  // 处理函数名
+  string alias = 5; // 处理函数别名
+  map<string, string> annotations = 7; // 注解
+  repeated string comments = 6; // 注释
+}
+
+message UpdateRouteRequest {
+  string app = 1; // 应用名
+  repeated DaprHandler handlers = 2; // AST解析后保存的Dapr处理函数列表
+}

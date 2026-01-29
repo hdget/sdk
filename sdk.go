@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/hdget/common/types"
-	"github.com/hdget/provider-config-koanf"
-	"github.com/hdget/provider-logger-zerolog"
+	"github.com/hdget/providers/config/koanf"
+	"github.com/hdget/providers/logger/zerolog"
+	"github.com/hdget/sdk/common/types"
 	"github.com/hdget/utils/logger"
 	"github.com/pkg/errors"
 	"go.uber.org/fx"
