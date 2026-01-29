@@ -1,7 +1,7 @@
 package sdk
 
 import (
-	"github.com/hdget/common/types"
+	"github.com/hdget/sdk/common/types"
 )
 
 func Logger() types.LoggerProvider {
