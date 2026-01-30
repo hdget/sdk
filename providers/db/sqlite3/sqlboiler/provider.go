@@ -1,4 +1,4 @@
-package sqlite3_sqlboiler
+package sqlboiler
 
 import (
 	"github.com/aarondl/sqlboiler/v4/boil"

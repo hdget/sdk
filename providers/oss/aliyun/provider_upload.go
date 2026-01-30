@@ -1,15 +1,16 @@
-package oss_aliyun
+package aliyun
 
 import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss"
-	"github.com/pkg/errors"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss"
+	"github.com/pkg/errors"
 )
 
 func (p *aliyunOssProvider) Upload(dir, filename string, data []byte) (string, error) {

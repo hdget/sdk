@@ -1,4 +1,4 @@
-package oss_aliyun
+package aliyun
 
 import (
 	"github.com/hdget/sdk/common/types"

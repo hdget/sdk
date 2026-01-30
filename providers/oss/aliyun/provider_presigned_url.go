@@ -1,7 +1,8 @@
-package oss_aliyun
+package aliyun
 
 import (
 	"context"
+
 	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss"
 	"github.com/elliotchance/pie/v2"
 	"github.com/pkg/errors"
