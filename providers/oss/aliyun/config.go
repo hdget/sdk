@@ -1,7 +1,8 @@
-package oss_aliyun
+package aliyun
 
 import (
 	"fmt"
+
 	"github.com/hdget/sdk/common/types"
 	"github.com/pkg/errors"
 )

@@ -1,4 +1,4 @@
-package mysql_sqlboiler
+package sqlboiler
 
 import (
 	"database/sql"

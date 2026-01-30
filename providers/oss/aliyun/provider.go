@@ -1,10 +1,11 @@
-package oss_aliyun
+package aliyun
 
 import (
+	"time"
+
 	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss"
 	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss/credentials"
 	"github.com/hdget/sdk/common/types"
-	"time"
 )
 
 type aliyunOssProvider struct {

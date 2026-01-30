@@ -1,4 +1,4 @@
-package redis_redigo
+package redigo
 
 import (
 	"fmt"
