@@ -18,8 +18,8 @@ github.com/hdget/sdk/providers/config/koanf v0.0.1 h1:xW0d6HcNHh+pjQgZTxTFBLT62r
 github.com/hdget/sdk/providers/config/koanf v0.0.1/go.mod h1:x1uARty9lGWSWmWt7w0AvkTzIfXguqbx0lNqiSKs+cQ=
 github.com/hdget/sdk/providers/logger/zerolog v0.0.1 h1:U5YaQt7569qkUYxk3ts2+YLO/jIPuARLqcSmV3lIbsM=
 github.com/hdget/sdk/providers/logger/zerolog v0.0.1/go.mod h1:uUMH2Uf/5KMFLQLV/+lvg2v3mXCBPlfQjr37EivAHrk=
-github.com/hdget/utils v0.2.2 h1:d+mENbIBYrfx86Sp2UBsQiO1F0tHFTwXpSrDEFFXNKA=
-github.com/hdget/utils v0.2.2/go.mod h1:rMhGWc6ReCUt/U3WNEwej93fRpRJHtaahQ+bJblcSJQ=
+github.com/hdget/utils v0.2.3 h1:gRToiQ78KG0znuYS8iwSpSeMqqt4Kb+00Q9lwE6aI78=
+github.com/hdget/utils v0.2.3/go.mod h1:rMhGWc6ReCUt/U3WNEwej93fRpRJHtaahQ+bJblcSJQ=
 github.com/knadh/koanf/maps v0.1.2 h1:RBfmAW5CnZT+PJ1CVc1QSJKf4Xu9kxfQgYVQSu8hpbo=
 github.com/knadh/koanf/maps v0.1.2/go.mod h1:npD/QZY3V6ghQDdcQzl1W4ICNVTkohC8E73eI2xW4yI=
 github.com/knadh/koanf/parsers/toml/v2 v2.2.0 h1:2nV7tHYJ5OZy2BynQ4mOJ6k5bDqbbCzRERLUKBytz3A=

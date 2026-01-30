@@ -7,7 +7,7 @@ require (
 	github.com/dapr/go-sdk v1.13.0
 	github.com/elliotchance/pie/v2 v2.9.1
 	github.com/hdget/sdk/common v0.0.5
-	github.com/hdget/utils v0.2.2
+	github.com/hdget/utils v0.2.3
 	github.com/hdget/utils/panic v0.0.1
 	github.com/hdget/utils/reflect v0.0.1
 	github.com/hdget/utils/text v0.0.1
