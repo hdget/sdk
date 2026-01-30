@@ -7,7 +7,7 @@ require (
 	github.com/dapr/go-sdk v1.13.0
 	github.com/elliotchance/pie/v2 v2.9.1
 	github.com/hdget/sdk/common v0.0.5
-	github.com/hdget/utils v0.2.2
+	github.com/hdget/utils v0.2.3
 	github.com/hdget/utils/panic v0.0.1
 	github.com/hdget/utils/reflect v0.0.1
 	github.com/hdget/utils/text v0.0.1
@@ -17,7 +17,7 @@ require (
 
 require (
 	github.com/dapr/dapr v1.16.0 // indirect
-	github.com/dapr/durabletask-go v0.10.0 // indirect
+	github.com/dapr/durabletask-go v0.10.2 // indirect
 	github.com/dapr/kit v0.16.1 // indirect
 	github.com/go-chi/chi/v5 v5.2.2 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
@@ -32,7 +32,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.1 // indirect
 	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93 // indirect
-	golang.org/x/net v0.46.1-0.20251013234738-63d1a5100f82 // indirect
+	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251213004720-97cd9d5aeac2 // indirect
