@@ -23,21 +23,34 @@ if ([string]::IsNullOrWhiteSpace($InputTags)) {
     exit 1
 }
 
-# 使用更智能的分割方法，处理包含斜杠的标签名[2,4](@ref)
-# 使用正则表达式分割，确保正确处理包含特殊字符的标签
+# 调试信息：显示原始输入
+Write-Host "原始输入: '$InputTags'" -ForegroundColor Gray
+
+# 改进的分割逻辑：处理包含斜杠的标签名
 $TagArray = @()
-if ($InputTags -match '^\S+$') {
-    # 单个标签（不包含空格）
+
+# 使用更精确的分割方法：查找第一个空格的位置来分割
+$firstSpaceIndex = $InputTags.IndexOf(' ')
+if ($firstSpaceIndex -eq -1) {
+    # 没有空格，单个标签
     $TagArray = @($InputTags.Trim())
 } else {
-    # 多个标签，使用智能分割[2](@ref)
-    $parts = $InputTags.Trim() -split '\s+', 2
-    foreach ($part in $parts) {
-        if (-not [string]::IsNullOrWhiteSpace($part)) {
-            $TagArray += $part
-        }
+    # 有空格，分割成两个部分
+    $firstTag = $InputTags.Substring(0, $firstSpaceIndex).Trim()
+    $secondTag = $InputTags.Substring($firstSpaceIndex + 1).Trim()
+
+    # 确保两个部分都不为空
+    if (-not [string]::IsNullOrWhiteSpace($firstTag) -and -not [string]::IsNullOrWhiteSpace($secondTag)) {
+        $TagArray = @($firstTag, $secondTag)
+    } else {
+        Write-Host "错误：分割后的标签名为空。" -ForegroundColor Red
+        exit 1
     }
 }
+
+# 调试信息：显示分割结果
+Write-Host "分割结果: $($TagArray -join ', ')" -ForegroundColor Gray
+Write-Host "标签数量: $($TagArray.Count)" -ForegroundColor Gray
 
 # 根据输入数量确定操作模式
 switch ($TagArray.Count) {
@@ -78,10 +91,9 @@ Write-Host ""
 # 记录操作结果
 $Operations = @()
 
-# 1. 删除本地标签（使用引号确保路径正确传递）[1,2](@ref)
+# 1. 删除本地标签
 try {
     Write-Host "[1/4] 删除本地标签 '$DeleteTag'..." -NoNewline
-    # 使用引号包裹标签名，防止路径解析错误[1](@ref)
     git tag -d "$DeleteTag" 2>$null
     if ($LASTEXITCODE -eq 0) {
         Write-Host " 成功" -ForegroundColor Green
@@ -95,7 +107,7 @@ try {
     $Operations += "删除本地标签: 失败"
 }
 
-# 2. 删除远程标签（同样使用引号）
+# 2. 删除远程标签
 try {
     Write-Host "[2/4] 删除远程标签 '$DeleteTag'..." -NoNewline
     git push --delete origin "$DeleteTag" 2>$null
@@ -111,7 +123,7 @@ try {
     $Operations += "删除远程标签: 失败"
 }
 
-# 3. 创建新标签（使用引号）
+# 3. 创建新标签
 try {
     Write-Host "[3/4] 创建新标签 '$CreateTag'..." -NoNewline
     git tag -a "$CreateTag" -m "upgrade version" 2>$null
@@ -129,7 +141,7 @@ try {
     exit 1
 }
 
-# 4. 推送新标签到远程（使用引号）
+# 4. 推送新标签到远程
 try {
     Write-Host "[4/4] 推送新标签到远程仓库..." -NoNewline
     git push origin "$CreateTag" 2>$null
@@ -163,5 +175,5 @@ git show "$CreateTag" --quiet 2>$null
 if ($LASTEXITCODE -eq 0) {
     Write-Host "  ✓ 新标签验证成功" -ForegroundColor Green
 } else {
-    Write-Host "  ⚠ 新标签验证失败" -ForegroundColor Red
+    Write-Host "  ⚠ 新标签验证失败" -ForegroundColor Yellow
 }

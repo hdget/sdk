@@ -4,8 +4,8 @@ go 1.24.0
 
 require (
 	github.com/hdget/sdk/common v0.0.5
-	github.com/hdget/sdk/providers/config/koanf v0.0.1
-	github.com/hdget/sdk/providers/logger/zerolog v0.0.1
+	github.com/hdget/sdk/providers/config/koanf v0.0.6
+	github.com/hdget/sdk/providers/logger/zerolog v0.0.2
 	github.com/hdget/utils v0.2.3
 	github.com/pkg/errors v0.9.1
 	go.uber.org/fx v1.24.0
@@ -19,7 +19,7 @@ require (
 	github.com/knadh/koanf/providers/env/v2 v2.0.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/providers/rawbytes v1.0.0 // indirect
-	github.com/knadh/koanf/v2 v2.3.0 // indirect
+	github.com/knadh/koanf/v2 v2.3.2 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
