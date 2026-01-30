@@ -6,7 +6,7 @@ require (
 	github.com/hdget/sdk/common v0.0.5
 	github.com/hdget/sdk/providers/config/koanf v0.0.1
 	github.com/hdget/sdk/providers/logger/zerolog v0.0.1
-	github.com/hdget/utils v0.2.2
+	github.com/hdget/utils v0.2.3
 	github.com/pkg/errors v0.9.1
 	go.uber.org/fx v1.24.0
 )

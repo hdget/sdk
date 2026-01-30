@@ -6,7 +6,7 @@ require (
 	github.com/aarondl/sqlboiler/v4 v4.19.5
 	github.com/elliotchance/pie/v2 v2.9.1
 	github.com/hdget/sdk/common v0.0.5
-	github.com/hdget/utils v0.2.2
+	github.com/hdget/utils v0.2.3
 	github.com/hdget/utils/json v0.0.1
 	github.com/hdget/utils/paginator v0.0.1
 	github.com/hdget/utils/reflect v0.0.1
