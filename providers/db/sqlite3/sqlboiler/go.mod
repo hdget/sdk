@@ -1,4 +1,4 @@
-module github.com/hdget/sdk/providers/sqlite3/sqlboiler
+module github.com/hdget/sdk/providers/db/sqlite3/sqlboiler
 
 go 1.24.0
 
