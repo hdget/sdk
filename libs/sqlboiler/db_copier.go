@@ -426,7 +426,13 @@ func (impl *dbCopierImpl) handleTimeField(field reflect.Value, value any) error 
 	case int64:
 		field.Set(reflect.ValueOf(time.Unix(v, 0)))
 	case string:
-		if t, err := time.Parse(time.DateTime, v); err == nil {
+		v = strings.TrimSpace(v)
+		layout := time.DateTime
+		if !strings.Contains(v, " ") {
+			layout = time.DateOnly
+		}
+
+		if t, err := time.Parse(layout, v); err == nil {
 			field.Set(reflect.ValueOf(t))
 		} else {
 			return fmt.Errorf("invalid time format: %w", err)
