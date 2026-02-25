@@ -41,7 +41,7 @@ func New(kvs ...any) MetaData {
 		defer c.mu.Unlock()
 
 		for i := 0; i < len(kvs); i += 2 {
-			if key, ok := kvs[i].(string); !ok {
+			if key, ok := kvs[i].(string); ok {
 				c.kvs[key] = kvs[i+1]
 			}
 		}
