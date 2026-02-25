@@ -29,7 +29,7 @@ type contextImpl struct {
 	roleIds    []int64 // 缓存角色列表提升效率
 }
 
-func NewContext(kvs ...string) Context {
+func NewContext(kvs ...any) Context {
 	return &contextImpl{
 		metadata:   meta.New(kvs...),
 		transactor: newTransactor(),

@@ -1,8 +1,6 @@
 package api
 
 import (
-	"encoding/json"
-
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/sdk/common/namespace"
 	"github.com/hdget/sdk/libs/dapr/localutils"
@@ -14,18 +12,9 @@ const ContentTypeJson = "application/json"
 
 // Invoke 调用dapr服务
 func (a apiImpl) Invoke(app string, apiVersion int, module, handler string, request any, source ...string) ([]byte, error) {
-	var requestData []byte
-	switch t := request.(type) {
-	case string:
-		requestData = utils.StringToBytes(t)
-	case []byte:
-		requestData = t
-	default:
-		v, err := json.Marshal(request)
-		if err != nil {
-			return nil, errors.Wrap(err, "marshal invoke request")
-		}
-		requestData = v
+	requestData, err := utils.ToBytes(request)
+	if err != nil {
+		return nil, errors.Wrap(err, "marshal invoke request")
 	}
 
 	daprClient, err := client.NewClient()

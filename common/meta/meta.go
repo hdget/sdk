@@ -30,7 +30,7 @@ type metaDataImpl struct {
 	mu  sync.RWMutex
 }
 
-func New(kvs ...string) MetaData {
+func New(kvs ...any) MetaData {
 	c := &metaDataImpl{
 		kvs: make(map[string]any),
 		mu:  sync.RWMutex{},
@@ -41,7 +41,9 @@ func New(kvs ...string) MetaData {
 		defer c.mu.Unlock()
 
 		for i := 0; i < len(kvs); i += 2 {
-			c.kvs[kvs[i]] = kvs[i+1]
+			if key, ok := kvs[i].(string); !ok {
+				c.kvs[key] = kvs[i+1]
+			}
 		}
 	}
 	return c
