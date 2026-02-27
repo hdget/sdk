@@ -23,5 +23,5 @@ func (impl *dbImpl) Executor() boil.Executor {
 }
 
 func (impl *dbImpl) Copier() DbCopier {
-	return newDbCopier()
+	return impl.copier
 }
