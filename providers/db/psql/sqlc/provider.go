@@ -1,14 +1,13 @@
-package sqlboiler
+package sqlc
 
 import (
 	"sync/atomic"
 
-	"github.com/aarondl/sqlboiler/v4/boil"
 	"github.com/hdget/sdk/common/types"
 	"github.com/pkg/errors"
 )
 
-type sqlboilerProvider struct {
+type sqlcProvider struct {
 	defaultDb types.DbClient
 	masterDb  types.DbClient
 	slaveDbs  []types.DbClient
@@ -16,13 +15,13 @@ type sqlboilerProvider struct {
 	slaveIdx  uint64 // 用于轮询选择 slave
 }
 
-func newProvider(configProvider types.ConfigProvider, logger types.LoggerProvider) (types.DbProvider, error) {
+func New(configProvider types.ConfigProvider, logger types.LoggerProvider) (types.DbProvider, error) {
 	config, err := newConfig(configProvider)
 	if err != nil {
 		return nil, err
 	}
 
-	p := &sqlboilerProvider{
+	p := &sqlcProvider{
 		slaveDbs: make([]types.DbClient, len(config.Slaves)),
 		extraDbs: make(map[string]types.DbClient),
 	}
@@ -32,9 +31,6 @@ func newProvider(configProvider types.ConfigProvider, logger types.LoggerProvide
 		if err != nil {
 			logger.Fatal("init postgresql default db connection", "err", err)
 		}
-
-		// 设置boil的缺省db
-		boil.SetDB(p.defaultDb)
 		logger.Debug("init postgresql default db connection", "host", config.Default.Host)
 	}
 
@@ -96,31 +92,31 @@ func NewClient(configProvider types.ConfigProvider, database ...string) (types.D
 	return client, nil
 }
 
-func (p *sqlboilerProvider) GetCapability() types.Capability {
+func (p *sqlcProvider) GetCapability() types.Capability {
 	return Capability
 }
 
-func (p *sqlboilerProvider) My() types.DbClient {
+func (p *sqlcProvider) My() types.DbClient {
 	return p.defaultDb
 }
 
-func (p *sqlboilerProvider) Master() types.DbClient {
+func (p *sqlcProvider) Master() types.DbClient {
 	return p.masterDb
 }
 
-func (p *sqlboilerProvider) Slave(i int) types.DbClient {
+func (p *sqlcProvider) Slave(i int) types.DbClient {
 	if i < 0 || i >= len(p.slaveDbs) {
 		return nil
 	}
 	return p.slaveDbs[i]
 }
 
-func (p *sqlboilerProvider) By(name string) types.DbClient {
+func (p *sqlcProvider) By(name string) types.DbClient {
 	return p.extraDbs[name]
 }
 
 // Read 返回用于读操作的数据库客户端（从 slave 中轮询选择，无 slave 则返回 master 或 default）
-func (p *sqlboilerProvider) Read() types.DbClient {
+func (p *sqlcProvider) Read() types.DbClient {
 	if len(p.slaveDbs) > 0 {
 		idx := atomic.AddUint64(&p.slaveIdx, 1) - 1
 		return p.slaveDbs[idx%uint64(len(p.slaveDbs))]
@@ -129,7 +125,7 @@ func (p *sqlboilerProvider) Read() types.DbClient {
 }
 
 // Write 返回用于写操作的数据库客户端（返回 master 或 default）
-func (p *sqlboilerProvider) Write() types.DbClient {
+func (p *sqlcProvider) Write() types.DbClient {
 	if p.masterDb != nil {
 		return p.masterDb
 	}

@@ -1,6 +1,7 @@
 package sqlboiler
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -58,18 +59,46 @@ func newClient(c *sqliteProviderConfig, args ...string) (types.DbClient, error) 
 	return &sqlite3Client{DB: db}, nil
 }
 
-func (m sqlite3Client) Close() error {
+func (m *sqlite3Client) Close() error {
 	return m.DB.Close()
 }
 
-func (m sqlite3Client) Get(dest interface{}, query string, args ...interface{}) error {
-	return nil
-}
+// RunInTransaction 在事务中执行函数，支持嵌套事务（通过 SAVEPOINT 实现）
+func (m *sqlite3Client) RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
+	// 检查是否已在事务中
+	if tx, ok := ctx.Value(types.TxCtxKey{}).(*sql.Tx); ok {
+		// 已在事务中，创建 SAVEPOINT 实现嵌套事务
+		spName := fmt.Sprintf("sp_%d", time.Now().UnixNano())
+		_, _ = tx.ExecContext(ctx, fmt.Sprintf("SAVEPOINT %s", spName))
 
-func (m sqlite3Client) Select(dest interface{}, query string, args ...interface{}) error {
-	return nil
-}
+		err := fn(ctx)
+		if err != nil {
+			_, _ = tx.ExecContext(ctx, fmt.Sprintf("ROLLBACK TO SAVEPOINT %s", spName))
+			return err
+		}
+		_, _ = tx.ExecContext(ctx, fmt.Sprintf("RELEASE SAVEPOINT %s", spName))
+		return nil
+	}
 
-func (m sqlite3Client) Rebind(query string) string {
-	return ""
+	// 开始新事务
+	tx, err := m.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if p := recover(); p != nil {
+			_ = tx.Rollback()
+			panic(p)
+		}
+	}()
+
+	// 将事务放入 context，支持嵌套事务检测
+	txCtx := context.WithValue(ctx, types.TxCtxKey{}, tx)
+	err = fn(txCtx)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }

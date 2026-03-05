@@ -1,13 +1,12 @@
-package sqlboiler
+package sqlc
 
 import (
 	"sync/atomic"
 
-	"github.com/aarondl/sqlboiler/v4/boil"
 	"github.com/hdget/sdk/common/types"
 )
 
-type mysqlProvider struct {
+type sqlcProvider struct {
 	defaultDb types.DbClient
 	masterDb  types.DbClient
 	slaveDbs  []types.DbClient
@@ -21,7 +20,7 @@ func New(configProvider types.ConfigProvider, logger types.LoggerProvider) (type
 		return nil, err
 	}
 
-	p := &mysqlProvider{
+	p := &sqlcProvider{
 		slaveDbs: make([]types.DbClient, len(config.Slaves)),
 		extraDbs: make(map[string]types.DbClient),
 	}
@@ -31,9 +30,6 @@ func New(configProvider types.ConfigProvider, logger types.LoggerProvider) (type
 		if err != nil {
 			logger.Fatal("init mysql default connection", "err", err)
 		}
-
-		// 设置boil的缺省db
-		boil.SetDB(p.defaultDb)
 		logger.Debug("init mysql default", "host", config.Default.Host)
 	}
 
@@ -66,31 +62,31 @@ func New(configProvider types.ConfigProvider, logger types.LoggerProvider) (type
 	return p, nil
 }
 
-func (p *mysqlProvider) GetCapability() types.Capability {
+func (p *sqlcProvider) GetCapability() types.Capability {
 	return Capability
 }
 
-func (p *mysqlProvider) My() types.DbClient {
+func (p *sqlcProvider) My() types.DbClient {
 	return p.defaultDb
 }
 
-func (p *mysqlProvider) Master() types.DbClient {
+func (p *sqlcProvider) Master() types.DbClient {
 	return p.masterDb
 }
 
-func (p *mysqlProvider) Slave(i int) types.DbClient {
+func (p *sqlcProvider) Slave(i int) types.DbClient {
 	if i < 0 || i >= len(p.slaveDbs) {
 		return nil
 	}
 	return p.slaveDbs[i]
 }
 
-func (p *mysqlProvider) By(name string) types.DbClient {
+func (p *sqlcProvider) By(name string) types.DbClient {
 	return p.extraDbs[name]
 }
 
 // Read 返回用于读操作的数据库客户端（从 slave 中轮询选择，无 slave 则返回 master 或 default）
-func (p *mysqlProvider) Read() types.DbClient {
+func (p *sqlcProvider) Read() types.DbClient {
 	if len(p.slaveDbs) > 0 {
 		idx := atomic.AddUint64(&p.slaveIdx, 1) - 1
 		return p.slaveDbs[idx%uint64(len(p.slaveDbs))]
@@ -99,7 +95,7 @@ func (p *mysqlProvider) Read() types.DbClient {
 }
 
 // Write 返回用于写操作的数据库客户端（返回 master 或 default）
-func (p *mysqlProvider) Write() types.DbClient {
+func (p *sqlcProvider) Write() types.DbClient {
 	if p.masterDb != nil {
 		return p.masterDb
 	}

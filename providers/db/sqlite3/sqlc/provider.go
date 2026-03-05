@@ -1,10 +1,8 @@
-package sqlboiler
+package sqlc
 
 import (
-	"github.com/aarondl/sqlboiler/v4/boil"
 	"github.com/hdget/sdk/common/types"
 	"github.com/pkg/errors"
-	_ "modernc.org/sqlite"
 )
 
 type sqlite3Provider struct {
@@ -22,9 +20,6 @@ func New(configProvider types.ConfigProvider, logger types.LoggerProvider) (type
 		return nil, errors.Wrap(err, "new sqlite3 client")
 	}
 
-	// 设置boil的缺省db
-	boil.SetDB(client)
-
 	logger.Debug("init sqlite3 provider", "db", config.DbPath)
 	return &sqlite3Provider{client: client}, nil
 }
@@ -35,9 +30,6 @@ func NewClient(dbFile string) (types.DbClient, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "connect sqlite3: %s", dbFile)
 	}
-
-	// 设置boil的缺省db
-	boil.SetDB(client)
 	return client, nil
 }
 

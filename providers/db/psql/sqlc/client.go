@@ -1,29 +1,30 @@
-package sqlboiler
+package sqlc
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/hdget/sdk/common/types"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-type mysqlClient struct {
+type psqlClient struct {
 	*sql.DB
 }
 
 const (
-	// 这里设置解析时间类型https://github.com/go-sql-driver/mysql#timetime-support
-	// DSN (Data Type NickName): username:password@protocol(address)/dbname?param=value
-	dsnTemplate = "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local"
+	// DSN (Data Type NickName): username:password@address/dbname?param=value
+	dsnTemplate = "postgres://%s:%s@%s:%d/%s?TimeZone=Asia/Shanghai"
 )
 
-func newClient(c *mysqlConfig) (types.DbClient, error) {
+func newClient(c *psqlConfig) (types.DbClient, error) {
 	// 构造连接参数
-	dsn := fmt.Sprintf(dsnTemplate, c.User, c.Password, c.Host, c.Port, c.Database)
-	db, err := sql.Open("mysql", dsn)
+	dsn := fmt.Sprintf(dsnTemplate, c.User, url.QueryEscape(c.Password), c.Host, c.Port, c.Database)
+
+	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, err
 	}
@@ -34,22 +35,21 @@ func newClient(c *mysqlConfig) (types.DbClient, error) {
 		return nil, err
 	}
 
-	// https://www.alexedwards.net/blog/configuring-sqldb
-	// https://making.pusher.com/production-ready-connection-pooling-in-go
-	// Avoid issue:
-	// packets.go:123: closing bad idle connection: EOF
-	// connection.go:173: driver: bad connection
-	db.SetConnMaxLifetime(3 * time.Minute)
+	db.SetMaxOpenConns(c.MaxOpenConn)                     // 最大活跃连接数（对应PgBouncer的max_client_conn）
+	db.SetMaxIdleConns(int(0.2 * float32(c.MaxOpenConn))) // 最大空闲连接数（建议值=0.2*MaxOpenConns)
+	if !c.UsePgBouncer {
+		db.SetConnMaxLifetime(time.Duration(c.ConnMaxLifetime) * time.Second) // 应小于PostgreSQL的idle_in_transaction_session_timeout, 默认为60m
+	}
 
-	return &mysqlClient{DB: db}, nil
+	return &psqlClient{DB: db}, nil
 }
 
-func (m *mysqlClient) Close() error {
+func (m *psqlClient) Close() error {
 	return m.DB.Close()
 }
 
 // RunInTransaction 在事务中执行函数，支持嵌套事务（通过 SAVEPOINT 实现）
-func (m *mysqlClient) RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
+func (m *psqlClient) RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
 	// 检查是否已在事务中
 	if tx, ok := ctx.Value(types.TxCtxKey{}).(*sql.Tx); ok {
 		// 已在事务中，创建 SAVEPOINT 实现嵌套事务

@@ -1,37 +1,50 @@
-package sqlboiler
+package sqlc
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/hdget/sdk/common/types"
+	_ "modernc.org/sqlite"
 )
 
-type mysqlClient struct {
+type sqlite3Client struct {
 	*sql.DB
 }
 
 const (
-	// 这里设置解析时间类型https://github.com/go-sql-driver/mysql#timetime-support
-	// DSN (Data Type NickName): username:password@protocol(address)/dbname?param=value
-	dsnTemplate = "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local"
+	dsnTemplate = "file:%s?_loc=Local"
 )
 
-func newClient(c *mysqlConfig) (types.DbClient, error) {
+func newClient(c *sqliteProviderConfig, args ...string) (types.DbClient, error) {
+	var absDbFile string
+	if len(args) > 0 {
+		absDbFile = args[0]
+	} else {
+		if !filepath.IsAbs(c.DbPath) {
+			workDir, _ := os.Getwd()
+			absDbFile = filepath.Join(workDir, c.DbPath)
+		} else {
+			absDbFile = c.DbPath
+		}
+	}
+
 	// 构造连接参数
-	dsn := fmt.Sprintf(dsnTemplate, c.User, c.Password, c.Host, c.Port, c.Database)
-	db, err := sql.Open("mysql", dsn)
+	dsn := fmt.Sprintf(dsnTemplate, absDbFile)
+	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, err
 	}
 
-	err = db.Ping()
+	var userVersion int
+	err = db.QueryRow("PRAGMA user_version").Scan(&userVersion)
 	if err != nil {
 		_ = db.Close()
-		return nil, err
+		return nil, fmt.Errorf("fail connect db: %s", absDbFile)
 	}
 
 	// https://www.alexedwards.net/blog/configuring-sqldb
@@ -41,15 +54,15 @@ func newClient(c *mysqlConfig) (types.DbClient, error) {
 	// connection.go:173: driver: bad connection
 	db.SetConnMaxLifetime(3 * time.Minute)
 
-	return &mysqlClient{DB: db}, nil
+	return &sqlite3Client{DB: db}, nil
 }
 
-func (m *mysqlClient) Close() error {
+func (m *sqlite3Client) Close() error {
 	return m.DB.Close()
 }
 
 // RunInTransaction 在事务中执行函数，支持嵌套事务（通过 SAVEPOINT 实现）
-func (m *mysqlClient) RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
+func (m *sqlite3Client) RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
 	// 检查是否已在事务中
 	if tx, ok := ctx.Value(types.TxCtxKey{}).(*sql.Tx); ok {
 		// 已在事务中，创建 SAVEPOINT 实现嵌套事务
