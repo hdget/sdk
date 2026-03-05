@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/aarondl/sqlboiler/v4 v4.19.5
-	github.com/hdget/sdk/common v0.0.5
+	github.com/hdget/sdk/common v0.0.7
 	github.com/pkg/errors v0.9.1
 	go.uber.org/fx v1.24.0
 	modernc.org/sqlite v1.36.1
@@ -23,7 +23,6 @@ require (
 	go.uber.org/zap v1.27.1 // indirect
 	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93 // indirect
 	golang.org/x/sys v0.39.0 // indirect
-	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251213004720-97cd9d5aeac2 // indirect
 	google.golang.org/grpc v1.77.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
