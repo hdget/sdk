@@ -1,4 +1,4 @@
-package sqlboiler
+package sqlc
 
 import (
 	"context"

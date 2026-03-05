@@ -2,6 +2,8 @@ module github.com/hdget/sdk/providers/config/koanf
 
 go 1.24.0
 
+exclude github.com/knadh/koanf v1.4.1
+
 require (
 	github.com/hdget/sdk/common v0.0.5
 	github.com/knadh/koanf/parsers/toml/v2 v2.2.0
