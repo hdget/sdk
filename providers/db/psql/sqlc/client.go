@@ -66,7 +66,7 @@ func (m *psqlClient) RunInTransaction(ctx context.Context, fn func(ctx context.C
 	}
 
 	// 开始新事务
-	tx, err := m.DB.BeginTx(ctx, nil)
+	tx, err := m.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
