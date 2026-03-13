@@ -14,7 +14,6 @@ const (
 	ProviderCategoryRedis
 	ProviderCategoryMq
 	ProviderCategoryOss
-	ProviderCategoryLogistics // ProviderCategory 物流服务类别
 )
 
 // Capability 能力提供者
