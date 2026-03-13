@@ -6,7 +6,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/dapr/go-sdk v1.13.0
 	github.com/elliotchance/pie/v2 v2.9.1
-	github.com/hdget/sdk/common v0.0.5
+	github.com/hdget/sdk/common v0.0.8
 	github.com/hdget/utils v0.2.3
 	github.com/hdget/utils/panic v0.0.1
 	github.com/hdget/utils/reflect v0.0.1
