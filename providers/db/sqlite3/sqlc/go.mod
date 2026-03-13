@@ -2,10 +2,8 @@ module github.com/hdget/sdk/providers/db/sqlite3/sqlc
 
 go 1.24.0
 
-replace github.com/hdget/sdk/common => ../../../../common
-
 require (
-	github.com/hdget/sdk/common v0.0.7
+	github.com/hdget/sdk/common v0.0.8
 	github.com/pkg/errors v0.9.1
 	go.uber.org/fx v1.24.0
 	modernc.org/sqlite v1.36.1

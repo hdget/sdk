@@ -2,12 +2,10 @@ module github.com/hdget/sdk/providers/db/mysql/sqlboiler
 
 go 1.24.0
 
-replace github.com/hdget/sdk/common => ../../../../common
-
 require (
 	github.com/aarondl/sqlboiler/v4 v4.19.5
 	github.com/go-sql-driver/mysql v1.9.0
-	github.com/hdget/sdk/common v0.0.7
+	github.com/hdget/sdk/common v0.0.8
 	github.com/pkg/errors v0.9.1
 	go.uber.org/fx v1.24.0
 )
