@@ -1,4 +1,4 @@
-package logistics_kdniao
+package kdniao
 
 import (
 	"crypto/md5"
@@ -7,9 +7,9 @@ import (
 	"net/url"
 )
 
-// Sign 生成快递鸟签名
+// sign 生成快递鸟签名
 // 签名算法: DataSign = URLEncode(Base64(MD5(RequestData + ApiKey)))
-func Sign(requestData, appKey string) string {
+func sign(requestData, appKey string) string {
 	// 1. MD5加密
 	h := md5.New()
 	h.Write([]byte(requestData + appKey))
@@ -24,8 +24,8 @@ func Sign(requestData, appKey string) string {
 	return encodedStr
 }
 
-// VerifySign 验证签名
-func VerifySign(requestData, appKey, dataSign string) bool {
-	expectedSign := Sign(requestData, appKey)
+// verifySign 验证签名
+func verifySign(requestData, appKey, dataSign string) bool {
+	expectedSign := sign(requestData, appKey)
 	return expectedSign == dataSign
 }

@@ -61,6 +61,10 @@ func (m *sqlite3Client) Close() error {
 	return m.DB.Close()
 }
 
+func (m *sqlite3Client) SqlDB() *sql.DB {
+	return m.DB
+}
+
 // RunInTransaction 在事务中执行函数，支持嵌套事务（通过 SAVEPOINT 实现）
 func (m *sqlite3Client) RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
 	// 检查是否已在事务中

@@ -48,6 +48,10 @@ func (m *mysqlClient) Close() error {
 	return m.DB.Close()
 }
 
+func (m *mysqlClient) SqlDB() *sql.DB {
+	return m.DB
+}
+
 // RunInTransaction 在事务中执行函数，支持嵌套事务（通过 SAVEPOINT 实现）
 func (m *mysqlClient) RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
 	// 检查是否已在事务中
