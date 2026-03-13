@@ -2,6 +2,8 @@ module github.com/hdget/sdk/providers/db/psql/sqlc
 
 go 1.24.0
 
+replace github.com/hdget/sdk/common => ../../../../common
+
 require (
 	github.com/hdget/sdk/common v0.0.7
 	github.com/jackc/pgx/v5 v5.8.0

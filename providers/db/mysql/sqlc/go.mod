@@ -2,6 +2,8 @@ module github.com/hdget/sdk/providers/db/mysql/sqlc
 
 go 1.24.0
 
+replace github.com/hdget/sdk/common => ../../../../common
+
 require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/hdget/sdk/common v0.0.7

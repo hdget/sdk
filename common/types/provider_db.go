@@ -44,4 +44,6 @@ type DbClient interface {
 	// RunInTransaction 在事务中执行函数，支持嵌套事务（通过 SAVEPOINT 实现）
 	// fn 的参数 ctx 包含事务信息，用于嵌套事务检测
 	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
+	// SqlDB returns the underlying *sql.DB for direct access
+	SqlDB() *sql.DB
 }
