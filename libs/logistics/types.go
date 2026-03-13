@@ -4,7 +4,7 @@ package logistics
 type QueryRequest struct {
 	ShipperCode string // 快递公司编码
 	TrackingNo  string // 快递单号
-	Phone       string // 电话（顺丰等必填）
+	ExtraInfo   string // 额外信息（顺丰/中通:手机号, 京东:商家编码, 其他按需传递）
 }
 
 // QueryResult 即时查询结果
@@ -37,7 +37,7 @@ type CourierInfo struct {
 type SubscribeRequest struct {
 	ShipperCode string   // 快递公司编码
 	TrackingNo  string   // 快递单号
-	Phone       string   // 电话
+	ExtraInfo   string   // 额外信息（顺丰/中通:手机号, 京东:商家编码, 其他按需传递）
 	CallbackURL string   // 回调地址
 	Tid         string   // 租户ID（用于回调时识别租户）
 	Sender      *Contact // 发件人信息

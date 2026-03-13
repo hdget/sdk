@@ -18,4 +18,7 @@ type LogisticsApi interface {
 
 	// BuildCallbackResponse 构建回调响应
 	BuildCallbackResponse(success bool, message string) []byte
+
+	// GetShipperCode 根据快递公司名称获取编码
+	GetShipperCode(name string) string
 }

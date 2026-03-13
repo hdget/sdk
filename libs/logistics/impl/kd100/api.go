@@ -73,7 +73,7 @@ func (a *api) Query(ctx context.Context, req *logistics.QueryRequest) (*logistic
 	param := kd100QueryParam{
 		Com:      req.ShipperCode,
 		Num:      req.TrackingNo,
-		Phone:    req.Phone,
+		Phone:    req.ExtraInfo,
 		Resultv2: "4", // 开启行政区域解析
 	}
 
@@ -136,7 +136,8 @@ func (a *api) Subscribe(ctx context.Context, req *logistics.SubscribeRequest) (*
 		Key:     a.appSecret,
 		Parameters: kd100SubscribeParameters{
 			Callbackurl: req.CallbackURL,
-			TID:         req.Tid, // 租户ID会原样返回
+			Tid:         req.Tid, // 租户ID会原样返回
+			Phone:       req.ExtraInfo,
 		},
 	}
 
@@ -218,12 +219,12 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 	}
 
 	// 从Parameters中解析租户ID
-	tenantID := cb.Parameters.TID
+	tenantId := cb.Parameters.Tid
 
 	return &logistics.CallbackData{
 		ShipperCode: cb.Company,
 		TrackingNo:  cb.Number,
-		Tid:         tenantID,
+		Tid:         tenantId,
 		State:       convertStatus(cb.State),
 		Traces:      convertTraces(cb.Data),
 		Success:     cb.State == "3", // 签收状态
