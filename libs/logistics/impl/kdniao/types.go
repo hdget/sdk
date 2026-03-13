@@ -35,11 +35,12 @@ type trace struct {
 
 // subscribeRequest 轨迹订阅请求
 type subscribeRequest struct {
-	ShipperCode  string         `json:"ShipperCode"`        // 快递公司编码
-	LogisticCode string         `json:"LogisticCode"`       // 快递单号
-	Callback     string         `json:"Callback,omitempty"` // 用户自定义回调字段（限50字符，用于传递租户ID）
-	Sender       *kdniaoContact `json:"Sender,omitempty"`   // 发件人
-	Receiver     *kdniaoContact `json:"Receiver,omitempty"` // 收件人
+	ShipperCode  string         `json:"ShipperCode"`            // 快递公司编码
+	LogisticCode string         `json:"LogisticCode"`           // 快递单号
+	CustomerName string         `json:"CustomerName,omitempty"` // 客户名称(SF:手机号后四位, JD:商家编码)
+	Callback     string         `json:"Callback,omitempty"`     // 用户自定义回调字段（限50字符，用于传递租户ID）
+	Sender       *kdniaoContact `json:"Sender,omitempty"`       // 发件人
+	Receiver     *kdniaoContact `json:"Receiver,omitempty"`     // 收件人
 }
 
 // subscribeResponse 订阅响应

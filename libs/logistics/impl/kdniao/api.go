@@ -109,7 +109,7 @@ func (a *api) Query(ctx context.Context, req *logistics.QueryRequest) (*logistic
 	kdniaoReq := &instantQueryRequest{
 		ShipperCode:  req.ShipperCode,
 		LogisticCode: req.TrackingNo,
-		CustomerName: req.Phone,
+		CustomerName: req.ExtraInfo,
 	}
 
 	var resp instantQueryResponse
@@ -144,6 +144,7 @@ func (a *api) Subscribe(ctx context.Context, req *logistics.SubscribeRequest) (*
 	kdniaoReq := &subscribeRequest{
 		ShipperCode:  req.ShipperCode,
 		LogisticCode: req.TrackingNo,
+		CustomerName: req.ExtraInfo,
 		Callback:     req.Tid, // 使用 Callback 字段传递租户ID（限50字符）
 		Sender:       convertContact(req.Sender),
 		Receiver:     convertContact(req.Receiver),
