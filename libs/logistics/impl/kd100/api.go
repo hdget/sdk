@@ -23,11 +23,11 @@ const (
 )
 
 // 供应商名称
-const ProviderName = "kd100"
+const VendorName = "kd100"
 
 // init 注册快递100供应商
 func init() {
-	logistics.RegisterFactory(ProviderName, New)
+	logistics.RegisterFactory(VendorName, New)
 }
 
 // api 快递100 API实现

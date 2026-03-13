@@ -30,11 +30,11 @@ const (
 const DataType = "2"
 
 // 供应商名称
-const ProviderName = "kdniao"
+const VendorName = "kdniao"
 
 // init 注册快递鸟供应商
 func init() {
-	logistics.RegisterFactory(ProviderName, New)
+	logistics.RegisterFactory(VendorName, New)
 }
 
 // api 快递鸟API实现
