@@ -58,8 +58,16 @@ func (p *koanfConfigProvider) Load() error {
 		return errors.Wrap(err, "load minimal config")
 	}
 
-	if err := loader.NewFileConfigLoader(p.reader, p.app, p.env, p.configFile).Load(); err != nil {
-		return errors.Wrap(err, "load config from file")
+	// 如果指定了configContent则不从文件读取配置信息
+	if p.configContent != nil {
+		if err := loader.NewContentConfigLoader(p.reader, p.configContent).Load(); err != nil {
+			return errors.Wrap(err, "load minimal config")
+		}
+	} else {
+		if err := loader.NewFileConfigLoader(p.reader, p.app, p.env, p.configFile).Load(); err != nil {
+			return errors.Wrap(err, "load config from file")
+		}
+
 	}
 
 	if err := loader.NewCliConfigLoader(p.reader, p.configContent).Load(); err != nil {
