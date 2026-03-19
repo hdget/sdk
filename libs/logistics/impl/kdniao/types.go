@@ -70,7 +70,7 @@ type kdniaoShipper struct {
 	ShipperName string `json:"ShipperName"` // 快递公司名称
 }
 
-// pushRequest 快递鸟推送请求
+// pushRequest 快递鸟推送请求（RequestData中的实际数据）
 type pushRequest struct {
 	EBusinessID string         `json:"EBusinessID"`
 	Count       int            `json:"Count"`
@@ -78,24 +78,28 @@ type pushRequest struct {
 	Data        []pushDataItem `json:"Data"`
 }
 
-// pushDataItem 推送数据项
+// pushDataItem 推送数据项（根据文档4.2.2.5完整字段）
 type pushDataItem struct {
 	EBusinessID    string  `json:"EBusinessID"`
 	ShipperCode    string  `json:"ShipperCode"`
 	LogisticCode   string  `json:"LogisticCode"`
-	Callback       string  `json:"Callback"` // 用户自定义回调字段（订阅时传递的租户ID）
-	Success        bool    `json:"Success"`
-	Reason         string  `json:"Reason"`
-	State          int     `json:"State"`
-	Traces         []trace `json:"Traces"`
-	DeliveryMan    string  `json:"DeliveryMan"`
-	DeliveryManTel string  `json:"DeliveryManTel"`
+	Callback       string  `json:"Callback"`       // 用户自定义回调字段（订阅时传递的租户ID）
+	Success        bool    `json:"Success"`        // 是否成功
+	Reason         string  `json:"Reason"`         // 失败原因
+	State          int     `json:"State"`          // 物流状态
+	StateEx        int     `json:"StateEx"`        // 增值物流状态
+	Location       string  `json:"Location"`       // 所在城市
+	Traces         []trace `json:"Traces"`         // 物流轨迹
+	DeliveryMan    string  `json:"DeliveryMan"`    // 快递员
+	DeliveryManTel string  `json:"DeliveryManTel"` // 快递员电话
 }
 
-// pushResponse 推送响应
+// pushResponse 推送响应（根据文档4.2.2.6）
 type pushResponse struct {
-	Success bool   `json:"Success"`
-	Reason  string `json:"Reason"`
+	EBusinessID string `json:"EBusinessID"` // 用户ID
+	UpdateTime  string `json:"UpdateTime"`  // 更新时间
+	Success     bool   `json:"Success"`     // 是否成功
+	Reason      string `json:"Reason"`      // 失败原因
 }
 
 // kdniaoContact 快递鸟联系人

@@ -194,10 +194,41 @@ func (a *api) Recognize(ctx context.Context, trackingNo string) ([]logistics.Rec
 }
 
 // ParseCallback 解析回调数据
+// 快递鸟回调数据格式: RequestType=101&EBusinessID=xxx&RequestData={JSON数据}&DataSign=xxx&DataType=2
 func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
+	// 1. 解析系统级参数（表单格式）
+	values, err := url.ParseQuery(string(data))
+	if err != nil {
+		return nil, fmt.Errorf("%w: parse form data: %v", logistics.ErrParseCallbackFailed, err)
+	}
+
+	requestData := values.Get("RequestData")
+	dataSign := values.Get("DataSign")
+	// requestType: 101=普通订阅推送, 102=增值订阅推送（暂未使用）
+	_ = values.Get("RequestType")
+
+	if requestData == "" {
+		return nil, fmt.Errorf("%w: empty RequestData", logistics.ErrParseCallbackFailed)
+	}
+
+	// 2. 验证签名
+	// 注意：回调的DataSign可能经过URL编码，需要先解码再验证
+	// 根据文档2.2.1：推送接口RequestType为101/102不需要进行URL编码
+	// 但实际推送时可能已编码，所以尝试两种方式验证
+	decodedSign, decodeErr := url.QueryUnescape(dataSign)
+	if decodeErr != nil {
+		decodedSign = dataSign // 解码失败时使用原始值
+	}
+
+	// 先尝试用解码后的签名验证，再尝试用原始签名验证
+	if !verifySign(requestData, a.appSecret, decodedSign) && !verifySign(requestData, a.appSecret, dataSign) {
+		return nil, fmt.Errorf("%w: signature verification failed", logistics.ErrParseCallbackFailed)
+	}
+
+	// 3. 解析RequestData中的轨迹数据
 	var req pushRequest
-	if err := json.Unmarshal(data, &req); err != nil {
-		return nil, fmt.Errorf("%w: %v", logistics.ErrParseCallbackFailed, err)
+	if err := json.Unmarshal([]byte(requestData), &req); err != nil {
+		return nil, fmt.Errorf("%w: parse RequestData: %v", logistics.ErrParseCallbackFailed, err)
 	}
 
 	if len(req.Data) == 0 {
@@ -215,6 +246,7 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 		Traces:      convertTraces(item.Traces),
 		Success:     item.Success,
 		Reason:      item.Reason,
+		Location:    item.Location, // 新增：所在城市
 		CourierInfo: &logistics.CourierInfo{
 			Name:  item.DeliveryMan,
 			Phone: item.DeliveryManTel,
@@ -222,18 +254,20 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 	}, nil
 }
 
-// BuildCallbackResponse 构建回调响应
+// BuildCallbackResponse 构建回调响应（根据文档4.2.2.6）
 func (a *api) BuildCallbackResponse(success bool, message string) []byte {
 	resp := pushResponse{
-		Success: success,
-		Reason:  message,
+		EBusinessID: a.appId,
+		UpdateTime:  time.Now().Format("2006-01-02 15:04:05"),
+		Success:     success,
+		Reason:      message,
 	}
 	data, _ := json.Marshal(resp)
 	return data
 }
 
 // doRequestWithResponse 执行HTTP请求并解析响应
-func (a *api) doRequestWithResponse(apiURL string, requestType string, requestData interface{}, response interface{}) error {
+func (a *api) doRequestWithResponse(apiURL string, requestType string, requestData any, response any) error {
 	body, err := a.doRequest(apiURL, requestType, requestData)
 	if err != nil {
 		return err
