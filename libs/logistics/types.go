@@ -73,6 +73,7 @@ type CallbackData struct {
 	Tid         string         // 租户ID（从订阅时传递的参数解析）
 	State       LogisticsState // 物流状态
 	Traces      []Trace        // 轨迹列表
+	Location    string         // 当前位置/所在城市
 	Success     bool           // 是否成功
 	Reason      string         // 失败原因
 	CourierInfo *CourierInfo   // 快递员信息
