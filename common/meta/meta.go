@@ -7,7 +7,8 @@ import (
 
 const (
 	KeyAppKey  = "hd-app-key"  // 应用ID
-	KeySource  = "hd-source"   // 请求来源, 可以表示客户端，外部域，第三方API
+	KeySource  = "hd-source"   // 请求来源, 例如：第三方API回调
+	KeyClient  = "hd-client"   // 请求客户端
 	KeyRelease = "hd-release"  // 版本号
 	KeyTid     = "hd-tid"      // tenant id
 	KeyUid     = "hd-uid"      // user id
