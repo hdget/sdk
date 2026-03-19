@@ -16,6 +16,7 @@ type Context interface {
 	Uid() int64              // 获取用户ID
 	AppKey() string          // 获取应用ID
 	Source() string          // 获取请求来源
+	Client() string          // 获取请求客户端
 	RoleIds() []int64        // 获取角色ID列表
 }
 
@@ -26,6 +27,7 @@ type contextImpl struct {
 	uid        int64   // 缓存用户ID提升效率
 	appKey     string  // 缓存应用Key提升效率
 	source     string  // 缓存请求来源
+	client     string  // 缓存请求客户端
 	roleIds    []int64 // 缓存角色列表提升效率
 }
 
@@ -112,6 +114,13 @@ func (c *contextImpl) Source() string {
 		c.source = c.metadata.GetString(meta.KeySource)
 	}
 	return c.source
+}
+
+func (c *contextImpl) Client() string {
+	if c.client == "" {
+		c.client = c.metadata.GetString(meta.KeyClient)
+	}
+	return c.client
 }
 
 func (c *contextImpl) RoleIds() []int64 {
