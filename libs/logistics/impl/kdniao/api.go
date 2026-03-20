@@ -232,7 +232,7 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 	}
 
 	// 先尝试用解码后的签名验证，再尝试用原始签名验证
-	if !verifySign(requestData, a.appSecret, decodedSign) && !verifySign(requestData, a.appSecret, form.DataSign) {
+	if !verifySign(requestData, a.appSecret, decodedSign) {
 		return nil, fmt.Errorf("%w: signature verification failed", logistics.ErrParseCallbackFailed)
 	}
 
