@@ -78,7 +78,7 @@ type CallbackData struct {
 	ShipperCode string       // 快递公司编码
 	TrackingNo  string       // 快递单号
 	MetaData    string       // 元数据,订阅时带过去，回调会带回来
-	StateInfo   StateInfo    // 状态信息（统一状态 + 原始状态码 + 描述）
+	Status      Status       // 状态信息（统一状态 + 原始状态码 + 描述）
 	Traces      []Trace      // 轨迹列表
 	Location    string       // 当前位置/所在城市
 	Success     bool         // 是否成功

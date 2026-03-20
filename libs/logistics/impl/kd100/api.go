@@ -264,7 +264,7 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 		ShipperCode: cb.LastResult.Com,
 		TrackingNo:  cb.LastResult.Nu,
 		MetaData:    metadata,
-		StateInfo:   convertStateInfo(cb.LastResult.State),
+		Status:      convertStatus(cb.LastResult.State),
 		Traces:      convertTraces(cb.LastResult.Data),
 		Location:    cb.LastResult.Location,
 		Success:     cb.LastResult.State == "3", // 签收状态

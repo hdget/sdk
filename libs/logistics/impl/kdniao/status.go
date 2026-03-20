@@ -55,13 +55,13 @@ func convertState(state string) logistics.State {
 	return logistics.StateUnknown
 }
 
-// convertStateInfo 综合使用 State 和 StateEx 转换状态
+// convertStatus 综合使用 State 和 StateEx 转换状态
 // 优先使用 StateEx，StateEx 为空时使用 State
-func convertStateInfo(state, stateEx string) logistics.StateInfo {
+func convertStatus(state, stateEx string) logistics.Status {
 	// 优先使用 StateEx
 	if stateEx != "" {
 		if v, ok := stateExInfo[stateEx]; ok {
-			return logistics.StateInfo{
+			return logistics.Status{
 				State: v.state,
 				Code:  stateEx,
 				Desc:  v.desc,
@@ -70,13 +70,13 @@ func convertStateInfo(state, stateEx string) logistics.StateInfo {
 	}
 	// 回退到 State
 	if v, ok := stateInfo[state]; ok {
-		return logistics.StateInfo{
+		return logistics.Status{
 			State: v.state,
 			Code:  state,
 			Desc:  v.desc,
 		}
 	}
-	return logistics.StateInfo{
+	return logistics.Status{
 		State: logistics.StateUnknown,
 		Code:  state,
 		Desc:  "未知",

@@ -119,17 +119,17 @@ func convertState(state string) logistics.State {
 	return logistics.StateUnknown
 }
 
-// convertStateInfo 将快递100状态转换为统一状态信息
-// 返回：StateInfo（统一状态 + 原始状态码 + 原始状态描述）
-func convertStateInfo(state string) logistics.StateInfo {
+// convertStatus 将快递100状态转换为统一状态信息
+// 返回：Status（统一状态 + 原始状态码 + 原始状态描述）
+func convertStatus(state string) logistics.Status {
 	if v, ok := kd100StateInfo[state]; ok {
-		return logistics.StateInfo{
+		return logistics.Status{
 			State: v.state,
 			Code:  state,
 			Desc:  v.desc,
 		}
 	}
-	return logistics.StateInfo{
+	return logistics.Status{
 		State: logistics.StateUnknown,
 		Code:  state,
 		Desc:  "未知",
