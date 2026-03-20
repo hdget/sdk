@@ -59,14 +59,14 @@ type kd100RecognizeItem struct {
 
 // kd100Callback 回调数据（根据文档2.4）
 type kd100Callback struct {
-	Status     string                    `json:"status"`     // poll:监听状态
-	BillStatus string                    `json:"billstatus"` // got:获取到快递信息
-	Message    string                    `json:"message"`    // 错误信息
-	AutoCheck  string                    `json:"autoCheck"`  // 是否自动判断公司
-	ComOld     string                    `json:"comOld"`     // 原快递公司编码
-	ComNew     string                    `json:"comNew"`     // 新快递公司编码
-	LastResult *kd100LastResult          `json:"lastResult"` // 最新物流信息
-	Parameters *kd100CallbackParameters  `json:"parameters"` // 订阅时的回调参数
+	Status     string                   `json:"status"`     // poll:监听状态
+	BillStatus string                   `json:"billstatus"` // got:获取到快递信息
+	Message    string                   `json:"message"`    // 错误信息
+	AutoCheck  string                   `json:"autoCheck"`  // 是否自动判断公司
+	ComOld     string                   `json:"comOld"`     // 原快递公司编码
+	ComNew     string                   `json:"comNew"`     // 新快递公司编码
+	LastResult *kd100LastResult         `json:"lastResult"` // 最新物流信息
+	Parameters *kd100CallbackParameters `json:"parameters"` // 订阅时的回调参数
 }
 
 // kd100LastResult 最新物流信息（同即时查询返回）
@@ -84,7 +84,7 @@ type kd100LastResult struct {
 type kd100CallbackParameters struct {
 	Callbackurl string `json:"callbackurl"`        // 回调地址
 	Metadata    string `json:"metadata,omitempty"` // 元数据（原样返回）
-	Salt       string `json:"salt,omitempty"`     // 签名用随机字符串
+	Salt        string `json:"salt,omitempty"`     // 签名用随机字符串
 }
 
 // kd100CallbackResponse 回调响应
@@ -94,31 +94,45 @@ type kd100CallbackResponse struct {
 	Message    string `json:"message"`
 }
 
-// convertStatus 将快递100状态转换为统一状态
-func convertStatus(kd100State string) logistics.LogisticsState {
-	switch kd100State {
-	case "0": // 在途中
-		return logistics.StateInTransit
-	case "1": // 已揽收
-		return logistics.StateCollected
-	case "2": // 疑难
-		return logistics.StateProblem
-	case "3": // 已签收
-		return logistics.StateSigned
-	case "4": // 退签
-		return logistics.StateReturned
-	case "5": // 派件中
-		return logistics.StateDelivering
-	case "6": // 退回
-		return logistics.StateReturned
-	case "7": // 转投
-		return logistics.StateInTransit
-	case "8": // 清关
-		return logistics.StateCleared
-	case "14": // 拒签
-		return logistics.StateRejected
-	default:
-		return logistics.StateUnknown
+// kd100StateInfo 快递100状态映射表
+var kd100StateInfo = map[string]struct {
+	state logistics.State
+	desc  string
+}{
+	"0":  {logistics.StateInTransit, "在途中"},
+	"1":  {logistics.StateCollected, "已揽收"},
+	"2":  {logistics.StateProblem, "疑难"},
+	"3":  {logistics.StateSigned, "已签收"},
+	"4":  {logistics.StateReturned, "退签"},
+	"5":  {logistics.StateDelivering, "派件中"},
+	"6":  {logistics.StateReturned, "退回"},
+	"7":  {logistics.StateInTransit, "转投"},
+	"8":  {logistics.StateCleared, "清关"},
+	"14": {logistics.StateRejected, "拒签"},
+}
+
+// convertState 将快递100状态转换为统一状态
+func convertState(state string) logistics.State {
+	if v, ok := kd100StateInfo[state]; ok {
+		return v.state
+	}
+	return logistics.StateUnknown
+}
+
+// convertStateInfo 将快递100状态转换为统一状态信息
+// 返回：StateInfo（统一状态 + 原始状态码 + 原始状态描述）
+func convertStateInfo(state string) logistics.StateInfo {
+	if v, ok := kd100StateInfo[state]; ok {
+		return logistics.StateInfo{
+			State: v.state,
+			Code:  state,
+			Desc:  v.desc,
+		}
+	}
+	return logistics.StateInfo{
+		State: logistics.StateUnknown,
+		Code:  state,
+		Desc:  "未知",
 	}
 }
 

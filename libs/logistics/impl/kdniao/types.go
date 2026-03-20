@@ -80,18 +80,27 @@ type pushRequest struct {
 
 // pushDataItem 推送数据项（根据文档4.2.2.5完整字段）
 type pushDataItem struct {
-	EBusinessID    string  `json:"EBusinessID"`
-	ShipperCode    string  `json:"ShipperCode"`
-	LogisticCode   string  `json:"LogisticCode"`
-	Callback       string  `json:"Callback"`       // 用户自定义回调字段
-	Success        bool    `json:"Success"`        // 是否成功
-	Reason         string  `json:"Reason"`         // 失败原因
-	State          string  `json:"State"`          // 物流状态
-	StateEx        string  `json:"StateEx"`        // 增值物流状态
-	Location       string  `json:"Location"`       // 所在城市
-	Traces         []trace `json:"Traces"`         // 物流轨迹
-	DeliveryMan    string  `json:"DeliveryMan"`    // 快递员
-	DeliveryManTel string  `json:"DeliveryManTel"` // 快递员电话
+	EBusinessID    string       `json:"EBusinessID"`
+	ShipperCode    string       `json:"ShipperCode"`
+	LogisticCode   string       `json:"LogisticCode"`
+	Callback       string       `json:"Callback"`       // 用户自定义回调字段
+	Success        bool         `json:"Success"`        // 是否成功
+	Reason         string       `json:"Reason"`         // 失败原因
+	State          string       `json:"State"`          // 物流状态
+	StateEx        string       `json:"StateEx"`        // 增值物流状态
+	Location       string       `json:"Location"`       // 所在城市
+	Traces         []trace      `json:"Traces"`         // 物流轨迹
+	DeliveryMan    string       `json:"DeliveryMan"`    // 快递员
+	DeliveryManTel string       `json:"DeliveryManTel"` // 快递员电话
+	PickUpInfo     *pickUpInfo  `json:"PickUpInfo"`     // 取件信息
+	NextCity       string       `json:"NextCity"`       // 下一站城市
+}
+
+// pickUpInfo 取件信息（入柜/驿站时返回）
+type pickUpInfo struct {
+	PickUpCode    string `json:"PickUpCode"`    // 取件码
+	PickUpAddress string `json:"PickUpAddress"` // 取件地址
+	PickUpStation string `json:"PickUpStation"` // 取件站点名称
 }
 
 // pushResponse 推送响应（根据文档4.2.2.6）

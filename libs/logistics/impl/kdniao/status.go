@@ -2,37 +2,84 @@ package kdniao
 
 import "github.com/hdget/sdk/libs/logistics"
 
-// 快递鸟状态码
-const (
-	statusNoRecord        = "0" // 无轨迹
-	statusPickedUp        = "1" // 已揽收
-	statusInTransit       = "2" // 在途中
-	statusSigned          = "3" // 已签收
-	statusProblem         = "4" // 问题件
-	statusDelivering      = "5" // 转寄
-	statusSending         = "6" // 清关
-	statusException       = "7" // 异常
-	statusRejected        = "8" // 拒收
-	statusPartialDelivery = "9" // 部分签收
-)
+// stateExInfo 快递鸟增值状态码映射表
+var stateExInfo = map[string]struct {
+	state logistics.State
+	desc  string
+}{
+	"0": {logistics.StateUnknown, "暂无轨迹信息"},
+	// 已揽收
+	"1": {logistics.StateCollected, "已揽收"},
+	// 在途/派件相关
+	"2":   {logistics.StateInTransit, "在途中"},
+	"201": {logistics.StateDelivering, "到达派件城市"},
+	"202": {logistics.StateDelivering, "派件中"},
+	"211": {logistics.StateDelivering, "已放入快递柜或驿站"},
+	// 签收相关
+	"3":   {logistics.StateSigned, "已签收"},
+	"301": {logistics.StateSigned, "正常签收"},
+	"302": {logistics.StateSigned, "派件异常后最终签收"},
+	"304": {logistics.StateSigned, "代收签收"},
+	"311": {logistics.StateSigned, "快递柜或驿站签收"},
+	// 问题件相关
+	"4":   {logistics.StateProblem, "问题件"},
+	"401": {logistics.StateProblem, "发货无信息"},
+	"402": {logistics.StateProblem, "超时未签收"},
+	"403": {logistics.StateProblem, "超时未更新"},
+	"404": {logistics.StateRejected, "拒收(退件)"},
+	"405": {logistics.StateProblem, "派件异常"},
+	"406": {logistics.StateProblem, "退货签收"},
+	"407": {logistics.StateProblem, "退货未签收"},
+	"412": {logistics.StateProblem, "快递柜或驿站超时未取"},
+	"413": {logistics.StateProblem, "单号已拦截"},
+	"10":  {logistics.StateCollected, "待揽件"},
+}
 
-// convertStatus 将快递鸟状态转换为统一状态
-func convertStatus(kdniaoStatus string) logistics.LogisticsState {
-	switch kdniaoStatus {
-	case statusNoRecord:
-		return logistics.StateNoTrace
-	case statusPickedUp:
-		return logistics.StateCollected
-	case statusInTransit, statusDelivering, statusSending:
-		return logistics.StateInTransit
-	case statusSigned, statusPartialDelivery:
-		return logistics.StateSigned
-	case statusProblem, statusException:
-		return logistics.StateProblem
-	case statusRejected:
-		return logistics.StateRejected
-	default:
-		return logistics.StateUnknown
+// stateInfo 快递鸟基础状态映射表
+var stateInfo = map[string]struct {
+	state logistics.State
+	desc  string
+}{
+	"0": {logistics.StateNoTrace, "无轨迹"},
+	"1": {logistics.StateCollected, "已揽收"},
+	"2": {logistics.StateInTransit, "在途中"},
+	"3": {logistics.StateSigned, "已签收"},
+	"4": {logistics.StateProblem, "问题件"},
+}
+
+// convertState 将快递鸟状态转换为统一状态
+func convertState(state string) logistics.State {
+	if v, ok := stateInfo[state]; ok {
+		return v.state
+	}
+	return logistics.StateUnknown
+}
+
+// convertStateInfo 综合使用 State 和 StateEx 转换状态
+// 优先使用 StateEx，StateEx 为空时使用 State
+func convertStateInfo(state, stateEx string) logistics.StateInfo {
+	// 优先使用 StateEx
+	if stateEx != "" {
+		if v, ok := stateExInfo[stateEx]; ok {
+			return logistics.StateInfo{
+				State: v.state,
+				Code:  stateEx,
+				Desc:  v.desc,
+			}
+		}
+	}
+	// 回退到 State
+	if v, ok := stateInfo[state]; ok {
+		return logistics.StateInfo{
+			State: v.state,
+			Code:  state,
+			Desc:  v.desc,
+		}
+	}
+	return logistics.StateInfo{
+		State: logistics.StateUnknown,
+		Code:  state,
+		Desc:  "未知",
 	}
 }
 

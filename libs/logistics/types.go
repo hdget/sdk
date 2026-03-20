@@ -9,11 +9,11 @@ type QueryRequest struct {
 
 // QueryResult 即时查询结果
 type QueryResult struct {
-	State       LogisticsState // 物流状态
-	ShipperCode string         // 快递公司编码
-	TrackingNo  string         // 快递单号
-	Traces      []Trace        // 物流轨迹
-	Location    string         // 当前位置
+	State       State   // 物流状态
+	ShipperCode string  // 快递公司编码
+	TrackingNo  string  // 快递单号
+	Traces      []Trace // 物流轨迹
+	Location    string  // 当前位置
 	// 扩展信息
 	EstimatedTime string       // 预计到达时间
 	CourierInfo   *CourierInfo // 快递员信息
@@ -21,16 +21,23 @@ type QueryResult struct {
 
 // Trace 物流轨迹
 type Trace struct {
-	Time     string         // 时间
-	Content  string         // 内容
-	Location string         // 当前位置
-	Status   LogisticsState // 轨迹状态
+	Time     string // 时间
+	Content  string // 内容
+	Location string // 当前位置
+	Status   State  // 轨迹状态
 }
 
 // CourierInfo 快递员信息
 type CourierInfo struct {
 	Name  string // 快递员姓名
 	Phone string // 快递员电话
+}
+
+// PickUpInfo 取件信息（入柜/驿站时返回）
+type PickUpInfo struct {
+	Code    string // 取件码
+	Address string // 取件地址
+	Station string // 取件站点名称
 }
 
 // SubscribeRequest 订阅请求
@@ -68,15 +75,16 @@ type RecognizeResult struct {
 
 // CallbackData 回调数据
 type CallbackData struct {
-	ShipperCode string         // 快递公司编码
-	TrackingNo  string         // 快递单号
-	MetaData    string         // 元数据,订阅时带过去，回调会带回来
-	State       LogisticsState // 物流状态
-	Traces      []Trace        // 轨迹列表
-	Location    string         // 当前位置/所在城市
-	Success     bool           // 是否成功
-	Reason      string         // 失败原因
-	CourierInfo *CourierInfo   // 快递员信息
+	ShipperCode string       // 快递公司编码
+	TrackingNo  string       // 快递单号
+	MetaData    string       // 元数据,订阅时带过去，回调会带回来
+	StateInfo   StateInfo    // 状态信息（统一状态 + 原始状态码 + 描述）
+	Traces      []Trace      // 轨迹列表
+	Location    string       // 当前位置/所在城市
+	Success     bool         // 是否成功
+	Reason      string       // 失败原因
+	CourierInfo *CourierInfo // 快递员信息
+	PickUpInfo  *PickUpInfo  // 取件信息（入柜/驿站时返回）
 }
 
 // CallbackResponse 回调响应
