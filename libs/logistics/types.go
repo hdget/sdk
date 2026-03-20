@@ -39,7 +39,7 @@ type SubscribeRequest struct {
 	TrackingNo  string   // 快递单号
 	ExtraInfo   string   // 额外信息（顺丰/中通:手机号, 京东:商家编码, 其他按需传递）
 	CallbackURL string   // 回调地址
-	Tid         string   // 租户ID（用于回调时识别租户）
+	Metadata    string   // 回调元数据，回调时会原封不动带回来
 	Sender      *Contact // 发件人信息
 	Receiver    *Contact // 收件人信息
 }
@@ -70,7 +70,7 @@ type RecognizeResult struct {
 type CallbackData struct {
 	ShipperCode string         // 快递公司编码
 	TrackingNo  string         // 快递单号
-	Tid         string         // 租户ID（从订阅时传递的参数解析）
+	MetaData    string         // 元数据,订阅时带过去，回调会带回来
 	State       LogisticsState // 物流状态
 	Traces      []Trace        // 轨迹列表
 	Location    string         // 当前位置/所在城市
@@ -99,4 +99,3 @@ type Config struct {
 	AppId     string `mapstructure:"app_id"`     // 应用ID
 	AppSecret string `mapstructure:"app_secret"` // 应用密钥
 }
-

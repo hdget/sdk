@@ -40,9 +40,9 @@ type kd100SubscribeParam struct {
 
 // kd100SubscribeParameters 订阅参数扩展
 type kd100SubscribeParameters struct {
-	Callbackurl string `json:"callbackurl"`     // 回调地址
-	Tid         string `json:"tid,omitempty"`   // 租户ID（回调时原样返回）
-	Phone       string `json:"phone,omitempty"` // 收寄件人电话（顺丰、中通必填）
+	Callbackurl string `json:"callbackurl"`        // 回调地址
+	Metadata    string `json:"metadata,omitempty"` // 元数据（回调时原样返回）
+	Phone       string `json:"phone,omitempty"`    // 收寄件人电话（顺丰、中通必填）
 }
 
 // kd100SubscribeResponse 订阅响应
@@ -59,19 +59,14 @@ type kd100RecognizeItem struct {
 
 // kd100Callback 回调数据
 type kd100Callback struct {
-	Company      string                  `json:"company"`      // 快递公司
-	Number       string                  `json:"number"`       // 快递单号
-	State        string                  `json:"state"`        // 状态
-	Status       string                  `json:"status"`       // 当前状态
-	Data         []kd100TraceData        `json:"data"`         // 轨迹数据
-	CourierName  string                  `json:"courierName"`  // 快递员姓名
-	CourierPhone string                  `json:"courierPhone"` // 快递员电话
-	Parameters   kd100CallbackParameters `json:"parameters"`   // 订阅时传递的参数（原样返回）
-}
-
-// kd100CallbackParameters 回调参数（订阅时传递，回调时原样返回）
-type kd100CallbackParameters struct {
-	Tid string `json:"tid"` // 租户ID
+	Company      string           `json:"company"`      // 快递公司
+	Number       string           `json:"number"`       // 快递单号
+	State        string           `json:"state"`        // 状态
+	Status       string           `json:"status"`       // 当前状态
+	Data         []kd100TraceData `json:"data"`         // 轨迹数据
+	CourierName  string           `json:"courierName"`  // 快递员姓名
+	CourierPhone string           `json:"courierPhone"` // 快递员电话
+	Parameters   string           `json:"parameters"`   // 订阅时传递的参数（原样返回）
 }
 
 // kd100CallbackResponse 回调响应

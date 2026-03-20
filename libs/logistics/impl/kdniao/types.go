@@ -38,7 +38,7 @@ type subscribeRequest struct {
 	ShipperCode  string         `json:"ShipperCode"`            // 快递公司编码
 	LogisticCode string         `json:"LogisticCode"`           // 快递单号
 	CustomerName string         `json:"CustomerName,omitempty"` // 客户名称(SF:手机号后四位, JD:商家编码)
-	Callback     string         `json:"Callback,omitempty"`     // 用户自定义回调字段（限50字符，用于传递租户ID）
+	Callback     string         `json:"Callback,omitempty"`     // 用户自定义回调字段（限50字符）
 	Sender       *kdniaoContact `json:"Sender,omitempty"`       // 发件人
 	Receiver     *kdniaoContact `json:"Receiver,omitempty"`     // 收件人
 }
@@ -83,7 +83,7 @@ type pushDataItem struct {
 	EBusinessID    string  `json:"EBusinessID"`
 	ShipperCode    string  `json:"ShipperCode"`
 	LogisticCode   string  `json:"LogisticCode"`
-	Callback       string  `json:"Callback"`       // 用户自定义回调字段（订阅时传递的租户ID）
+	Callback       string  `json:"Callback"`       // 用户自定义回调字段
 	Success        bool    `json:"Success"`        // 是否成功
 	Reason         string  `json:"Reason"`         // 失败原因
 	State          string  `json:"State"`          // 物流状态

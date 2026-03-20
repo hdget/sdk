@@ -150,7 +150,7 @@ func (a *api) Subscribe(ctx context.Context, req *logistics.SubscribeRequest) (*
 		ShipperCode:  req.ShipperCode,
 		LogisticCode: req.TrackingNo,
 		CustomerName: req.ExtraInfo,
-		Callback:     req.Tid, // 使用 Callback 字段传递租户ID（限50字符）
+		Callback:     req.Metadata, // 使用 Callback 字段传递元数据
 		Sender:       convertContact(req.Sender),
 		Receiver:     convertContact(req.Receiver),
 	}
@@ -252,7 +252,7 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 	return &logistics.CallbackData{
 		ShipperCode: item.ShipperCode,
 		TrackingNo:  item.LogisticCode,
-		Tid:         item.Callback, // 从 Callback 获取租户ID
+		MetaData:    item.Callback, // 快递鸟Callback就是自定义数据，订阅时候传入的时候可以回调带回来
 		State:       convertStatus(item.State),
 		Traces:      convertTraces(item.Traces),
 		Success:     item.Success,

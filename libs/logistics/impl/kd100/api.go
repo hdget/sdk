@@ -129,14 +129,14 @@ func (a *api) Subscribe(ctx context.Context, req *logistics.SubscribeRequest) (*
 		return nil, fmt.Errorf("callback url is required")
 	}
 
-	// 构建订阅参数（包含租户ID）
+	// 构建订阅参数
 	param := kd100SubscribeParam{
 		Company: req.ShipperCode,
 		Number:  req.TrackingNo,
 		Key:     a.appSecret,
 		Parameters: kd100SubscribeParameters{
 			Callbackurl: req.CallbackURL,
-			Tid:         req.Tid, // 租户ID会原样返回
+			Metadata:    req.Metadata, // 元数据会原样返回
 			Phone:       req.ExtraInfo,
 		},
 	}
@@ -218,13 +218,10 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 		return nil, fmt.Errorf("%w: %v", logistics.ErrParseCallbackFailed, err)
 	}
 
-	// 从Parameters中解析租户ID
-	tenantId := cb.Parameters.Tid
-
 	return &logistics.CallbackData{
 		ShipperCode: cb.Company,
 		TrackingNo:  cb.Number,
-		Tid:         tenantId,
+		MetaData:    cb.Parameters,
 		State:       convertStatus(cb.State),
 		Traces:      convertTraces(cb.Data),
 		Success:     cb.State == "3", // 签收状态
