@@ -4,11 +4,10 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/hex"
-	"net/url"
 )
 
 // sign 生成快递鸟签名
-// 签名算法: DataSign = URLEncode(Base64(MD5(RequestData + ApiKey)))
+// 签名算法: DataSign = Base64(MD5(RequestData + ApiKey))
 func sign(requestData, appKey string) string {
 	// 1. MD5加密
 	h := md5.New()
@@ -18,10 +17,7 @@ func sign(requestData, appKey string) string {
 	// 2. Base64编码
 	base64Str := base64.StdEncoding.EncodeToString([]byte(md5Str))
 
-	// 3. URL编码
-	encodedStr := url.QueryEscape(base64Str)
-
-	return encodedStr
+	return base64Str
 }
 
 // verifySign 验证签名
