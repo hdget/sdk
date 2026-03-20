@@ -126,3 +126,12 @@ func convertContact(c *logistics.Contact) *kdniaoContact {
 		Address:      c.Address,
 	}
 }
+
+// callbackForm 快递鸟回调表单数据（外层参数）
+type callbackForm struct {
+	RequestType string `schema:"RequestType"` // 101=普通订阅推送, 102=增值订阅推送
+	EBusinessID string `schema:"EBusinessID"`
+	RequestData string `schema:"RequestData"` // JSON 格式的轨迹数据
+	DataSign    string `schema:"DataSign"`    // 签名
+	DataType    string `schema:"DataType"`    // 数据类型，2=JSON
+}

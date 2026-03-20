@@ -1,0 +1,6 @@
+github.com/gorilla/schema v1.4.1 h1:jUg5hUjCSDZpNGLuXQOgIWGdlgrIdYvgQ0wZtdK1M3E=
+github.com/gorilla/schema v1.4.1/go.mod h1:Dg5SSm5PV60mhF2NFaTV1xuYYj8tV8NOPRo4FggUMnM=
+github.com/hdget/utils v0.2.3 h1:gRToiQ78KG0znuYS8iwSpSeMqqt4Kb+00Q9lwE6aI78=
+github.com/hdget/utils v0.2.3/go.mod h1:rMhGWc6ReCUt/U3WNEwej93fRpRJHtaahQ+bJblcSJQ=
+github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
+github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
