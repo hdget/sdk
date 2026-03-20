@@ -9,7 +9,9 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/gorilla/schema"
 	"github.com/hdget/sdk/libs/logistics"
+	"github.com/hdget/utils"
 )
 
 // API endpoints
@@ -31,6 +33,9 @@ const DataType = "2"
 
 // 供应商名称
 const VendorName = "kdniao"
+
+// schemaDecoder 表单解码器（线程安全）
+var schemaDecoder = schema.NewDecoder()
 
 // init 注册快递鸟供应商
 func init() {
@@ -196,32 +201,38 @@ func (a *api) Recognize(ctx context.Context, trackingNo string) ([]logistics.Rec
 // ParseCallback 解析回调数据
 // 快递鸟回调数据格式: RequestType=101&EBusinessID=xxx&RequestData={JSON数据}&DataSign=xxx&DataType=2
 func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
-	// 1. 解析系统级参数（表单格式）
-	values, err := url.ParseQuery(string(data))
+	// 1. 解析 form-encoded 数据到结构体
+	values, err := url.ParseQuery(utils.BytesToString(data))
 	if err != nil {
 		return nil, fmt.Errorf("%w: parse form data: %v", logistics.ErrParseCallbackFailed, err)
 	}
 
-	requestData := values.Get("RequestData")
-	dataSign := values.Get("DataSign")
-	// requestType: 101=普通订阅推送, 102=增值订阅推送（暂未使用）
-	_ = values.Get("RequestType")
+	var form callbackForm
+	if err := schemaDecoder.Decode(&form, values); err != nil {
+		return nil, fmt.Errorf("%w: decode callback form: %v", logistics.ErrParseCallbackFailed, err)
+	}
 
-	if requestData == "" {
+	if form.RequestData == "" {
 		return nil, fmt.Errorf("%w: empty RequestData", logistics.ErrParseCallbackFailed)
+	}
+
+	// RequestData 可能被 URL 编码，需要先解码
+	requestData, err := url.QueryUnescape(form.RequestData)
+	if err != nil {
+		requestData = form.RequestData // 解码失败时使用原始值
 	}
 
 	// 2. 验证签名
 	// 注意：回调的DataSign可能经过URL编码，需要先解码再验证
 	// 根据文档2.2.1：推送接口RequestType为101/102不需要进行URL编码
 	// 但实际推送时可能已编码，所以尝试两种方式验证
-	decodedSign, decodeErr := url.QueryUnescape(dataSign)
-	if decodeErr != nil {
-		decodedSign = dataSign // 解码失败时使用原始值
+	decodedSign, err := url.QueryUnescape(form.DataSign)
+	if err != nil {
+		decodedSign = form.DataSign // 解码失败时使用原始值
 	}
 
 	// 先尝试用解码后的签名验证，再尝试用原始签名验证
-	if !verifySign(requestData, a.appSecret, decodedSign) && !verifySign(requestData, a.appSecret, dataSign) {
+	if !verifySign(requestData, a.appSecret, decodedSign) && !verifySign(requestData, a.appSecret, form.DataSign) {
 		return nil, fmt.Errorf("%w: signature verification failed", logistics.ErrParseCallbackFailed)
 	}
 
