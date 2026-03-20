@@ -4,20 +4,20 @@ import "github.com/hdget/sdk/libs/logistics"
 
 // 快递鸟状态码
 const (
-	statusNoRecord        = 0 // 无轨迹
-	statusPickedUp        = 1 // 已揽收
-	statusInTransit       = 2 // 在途中
-	statusSigned          = 3 // 已签收
-	statusProblem         = 4 // 问题件
-	statusDelivering      = 5 // 转寄
-	statusSending         = 6 // 清关
-	statusException       = 7 // 异常
-	statusRejected        = 8 // 拒收
-	statusPartialDelivery = 9 // 部分签收
+	statusNoRecord        = "0" // 无轨迹
+	statusPickedUp        = "1" // 已揽收
+	statusInTransit       = "2" // 在途中
+	statusSigned          = "3" // 已签收
+	statusProblem         = "4" // 问题件
+	statusDelivering      = "5" // 转寄
+	statusSending         = "6" // 清关
+	statusException       = "7" // 异常
+	statusRejected        = "8" // 拒收
+	statusPartialDelivery = "9" // 部分签收
 )
 
 // convertStatus 将快递鸟状态转换为统一状态
-func convertStatus(kdniaoStatus int) logistics.LogisticsState {
+func convertStatus(kdniaoStatus string) logistics.LogisticsState {
 	switch kdniaoStatus {
 	case statusNoRecord:
 		return logistics.StateNoTrace

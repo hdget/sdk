@@ -11,17 +11,17 @@ type instantQueryRequest struct {
 
 // instantQueryResponse 即时查询响应
 type instantQueryResponse struct {
-	Success        bool          `json:"Success"`
-	EBusinessID    string        `json:"EBusinessID"`
-	ShipperCode    string        `json:"ShipperCode"`
-	LogisticCode   string        `json:"LogisticCode"`
-	State          int           `json:"State"`          // 物流状态
-	StateEx        int           `json:"StateEx"`        // 增值物流状态
-	Location       string        `json:"Location"`       // 所在城市
-	Reason         string        `json:"Reason"`         // 失败原因
+	Success        bool    `json:"Success"`
+	EBusinessID    string  `json:"EBusinessID"`
+	ShipperCode    string  `json:"ShipperCode"`
+	LogisticCode   string  `json:"LogisticCode"`
+	State          string  `json:"State"`          // 物流状态
+	StateEx        string  `json:"StateEx"`        // 增值物流状态
+	Location       string  `json:"Location"`       // 所在城市
+	Reason         string  `json:"Reason"`         // 失败原因
 	Traces         []trace `json:"Traces"`         // 物流轨迹
-	DeliveryMan    string        `json:"DeliveryMan"`    // 快递员
-	DeliveryManTel string        `json:"DeliveryManTel"` // 快递员电话
+	DeliveryMan    string  `json:"DeliveryMan"`    // 快递员
+	DeliveryManTel string  `json:"DeliveryManTel"` // 快递员电话
 }
 
 // trace 快递鸟轨迹
@@ -73,7 +73,7 @@ type kdniaoShipper struct {
 // pushRequest 快递鸟推送请求（RequestData中的实际数据）
 type pushRequest struct {
 	EBusinessID string         `json:"EBusinessID"`
-	Count       int            `json:"Count"`
+	Count       string         `json:"Count"`
 	PushTime    string         `json:"PushTime"`
 	Data        []pushDataItem `json:"Data"`
 }
@@ -86,8 +86,8 @@ type pushDataItem struct {
 	Callback       string  `json:"Callback"`       // 用户自定义回调字段（订阅时传递的租户ID）
 	Success        bool    `json:"Success"`        // 是否成功
 	Reason         string  `json:"Reason"`         // 失败原因
-	State          int     `json:"State"`          // 物流状态
-	StateEx        int     `json:"StateEx"`        // 增值物流状态
+	State          string  `json:"State"`          // 物流状态
+	StateEx        string  `json:"StateEx"`        // 增值物流状态
 	Location       string  `json:"Location"`       // 所在城市
 	Traces         []trace `json:"Traces"`         // 物流轨迹
 	DeliveryMan    string  `json:"DeliveryMan"`    // 快递员
