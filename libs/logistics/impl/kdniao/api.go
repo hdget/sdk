@@ -218,8 +218,10 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 		return nil, fmt.Errorf("%w: parse form data: %v", logistics.ErrParseCallbackFailed, err)
 	}
 
+	// 设置忽略未知字段, 如果不加这一行，Decode 会返回错误："schema: invalid path
+	schemaDecoder.IgnoreUnknownKeys(true)
 	var form callbackForm
-	if err := schemaDecoder.Decode(&form, values); err != nil {
+	if err = schemaDecoder.Decode(&form, values); err != nil {
 		return nil, fmt.Errorf("%w: decode callback form: %v", logistics.ErrParseCallbackFailed, err)
 	}
 
@@ -280,7 +282,7 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 func (a *api) BuildCallbackResponse(success bool, message string) []byte {
 	resp := pushResponse{
 		EBusinessID: a.appId,
-		UpdateTime:  time.Now().Format(TimeFormat),
+		UpdateTime:  time.Now().Format(time.DateTime),
 		Success:     success,
 		Reason:      message,
 	}
