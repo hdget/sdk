@@ -127,7 +127,7 @@ func (a *api) Query(ctx context.Context, req *logistics.QueryRequest) (*logistic
 	}
 
 	return &logistics.QueryResult{
-		State:       convertStatus(kd100Resp.State),
+		State:       convertState(kd100Resp.State),
 		ShipperCode: kd100Resp.Com,
 		TrackingNo:  kd100Resp.Nu,
 		Traces:      convertTraces(kd100Resp.Data),
@@ -264,7 +264,7 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 		ShipperCode: cb.LastResult.Com,
 		TrackingNo:  cb.LastResult.Nu,
 		MetaData:    metadata,
-		State:       convertStatus(cb.LastResult.State),
+		StateInfo:   convertStateInfo(cb.LastResult.State),
 		Traces:      convertTraces(cb.LastResult.Data),
 		Location:    cb.LastResult.Location,
 		Success:     cb.LastResult.State == "3", // 签收状态

@@ -24,16 +24,15 @@ const (
 
 // Request types
 const (
-	RequestTypeInstantQuery = "1002"
-	RequestTypeSubscribe    = "8008"
-	RequestTypeRecognize    = "2002"
+	RequestTypeInstantQuery    = "1002" // 即时查询
+	RequestTypeSubscribe       = "8008" // 订阅请求
+	RequestTypeRecognize       = "2002" // 单号识别
+	RequestTypeCallbackNormal  = "101"  // 普通订阅推送回调
+	RequestTypeCallbackPremium = "102"  // 增值订阅推送回调
 )
 
 // DataType for KDNiao API (2 = JSON)
 const DataType = "2"
-
-// 时间格式常量
-const TimeFormat = "2006-01-02 15:04:05"
 
 // 供应商名称
 const VendorName = "kdniao"
@@ -139,7 +138,7 @@ func (a *api) Query(ctx context.Context, req *logistics.QueryRequest) (*logistic
 	}
 
 	return &logistics.QueryResult{
-		State:       convertStatus(resp.State),
+		State:       convertState(resp.State),
 		ShipperCode: resp.ShipperCode,
 		TrackingNo:  resp.LogisticCode,
 		Traces:      convertTraces(resp.Traces),
@@ -251,7 +250,7 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 
 	// 3. 解析RequestData中的轨迹数据
 	var req pushRequest
-	if err := json.Unmarshal([]byte(requestData), &req); err != nil {
+	if err = json.Unmarshal([]byte(requestData), &req); err != nil {
 		return nil, fmt.Errorf("%w: parse RequestData: %v", logistics.ErrParseCallbackFailed, err)
 	}
 
@@ -262,19 +261,30 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 	// 取第一条数据
 	item := req.Data[0]
 
+	// 构建取件信息
+	var pkInfo *logistics.PickUpInfo
+	if item.PickUpInfo != nil {
+		pkInfo = &logistics.PickUpInfo{
+			Code:    item.PickUpInfo.PickUpCode,
+			Address: item.PickUpInfo.PickUpAddress,
+			Station: item.PickUpInfo.PickUpStation,
+		}
+	}
+
 	return &logistics.CallbackData{
 		ShipperCode: item.ShipperCode,
 		TrackingNo:  item.LogisticCode,
 		MetaData:    item.Callback, // 快递鸟Callback就是自定义数据，订阅时候传入的时候可以回调带回来
-		State:       convertStatus(item.State),
+		StateInfo:   convertStateInfo(item.State, item.StateEx),
 		Traces:      convertTraces(item.Traces),
 		Success:     item.Success,
 		Reason:      item.Reason,
-		Location:    item.Location, // 新增：所在城市
+		Location:    item.Location,
 		CourierInfo: &logistics.CourierInfo{
 			Name:  item.DeliveryMan,
 			Phone: item.DeliveryManTel,
 		},
+		PickUpInfo: pkInfo,
 	}, nil
 }
 
