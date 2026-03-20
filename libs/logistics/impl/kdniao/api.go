@@ -231,7 +231,7 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 		decodedSign = form.DataSign // 解码失败时使用原始值
 	}
 
-	// 先尝试用解码后的签名验证，再尝试用原始签名验证
+	// 不管怎么样尝试用解码后的签名验证
 	if !verifySign(requestData, a.appSecret, decodedSign) {
 		return nil, fmt.Errorf("%w: signature verification failed", logistics.ErrParseCallbackFailed)
 	}
