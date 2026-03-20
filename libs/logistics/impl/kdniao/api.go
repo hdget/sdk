@@ -1,6 +1,7 @@
 package kdniao
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -30,6 +31,9 @@ const (
 
 // DataType for KDNiao API (2 = JSON)
 const DataType = "2"
+
+// 时间格式常量
+const TimeFormat = "2006-01-02 15:04:05"
 
 // 供应商名称
 const VendorName = "kdniao"
@@ -65,7 +69,7 @@ func New(cfg *logistics.Config) (logistics.LogisticsApi, error) {
 }
 
 // doRequest 执行HTTP请求
-func (a *api) doRequest(apiURL string, requestType string, requestData interface{}) ([]byte, error) {
+func (a *api) doRequest(ctx context.Context, apiURL string, requestType string, requestData interface{}) ([]byte, error) {
 	// 序列化请求数据
 	jsonData, err := json.Marshal(requestData)
 	if err != nil {
@@ -84,8 +88,15 @@ func (a *api) doRequest(apiURL string, requestType string, requestData interface
 	formData.Set("DataSign", dataSign)
 	formData.Set("DataType", DataType)
 
-	// 发送POST请求
-	resp, err := a.httpClient.PostForm(apiURL, formData)
+	// 使用 context 创建请求
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, apiURL, bytes.NewBufferString(formData.Encode()))
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	// 发送请求
+	resp, err := a.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("http request: %w", err)
 	}
@@ -118,7 +129,7 @@ func (a *api) Query(ctx context.Context, req *logistics.QueryRequest) (*logistic
 	}
 
 	var resp instantQueryResponse
-	err := a.doRequestWithResponse(InstantQueryURL, RequestTypeInstantQuery, kdniaoReq, &resp)
+	err := a.doRequestWithResponse(ctx, InstantQueryURL, RequestTypeInstantQuery, kdniaoReq, &resp)
 	if err != nil {
 		return nil, fmt.Errorf("instant query: %w", err)
 	}
@@ -150,13 +161,13 @@ func (a *api) Subscribe(ctx context.Context, req *logistics.SubscribeRequest) (*
 		ShipperCode:  req.ShipperCode,
 		LogisticCode: req.TrackingNo,
 		CustomerName: req.ExtraInfo,
-		Callback:     req.Tid, // 使用 Callback 字段传递租户ID（限50字符）
+		Callback:     req.Metadata, // 使用 Callback 字段传递元数据
 		Sender:       convertContact(req.Sender),
 		Receiver:     convertContact(req.Receiver),
 	}
 
 	var resp subscribeResponse
-	err := a.doRequestWithResponse(SubscribeURL, RequestTypeSubscribe, kdniaoReq, &resp)
+	err := a.doRequestWithResponse(ctx, SubscribeURL, RequestTypeSubscribe, kdniaoReq, &resp)
 	if err != nil {
 		return nil, fmt.Errorf("subscribe: %w", err)
 	}
@@ -178,7 +189,7 @@ func (a *api) Recognize(ctx context.Context, trackingNo string) ([]logistics.Rec
 	}
 
 	var resp recognizeResponse
-	err := a.doRequestWithResponse(RecognizeURL, RequestTypeRecognize, kdniaoReq, &resp)
+	err := a.doRequestWithResponse(ctx, RecognizeURL, RequestTypeRecognize, kdniaoReq, &resp)
 	if err != nil {
 		return nil, fmt.Errorf("recognize: %w", err)
 	}
@@ -252,7 +263,7 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 	return &logistics.CallbackData{
 		ShipperCode: item.ShipperCode,
 		TrackingNo:  item.LogisticCode,
-		Tid:         item.Callback, // 从 Callback 获取租户ID
+		MetaData:    item.Callback, // 快递鸟Callback就是自定义数据，订阅时候传入的时候可以回调带回来
 		State:       convertStatus(item.State),
 		Traces:      convertTraces(item.Traces),
 		Success:     item.Success,
@@ -269,7 +280,7 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 func (a *api) BuildCallbackResponse(success bool, message string) []byte {
 	resp := pushResponse{
 		EBusinessID: a.appId,
-		UpdateTime:  time.Now().Format("2006-01-02 15:04:05"),
+		UpdateTime:  time.Now().Format(TimeFormat),
 		Success:     success,
 		Reason:      message,
 	}
@@ -278,14 +289,15 @@ func (a *api) BuildCallbackResponse(success bool, message string) []byte {
 }
 
 // doRequestWithResponse 执行HTTP请求并解析响应
-func (a *api) doRequestWithResponse(apiURL string, requestType string, requestData any, response any) error {
-	body, err := a.doRequest(apiURL, requestType, requestData)
+func (a *api) doRequestWithResponse(ctx context.Context, apiURL string, requestType string, requestData any, response any) error {
+	body, err := a.doRequest(ctx, apiURL, requestType, requestData)
 	if err != nil {
 		return err
 	}
 
-	if err := json.Unmarshal(body, response); err != nil {
-		return fmt.Errorf("decode response: %w, body: %s", err, string(body))
+	if err = json.Unmarshal(body, response); err != nil {
+		// 不在错误中暴露响应体，避免敏感信息泄露
+		return fmt.Errorf("decode response: %w", err)
 	}
 
 	return nil

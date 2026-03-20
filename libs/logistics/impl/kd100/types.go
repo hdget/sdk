@@ -40,9 +40,9 @@ type kd100SubscribeParam struct {
 
 // kd100SubscribeParameters 订阅参数扩展
 type kd100SubscribeParameters struct {
-	Callbackurl string `json:"callbackurl"`     // 回调地址
-	Tid         string `json:"tid,omitempty"`   // 租户ID（回调时原样返回）
-	Phone       string `json:"phone,omitempty"` // 收寄件人电话（顺丰、中通必填）
+	Callbackurl string `json:"callbackurl"`        // 回调地址
+	Metadata    string `json:"metadata,omitempty"` // 元数据（回调时原样返回）
+	Phone       string `json:"phone,omitempty"`    // 收寄件人电话（顺丰、中通必填）
 }
 
 // kd100SubscribeResponse 订阅响应
@@ -57,27 +57,41 @@ type kd100RecognizeItem struct {
 	Name    string `json:"name"`    // 快递公司名称 (需额外请求获取)
 }
 
-// kd100Callback 回调数据
+// kd100Callback 回调数据（根据文档2.4）
 type kd100Callback struct {
-	Company      string                  `json:"company"`      // 快递公司
-	Number       string                  `json:"number"`       // 快递单号
-	State        string                  `json:"state"`        // 状态
-	Status       string                  `json:"status"`       // 当前状态
-	Data         []kd100TraceData        `json:"data"`         // 轨迹数据
-	CourierName  string                  `json:"courierName"`  // 快递员姓名
-	CourierPhone string                  `json:"courierPhone"` // 快递员电话
-	Parameters   kd100CallbackParameters `json:"parameters"`   // 订阅时传递的参数（原样返回）
+	Status     string                    `json:"status"`     // poll:监听状态
+	BillStatus string                    `json:"billstatus"` // got:获取到快递信息
+	Message    string                    `json:"message"`    // 错误信息
+	AutoCheck  string                    `json:"autoCheck"`  // 是否自动判断公司
+	ComOld     string                    `json:"comOld"`     // 原快递公司编码
+	ComNew     string                    `json:"comNew"`     // 新快递公司编码
+	LastResult *kd100LastResult          `json:"lastResult"` // 最新物流信息
+	Parameters *kd100CallbackParameters  `json:"parameters"` // 订阅时的回调参数
 }
 
-// kd100CallbackParameters 回调参数（订阅时传递，回调时原样返回）
+// kd100LastResult 最新物流信息（同即时查询返回）
+type kd100LastResult struct {
+	Message  string           `json:"message"`  // 消息
+	State    string           `json:"state"`    // 状态码
+	Status   string           `json:"status"`   // 当前状态
+	Com      string           `json:"com"`      // 快递公司编码
+	Nu       string           `json:"nu"`       // 快递单号
+	Data     []kd100TraceData `json:"data"`     // 轨迹数据
+	Location string           `json:"location"` // 当前位置
+}
+
+// kd100CallbackParameters 回调参数
 type kd100CallbackParameters struct {
-	Tid string `json:"tid"` // 租户ID
+	Callbackurl string `json:"callbackurl"`        // 回调地址
+	Metadata    string `json:"metadata,omitempty"` // 元数据（原样返回）
+	Salt       string `json:"salt,omitempty"`     // 签名用随机字符串
 }
 
 // kd100CallbackResponse 回调响应
 type kd100CallbackResponse struct {
-	Result  bool   `json:"result"`
-	Message string `json:"message"`
+	Result     bool   `json:"result"`
+	ReturnCode string `json:"returnCode"`
+	Message    string `json:"message"`
 }
 
 // convertStatus 将快递100状态转换为统一状态
