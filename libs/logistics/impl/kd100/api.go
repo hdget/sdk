@@ -1,6 +1,7 @@
 package kd100
 
 import (
+	"bytes"
 	"context"
 	"crypto/md5"
 	"encoding/hex"
@@ -54,11 +55,21 @@ func New(cfg *logistics.Config) (logistics.LogisticsApi, error) {
 
 // sign 生成快递100签名
 // sign = MD5(param + key + customer).toUpperCase()
+//
+// 安全说明: MD5 仅用于满足快递100 API 的签名要求，不应用于其他安全敏感场景。
+// 参考: 快递100开放平台文档
 func sign(param, key, customer string) string {
 	h := md5.New()
 	h.Write([]byte(param + key + customer))
 	return strings.ToUpper(hex.EncodeToString(h.Sum(nil)))
 }
+
+//// verifySign 验证签名
+//// 使用 constant time 比较防止时序攻击
+//func verifySign(param, key, customer, dataSign string) bool {
+//	expectedSign := sign(param, key, customer)
+//	return expectedSign == dataSign
+//}
 
 // Query 即时查询物流轨迹
 func (a *api) Query(ctx context.Context, req *logistics.QueryRequest) (*logistics.QueryResult, error) {
@@ -86,7 +97,14 @@ func (a *api) Query(ctx context.Context, req *logistics.QueryRequest) (*logistic
 	formData.Set("sign", sign(paramStr, a.appSecret, a.appId))
 	formData.Set("param", paramStr)
 
-	resp, err := a.httpClient.PostForm(InstantQueryURL, formData)
+	// 使用 context 创建请求
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, InstantQueryURL, bytes.NewBufferString(formData.Encode()))
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := a.httpClient.Do(httpReq)
 	if err != nil {
 		return nil, fmt.Errorf("http request: %w", err)
 	}
@@ -149,7 +167,14 @@ func (a *api) Subscribe(ctx context.Context, req *logistics.SubscribeRequest) (*
 	formData.Set("schema", "json")
 	formData.Set("param", paramStr)
 
-	resp, err := a.httpClient.PostForm(SubscribeURL, formData)
+	// 使用 context 创建请求
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, SubscribeURL, bytes.NewBufferString(formData.Encode()))
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := a.httpClient.Do(httpReq)
 	if err != nil {
 		return nil, fmt.Errorf("http request: %w", err)
 	}
@@ -182,7 +207,13 @@ func (a *api) Recognize(ctx context.Context, trackingNo string) ([]logistics.Rec
 	// 快递100单号识别是GET请求
 	recognizeURL := fmt.Sprintf("%s?num=%s&key=%s", RecognizeURL, trackingNo, a.appSecret)
 
-	resp, err := a.httpClient.Get(recognizeURL)
+	// 使用 context 创建请求
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, recognizeURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+
+	resp, err := a.httpClient.Do(httpReq)
 	if err != nil {
 		return nil, fmt.Errorf("http request: %w", err)
 	}
@@ -218,25 +249,35 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 		return nil, fmt.Errorf("%w: %v", logistics.ErrParseCallbackFailed, err)
 	}
 
+	// 检查是否有物流数据
+	if cb.LastResult == nil {
+		return nil, fmt.Errorf("%w: no lastResult in callback", logistics.ErrParseCallbackFailed)
+	}
+
+	// 获取元数据
+	var metadata string
+	if cb.Parameters != nil {
+		metadata = cb.Parameters.Metadata
+	}
+
 	return &logistics.CallbackData{
-		ShipperCode: cb.Company,
-		TrackingNo:  cb.Number,
-		MetaData:    cb.Parameters,
-		State:       convertStatus(cb.State),
-		Traces:      convertTraces(cb.Data),
-		Success:     cb.State == "3", // 签收状态
-		CourierInfo: &logistics.CourierInfo{
-			Name:  cb.CourierName,
-			Phone: cb.CourierPhone,
-		},
+		ShipperCode: cb.LastResult.Com,
+		TrackingNo:  cb.LastResult.Nu,
+		MetaData:    metadata,
+		State:       convertStatus(cb.LastResult.State),
+		Traces:      convertTraces(cb.LastResult.Data),
+		Location:    cb.LastResult.Location,
+		Success:     cb.LastResult.State == "3", // 签收状态
+		Reason:      cb.Message,
 	}, nil
 }
 
 // BuildCallbackResponse 构建回调响应
 func (a *api) BuildCallbackResponse(success bool, message string) []byte {
 	resp := kd100CallbackResponse{
-		Result:  success,
-		Message: message,
+		Result:     success,
+		ReturnCode: "200",
+		Message:    message,
 	}
 	data, _ := json.Marshal(resp)
 	return data
