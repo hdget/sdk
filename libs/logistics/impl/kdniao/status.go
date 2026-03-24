@@ -28,9 +28,9 @@ var stateExInfo = map[string]struct {
 	"403": {logistics.StateProblem, "超时未更新"},
 	"404": {logistics.StateRejected, "拒收(退件)"},
 	"405": {logistics.StateProblem, "派件异常"},
-	"406": {logistics.StateProblem, "退货签收"},
+	"406": {logistics.StateSigned, "退货签收"}, // 退货签收，虽然首数字是4，但也属于正常轨迹
 	"407": {logistics.StateProblem, "退货未签收"},
-	"412": {logistics.StateProblem, "快递柜或驿站超时未取"},
+	"412": {logistics.StateSigned, "快递柜或驿站超时未取或已签收"}, // 入驿站超过18h的单，很可能其实已经被取走了，只是驿站不更新，一般情况下也可以视为签收
 	"413": {logistics.StateProblem, "单号已拦截"},
 	"10":  {logistics.StateCollected, "待揽件"},
 }
@@ -57,7 +57,17 @@ func convertState(state string) logistics.State {
 
 // convertStatus 综合使用 State 和 StateEx 转换状态
 // 优先使用 StateEx，StateEx 为空时使用 State
-func convertStatus(state, stateEx string) logistics.Status {
+// 同时处理物流异常情况：Success=false 且 Reason 为"三天无轨迹"或"七天内无轨迹变化"
+func convertStatus(state, stateEx string, success bool, reason string) logistics.Status {
+	// 处理物流异常情况：三天无轨迹或七天内无轨迹变化
+	if !success && (reason == "三天无轨迹" || reason == "七天内无轨迹变化") {
+		return logistics.Status{
+			State: logistics.StateProblem,
+			Code:  "",
+			Desc:  reason,
+		}
+	}
+
 	// 优先使用 StateEx
 	if stateEx != "" {
 		if v, ok := stateExInfo[stateEx]; ok {

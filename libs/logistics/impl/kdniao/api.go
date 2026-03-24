@@ -275,7 +275,7 @@ func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
 		ShipperCode: item.ShipperCode,
 		TrackingNo:  item.LogisticCode,
 		MetaData:    item.Callback, // 快递鸟Callback就是自定义数据，订阅时候传入的时候可以回调带回来
-		Status:      convertStatus(item.State, item.StateEx),
+		Status:      convertStatus(item.State, item.StateEx, item.Success, item.Reason),
 		Traces:      convertTraces(item.Traces),
 		Success:     item.Success,
 		Reason:      item.Reason,
