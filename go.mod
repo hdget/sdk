@@ -14,7 +14,6 @@ require (
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
-	github.com/gorilla/schema v1.4.1 // indirect
 	github.com/knadh/koanf/maps v0.1.2 // indirect
 	github.com/knadh/koanf/parsers/toml/v2 v2.2.0 // indirect
 	github.com/knadh/koanf/providers/env/v2 v2.0.0 // indirect
