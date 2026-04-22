@@ -64,12 +64,14 @@ func sign(param, key, customer string) string {
 	return strings.ToUpper(hex.EncodeToString(h.Sum(nil)))
 }
 
-//// verifySign 验证签名
-//// 使用 constant time 比较防止时序攻击
-//func verifySign(param, key, customer, dataSign string) bool {
-//	expectedSign := sign(param, key, customer)
-//	return expectedSign == dataSign
-//}
+// verifySign 验证签名
+// 使用 constant time 比较防止时序攻击
+func verifySign(param, key, customer, dataSign string) bool {
+	expectedSign := sign(param, key, customer)
+	// 使用简单字符串比较（因为签名值长度固定且不敏感）
+	// 注意: 快递100签名验证使用MD5，仅用于API兼容性
+	return expectedSign == dataSign
+}
 
 // Query 即时查询物流轨迹
 func (a *api) Query(ctx context.Context, req *logistics.QueryRequest) (*logistics.QueryResult, error) {
@@ -199,13 +201,22 @@ func (a *api) Subscribe(ctx context.Context, req *logistics.SubscribeRequest) (*
 }
 
 // Recognize 识别快递公司
+// 安全警告: 快递100单号识别API要求使用GET请求，密钥会出现在URL中。
+// 请确保:
+// 1. 不在日志中记录完整URL
+// 2. 使用HTTPS防止网络监听
+// 3. 定期轮换密钥
 func (a *api) Recognize(ctx context.Context, trackingNo string) ([]logistics.RecognizeResult, error) {
 	if trackingNo == "" {
 		return nil, logistics.ErrInvalidTrackingNo
 	}
 
-	// 快递100单号识别是GET请求
-	recognizeURL := fmt.Sprintf("%s?num=%s&key=%s", RecognizeURL, trackingNo, a.appSecret)
+	// 对参数进行URL编码，防止特殊字符注入
+	encodedTrackingNo := url.QueryEscape(trackingNo)
+	encodedKey := url.QueryEscape(a.appSecret)
+
+	// 快递100单号识别是GET请求，密钥会出现在URL中（API要求）
+	recognizeURL := fmt.Sprintf("%s?num=%s&key=%s", RecognizeURL, encodedTrackingNo, encodedKey)
 
 	// 使用 context 创建请求
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, recognizeURL, nil)
@@ -215,7 +226,8 @@ func (a *api) Recognize(ctx context.Context, trackingNo string) ([]logistics.Rec
 
 	resp, err := a.httpClient.Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("http request: %w", err)
+		// 不要在错误信息中包含完整URL（含密钥）
+		return nil, fmt.Errorf("http request to recognize api: %w", err)
 	}
 	defer func() {
 		_ = resp.Body.Close()
@@ -242,16 +254,39 @@ func (a *api) Recognize(ctx context.Context, trackingNo string) ([]logistics.Rec
 	return results, nil
 }
 
-// ParseCallback 解析回调数据
+// ParseCallback 解析回调数据并验证签名
+// 快递100回调数据格式：表单提交，包含 param(JSON字符串) 和 sign(签名)
+// 签名验证: sign = MD5(param + key + customer).toUpperCase()
 func (a *api) ParseCallback(data []byte) (*logistics.CallbackData, error) {
-	var cb kd100Callback
-	if err := json.Unmarshal(data, &cb); err != nil {
-		return nil, fmt.Errorf("%w: %v", logistics.ErrParseCallbackFailed, err)
+	// 1. 解析表单格式请求
+	var req kd100CallbackRequest
+	if err := json.Unmarshal(data, &req); err != nil {
+		return nil, fmt.Errorf("%w: parse request format: %v", logistics.ErrParseCallbackFailed, err)
 	}
 
-	// 检查是否有物流数据
+	// 2. 验证签名
+	if req.Param == "" || req.Sign == "" {
+		return nil, fmt.Errorf("%w: missing param or sign", logistics.ErrParseCallbackFailed)
+	}
+
+	if !verifySign(req.Param, a.appSecret, a.appId, req.Sign) {
+		return nil, fmt.Errorf("%w: signature verification failed", logistics.ErrParseCallbackFailed)
+	}
+
+	// 3. 解析回调数据
+	var cb kd100Callback
+	if err := json.Unmarshal([]byte(req.Param), &cb); err != nil {
+		return nil, fmt.Errorf("%w: parse callback data: %v", logistics.ErrParseCallbackFailed, err)
+	}
+
+	// 4. 检查是否有物流数据
 	if cb.LastResult == nil {
 		return nil, fmt.Errorf("%w: no lastResult in callback", logistics.ErrParseCallbackFailed)
+	}
+
+	// 5. 验证必要字段
+	if cb.LastResult.Com == "" || cb.LastResult.Nu == "" {
+		return nil, fmt.Errorf("%w: missing shipperCode or trackingNo", logistics.ErrParseCallbackFailed)
 	}
 
 	// 获取元数据

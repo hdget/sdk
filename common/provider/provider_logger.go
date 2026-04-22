@@ -1,8 +1,9 @@
-package types
+package provider
 
 import "log"
 
-type LoggerProvider interface {
+// Logger provider
+type Logger interface {
 	Provider
 	GetStdLogger() *log.Logger
 	Log(keyvals ...interface{}) error

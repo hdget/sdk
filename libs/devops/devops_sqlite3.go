@@ -3,11 +3,12 @@ package devops
 import (
 	"embed"
 	"fmt"
+	"path"
+
 	"github.com/elliotchance/pie/v2"
 	"github.com/hdget/sdk/common/biz"
 	"github.com/hdget/sdk/common/types"
 	"github.com/pkg/errors"
-	"path"
 )
 
 type sqlite3DevOpsImpl struct {
@@ -31,7 +32,8 @@ func (impl *sqlite3DevOpsImpl) InstallDatabase(dbClient types.DbClient, specifie
 		return "", errors.Wrap(err, "get db name")
 	}
 
-	fmt.Printf("=== install database: %s ===\n", dbName)
+	// 使用统一日志方法
+	impl.logInfo("install database", "name", dbName)
 
 	// do nothing, just close db client
 	_ = dbClient.Close()

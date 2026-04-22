@@ -23,7 +23,3 @@ func Config() types.ConfigProvider {
 func Mq() types.MessageQueueProvider {
 	return _instance.mqProvider
 }
-
-func Oss() types.OssProvider {
-	return _instance.ossProvider
-}

@@ -24,7 +24,7 @@ func newRedisClient(conf *redisClientConfig) (types.RedisClient, error) {
 		// 最大连接数，即最多的tcp连接数
 		MaxActive: 0,
 		// 空闲连接超时时间，但应该设置比redis服务器超时时间短。否则服务端超时了，客户端保持着连接也没用
-		IdleTimeout: time.Duration(120),
+		IdleTimeout: 120 * time.Second,
 		// 超过最大连接，是报错，还是等待
 		Wait: true,
 		Dial: func() (redis.Conn, error) {

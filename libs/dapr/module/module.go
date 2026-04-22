@@ -127,18 +127,11 @@ func Get[T Module](kind ModuleKind) []T {
 		}
 	}
 	return results
-	//switch m := T.(type) {
-	//case module.InvocationModule:
-	//	_invocationModules = append(_invocationModules, m)
-	//case module.EventModule:
-	//	_eventModules = append(_eventModules, m)
-	//case module.DelayEventModule:
-	//	_delayEventModules = append(_delayEventModules, m)
-	//case module.HealthModule:
-	//	_healthModules = append(_healthModules, m)
-	//}
 }
 
+// register 注册模块到全局注册表
+// 安全说明: 此函数仅在init()阶段调用（应用启动前），此时为单线程环境
+// 如果需要在运行时动态注册，需要添加mutex保护
 func register(module any) {
 	switch m := module.(type) {
 	case InvocationModule:

@@ -1,16 +1,16 @@
-package types
+package provider
 
 import "github.com/hdget/sdk/common/protobuf"
+
+type Redis interface {
+	Provider
+	My() RedisClient
+	By(string) RedisClient
+}
 
 type RedisCommand struct {
 	Name string
 	Args []interface{}
-}
-
-type RedisProvider interface {
-	Provider
-	My() RedisClient
-	By(string) RedisClient
 }
 
 type RedisClient interface {

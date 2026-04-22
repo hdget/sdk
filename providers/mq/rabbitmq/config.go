@@ -87,7 +87,7 @@ func newConfig(configProvider types.ConfigProvider) (*RabbitMqConfig, error) {
 
 func (c *RabbitMqConfig) validate() error {
 	if c.Host == "" {
-		return errInvalidConfig
+		return errors.New("rabbitmq host is required")
 	}
 
 	if c.Port == 0 {

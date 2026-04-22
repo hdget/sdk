@@ -125,7 +125,7 @@ func (c *psqlProviderConfig) validateExtraInstance(ic *psqlConfig) error {
 
 	// setup default config value
 	if ic.Port == 0 {
-		ic.Port = 3306
+		ic.Port = 5432
 	}
 	return nil
 }

@@ -2,6 +2,7 @@ package kdniao
 
 import (
 	"crypto/md5"
+	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
 )
@@ -27,5 +28,6 @@ func sign(requestData, appKey string) string {
 // 使用 constant time 比较防止时序攻击
 func verifySign(requestData, appKey, dataSign string) bool {
 	expectedSign := sign(requestData, appKey)
-	return expectedSign == dataSign
+	// 使用 constant time 比较防止时序攻击
+	return subtle.ConstantTimeCompare([]byte(expectedSign), []byte(dataSign)) == 1
 }
