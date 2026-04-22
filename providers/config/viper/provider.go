@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/hdget/sdk/common/constant"
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/hdget/sdk/providers/config/viper/loader"
 	"github.com/hdget/sdk/providers/config/viper/param"
 	"github.com/pkg/errors"
@@ -20,13 +20,13 @@ type viperConfigProvider struct {
 }
 
 // New 初始化config provider
-func New(app string, options ...Option) (types.ConfigProvider, error) {
+func New(app string, options ...Option) (provider.Config, error) {
 	env, exists := os.LookupEnv(constant.EnvKeyRunEnvironment)
 	if !exists {
 		return nil, errors.New("env not found")
 	}
 
-	provider := &viperConfigProvider{
+	p := &viperConfigProvider{
 		app:   app,
 		env:   env,
 		local: viper.New(),
@@ -34,15 +34,15 @@ func New(app string, options ...Option) (types.ConfigProvider, error) {
 	}
 
 	for _, option := range options {
-		option(provider.param)
+		option(p.param)
 	}
 
-	err := provider.Load()
+	err := p.Load()
 	if err != nil {
 		return nil, errors.Wrap(err, "load config")
 	}
 
-	return provider, nil
+	return p, nil
 }
 
 // Load 从各个配置源获取配置数据, 并加载到configVar中，同名变量优先级高的覆盖低的
@@ -91,6 +91,6 @@ func (p *viperConfigProvider) Get(key string) any {
 	return p.local.Get(key)
 }
 
-func (p *viperConfigProvider) GetCapability() types.Capability {
+func (p *viperConfigProvider) GetCapability() provider.Capability {
 	return Capability
 }

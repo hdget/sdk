@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 
 	"github.com/cenkalti/backoff/v4"
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/pkg/errors"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -14,7 +14,7 @@ import (
 // connection manages an AMQP connection.
 type connection struct {
 	config              *RabbitMqConfig
-	logger              types.LoggerProvider
+	logger              provider.Logger
 	amqpConnection      *amqp.Connection
 	connectionWaitGroup sync.WaitGroup
 	amqpConnectionLock  sync.Mutex
@@ -32,7 +32,7 @@ var (
 )
 
 // newConnection returns a new connection manager.
-func newConnection(logger types.LoggerProvider, c *RabbitMqConfig) (*connection, error) {
+func newConnection(logger provider.Logger, c *RabbitMqConfig) (*connection, error) {
 	cm := &connection{
 		config:        c,
 		logger:        logger,

@@ -1,7 +1,7 @@
 package rabbitmq
 
 import (
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -23,7 +23,7 @@ type channel interface {
 	Close() error
 }
 
-func newChannelManager(logger types.LoggerProvider, conn *connection, poolSize int) (channelManager, error) {
+func newChannelManager(logger provider.Logger, conn *connection, poolSize int) (channelManager, error) {
 	if poolSize == 0 {
 		return newDefaultChannelManager(conn), nil
 	}

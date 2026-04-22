@@ -7,7 +7,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 )
 
 type mysqlClient struct {
@@ -20,7 +20,7 @@ const (
 	dsnTemplate = "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local"
 )
 
-func newClient(c *mysqlConfig) (types.DbClient, error) {
+func newClient(c *mysqlConfig) (provider.DbClient, error) {
 	// 构造连接参数
 	dsn := fmt.Sprintf(dsnTemplate, c.User, c.Password, c.Host, c.Port, c.Database)
 	db, err := sql.Open("mysql", dsn)
@@ -48,14 +48,14 @@ func (m *mysqlClient) Close() error {
 	return m.DB.Close()
 }
 
-func (m *mysqlClient) SqlDB() *sql.DB {
+func (m *mysqlClient) Db() *sql.DB {
 	return m.DB
 }
 
 // RunInTransaction 在事务中执行函数，支持嵌套事务（通过 SAVEPOINT 实现）
 func (m *mysqlClient) RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
 	// 检查是否已在事务中
-	if tx, ok := ctx.Value(types.TxCtxKey{}).(*sql.Tx); ok {
+	if tx, ok := ctx.Value(provider.TxCtxKey{}).(*sql.Tx); ok {
 		// 已在事务中，创建 SAVEPOINT 实现嵌套事务
 		spName := fmt.Sprintf("sp_%d", time.Now().UnixNano())
 		_, _ = tx.ExecContext(ctx, fmt.Sprintf("SAVEPOINT %s", spName))
@@ -83,7 +83,7 @@ func (m *mysqlClient) RunInTransaction(ctx context.Context, fn func(ctx context.
 	}()
 
 	// 将事务放入 context，支持嵌套事务检测
-	txCtx := context.WithValue(ctx, types.TxCtxKey{}, tx)
+	txCtx := context.WithValue(ctx, provider.TxCtxKey{}, tx)
 	err = fn(txCtx)
 	if err != nil {
 		_ = tx.Rollback()

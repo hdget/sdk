@@ -3,7 +3,7 @@ package cache
 import (
 	"fmt"
 
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 )
 
 type Cache interface {
@@ -16,10 +16,10 @@ type Cache interface {
 
 type cacheImpl struct {
 	AppId         string
-	RedisProvider types.RedisProvider
+	RedisProvider provider.Redis
 }
 
-func newCache(appId string, redisProvider types.RedisProvider) Cache {
+func newCache(appId string, redisProvider provider.Redis) Cache {
 	return &cacheImpl{
 		AppId:         appId,
 		RedisProvider: redisProvider,

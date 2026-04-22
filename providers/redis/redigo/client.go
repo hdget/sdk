@@ -7,7 +7,7 @@ import (
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/hdget/sdk/common/protobuf"
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/hdget/utils"
 	"github.com/hdget/utils/paginator"
 )
@@ -16,7 +16,7 @@ type redisClient struct {
 	pool *redis.Pool
 }
 
-func newRedisClient(conf *redisClientConfig) (types.RedisClient, error) {
+func newRedisClient(conf *redisClientConfig) (provider.RedisClient, error) {
 	// 建立连接池
 	p := &redis.Pool{
 		// 最大空闲连接数，有这么多个连接提前等待着，但过了超时时间也会关闭
@@ -166,7 +166,7 @@ func (r *redisClient) Ping() error {
 }
 
 // Pipeline 批量提交命令
-func (r *redisClient) Pipeline(commands []*types.RedisCommand) (reply interface{}, err error) {
+func (r *redisClient) Pipeline(commands []*provider.RedisCommand) (reply interface{}, err error) {
 	conn := r.pool.Get()
 	defer func(conn redis.Conn) {
 		_ = conn.Close()

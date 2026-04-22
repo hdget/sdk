@@ -1,7 +1,7 @@
 package miniprogram
 
 import (
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/hdget/sdk/libs/wechat/api"
 	"github.com/hdget/sdk/libs/wechat/api/miniprogram/cache"
 	"github.com/hdget/sdk/libs/wechat/api/miniprogram/wx"
@@ -18,10 +18,10 @@ type API interface {
 type miniProgramApiImpl struct {
 	api.API
 	wx.WxAPI
-	redisProvider types.RedisProvider
+	redisProvider provider.Redis
 }
 
-func New(appId, appSecret string, redisProvider types.RedisProvider) API {
+func New(appId, appSecret string, redisProvider provider.Redis) API {
 	return &miniProgramApiImpl{
 		API:           api.New(appId, appSecret),
 		WxAPI:         wx.New(appId, appSecret),

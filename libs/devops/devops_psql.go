@@ -3,11 +3,12 @@ package devops
 import (
 	"embed"
 	"fmt"
+	"path"
+
 	"github.com/elliotchance/pie/v2"
 	"github.com/hdget/sdk/common/biz"
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/pkg/errors"
-	"path"
 )
 
 const (
@@ -29,7 +30,7 @@ func PostgresSQL(app string, options ...Option) DevOps {
 	}
 }
 
-func (impl *psqlDevOpsImpl) InstallDatabase(dbClient types.DbClient, specifiedDbName ...string) (string, error) {
+func (impl *psqlDevOpsImpl) InstallDatabase(dbClient provider.DbClient, specifiedDbName ...string) (string, error) {
 	dbName, err := impl.getDbName(specifiedDbName...)
 	if err != nil {
 		return "", errors.Wrap(err, "get db name")
@@ -46,7 +47,7 @@ func (impl *psqlDevOpsImpl) InstallDatabase(dbClient types.DbClient, specifiedDb
 }
 
 func (impl *devOpsImpl) InstallTables(ctx biz.Context, store embed.FS, force bool, tableNames ...string) error {
-	tx, ok := ctx.Transactor().GetTx().(types.DbExecutor)
+	tx, ok := ctx.Transactor().GetTx().(provider.DbExecutor)
 	if !ok {
 		return fmt.Errorf("db transactor not found in context")
 	}

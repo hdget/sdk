@@ -11,7 +11,7 @@ import (
 	"github.com/elliotchance/pie/v2"
 	"github.com/hdget/sdk/common/biz"
 	"github.com/hdget/sdk/common/constant"
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 )
 
 type TableOperator interface {
@@ -21,7 +21,7 @@ type TableOperator interface {
 }
 
 type DevOps interface {
-	InstallDatabase(dbClient types.DbClient, dbname ...string) (string, error)
+	InstallDatabase(dbClient provider.DbClient, dbname ...string) (string, error)
 	InstallTables(ctx biz.Context, store embed.FS, force bool, tableNames ...string) error
 	ExportTables(ctx biz.Context, storePath string, tableNames ...string) error
 }

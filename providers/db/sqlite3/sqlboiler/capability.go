@@ -1,7 +1,7 @@
 package sqlboiler
 
 import (
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"go.uber.org/fx"
 )
 
@@ -9,9 +9,9 @@ const (
 	providerName = "sqlite3-sqlboiler"
 )
 
-var Capability = types.Capability{
+var Capability = provider.Capability{
 	Name:     providerName,
-	Category: types.ProviderCategoryDb,
+	Category: provider.CategoryDb,
 	Module: fx.Module(
 		providerName,
 		fx.Provide(New),

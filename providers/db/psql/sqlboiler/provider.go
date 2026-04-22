@@ -4,27 +4,27 @@ import (
 	"sync/atomic"
 
 	"github.com/aarondl/sqlboiler/v4/boil"
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/pkg/errors"
 )
 
 type sqlboilerProvider struct {
-	defaultDb types.DbClient
-	masterDb  types.DbClient
-	slaveDbs  []types.DbClient
-	extraDbs  map[string]types.DbClient
+	defaultDb provider.DbClient
+	masterDb  provider.DbClient
+	slaveDbs  []provider.DbClient
+	extraDbs  map[string]provider.DbClient
 	slaveIdx  uint64 // 用于轮询选择 slave
 }
 
-func newProvider(configProvider types.ConfigProvider, logger types.LoggerProvider) (types.DbProvider, error) {
+func newProvider(configProvider provider.Config, logger provider.Logger) (provider.Database, error) {
 	config, err := newConfig(configProvider)
 	if err != nil {
 		return nil, err
 	}
 
 	p := &sqlboilerProvider{
-		slaveDbs: make([]types.DbClient, len(config.Slaves)),
-		extraDbs: make(map[string]types.DbClient),
+		slaveDbs: make([]provider.DbClient, len(config.Slaves)),
+		extraDbs: make(map[string]provider.DbClient),
 	}
 
 	if config.Default != nil {
@@ -68,7 +68,7 @@ func newProvider(configProvider types.ConfigProvider, logger types.LoggerProvide
 	return p, nil
 }
 
-func NewClient(configProvider types.ConfigProvider, database ...string) (types.DbClient, error) {
+func NewClient(configProvider provider.Config, database ...string) (provider.DbClient, error) {
 	config, err := newConfig(configProvider)
 	if err != nil {
 		return nil, errors.Wrap(err, "new postgresql config")
@@ -96,31 +96,31 @@ func NewClient(configProvider types.ConfigProvider, database ...string) (types.D
 	return client, nil
 }
 
-func (p *sqlboilerProvider) GetCapability() types.Capability {
+func (p *sqlboilerProvider) GetCapability() provider.Capability {
 	return Capability
 }
 
-func (p *sqlboilerProvider) My() types.DbClient {
+func (p *sqlboilerProvider) Main() provider.DbClient {
 	return p.defaultDb
 }
 
-func (p *sqlboilerProvider) Master() types.DbClient {
+func (p *sqlboilerProvider) Master() provider.DbClient {
 	return p.masterDb
 }
 
-func (p *sqlboilerProvider) Slave(i int) types.DbClient {
+func (p *sqlboilerProvider) Replica(i int) provider.DbClient {
 	if i < 0 || i >= len(p.slaveDbs) {
 		return nil
 	}
 	return p.slaveDbs[i]
 }
 
-func (p *sqlboilerProvider) By(name string) types.DbClient {
+func (p *sqlboilerProvider) Named(name string) provider.DbClient {
 	return p.extraDbs[name]
 }
 
 // Read 返回用于读操作的数据库客户端（从 slave 中轮询选择，无 slave 则返回 master 或 default）
-func (p *sqlboilerProvider) Read() types.DbClient {
+func (p *sqlboilerProvider) Read() provider.DbClient {
 	if len(p.slaveDbs) > 0 {
 		idx := atomic.AddUint64(&p.slaveIdx, 1) - 1
 		return p.slaveDbs[idx%uint64(len(p.slaveDbs))]
@@ -129,7 +129,7 @@ func (p *sqlboilerProvider) Read() types.DbClient {
 }
 
 // Write 返回用于写操作的数据库客户端（返回 master 或 default）
-func (p *sqlboilerProvider) Write() types.DbClient {
+func (p *sqlboilerProvider) Write() provider.DbClient {
 	if p.masterDb != nil {
 		return p.masterDb
 	}

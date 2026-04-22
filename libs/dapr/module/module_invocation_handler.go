@@ -6,7 +6,7 @@ import (
 
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/sdk/common/biz"
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/hdget/sdk/libs/dapr/api"
 	"github.com/hdget/sdk/libs/dapr/localutils"
 	"github.com/hdget/utils"
@@ -17,8 +17,8 @@ import (
 type invocationHandler interface {
 	GetAlias() string
 	GetName() string
-	GetInvokeName() string                                                         // 调用名字
-	GetInvokeFunction(logger types.LoggerProvider) common.ServiceInvocationHandler // 具体的调用函数
+	GetInvokeName() string                                                        // 调用名字
+	GetInvokeFunction(logger provider.Logger) common.ServiceInvocationHandler // 具体的调用函数
 }
 
 type invocationHandlerImpl struct {
@@ -47,7 +47,7 @@ func (h invocationHandlerImpl) GetInvokeName() string {
 	return localutils.GenerateMethod(mInfo.ApiVersion, mInfo.Name, h.handlerAlias, mInfo.Dir)
 }
 
-func (h invocationHandlerImpl) GetInvokeFunction(logger types.LoggerProvider) common.ServiceInvocationHandler {
+func (h invocationHandlerImpl) GetInvokeFunction(logger provider.Logger) common.ServiceInvocationHandler {
 	return func(ctx context.Context, event *common.InvocationEvent) (*common.Content, error) {
 		// 挂载defer函数
 		defer func() {

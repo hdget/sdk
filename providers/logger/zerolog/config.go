@@ -2,7 +2,7 @@ package zerolog
 
 import (
 	"fmt"
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
@@ -43,7 +43,7 @@ var (
 )
 
 // NewConfig 解析Config
-func newConfig(configProvider types.ConfigProvider) (*zerologProviderConfig, error) {
+func newConfig(configProvider provider.Config) (*zerologProviderConfig, error) {
 	if configProvider == nil {
 		return getDefaultConfig(), nil
 	}

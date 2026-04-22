@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/hdget/sdk/common/constant"
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/hdget/sdk/providers/config/koanf/loader"
 	"github.com/knadh/koanf/v2"
 	"github.com/pkg/errors"
@@ -25,7 +25,7 @@ const (
 )
 
 // New 初始化config provider
-func New(app string, options ...Option) (types.ConfigProvider, error) {
+func New(app string, options ...Option) (provider.Config, error) {
 	if app == "" {
 		return nil, errors.New("app is required")
 	}
@@ -93,6 +93,6 @@ func (p *koanfConfigProvider) Get(key string) any {
 	return p.reader.Get(key)
 }
 
-func (p *koanfConfigProvider) GetCapability() types.Capability {
+func (p *koanfConfigProvider) GetCapability() provider.Capability {
 	return Capability
 }

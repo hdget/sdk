@@ -7,14 +7,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/pkg/errors"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type rmpSubscriberImpl struct {
 	*connection
-	logger              types.LoggerProvider
+	logger              provider.Logger
 	config              *RabbitMqConfig
 	closedChan          chan struct{}
 	closeSubscriber     func() error
@@ -24,7 +24,7 @@ type rmpSubscriberImpl struct {
 	useDelayTopology bool
 }
 
-func newSubscriber(name string, config *RabbitMqConfig, logger types.LoggerProvider, options ...subscriberOption) (*rmpSubscriberImpl, error) {
+func newSubscriber(name string, config *RabbitMqConfig, logger provider.Logger, options ...subscriberOption) (*rmpSubscriberImpl, error) {
 	conn, err := newConnection(logger, config)
 	if err != nil {
 		return nil, fmt.Errorf("subscriber create new connection: %w", err)
@@ -77,7 +77,7 @@ func (s *rmpSubscriberImpl) Close() error {
 }
 
 // Subscribe consumes messages from AMQP broker.
-func (s *rmpSubscriberImpl) Subscribe(ctx context.Context, topic string) (<-chan *types.Message, error) {
+func (s *rmpSubscriberImpl) Subscribe(ctx context.Context, topic string) (<-chan *provider.Message, error) {
 	if s.connection.IsClosed() {
 		return nil, errors.New("AMQP connection is closed")
 	}
@@ -86,7 +86,7 @@ func (s *rmpSubscriberImpl) Subscribe(ctx context.Context, topic string) (<-chan
 		return nil, errors.New("not connected to AMQP")
 	}
 
-	out := make(chan *types.Message)
+	out := make(chan *provider.Message)
 
 	t, err := newTopology(s.name, topic, s.useDelayTopology)
 	if err != nil {
@@ -184,7 +184,7 @@ func (s *rmpSubscriberImpl) prepareConsumeBindings(amqpChannel *amqp.Channel, t 
 	return nil
 }
 
-func (s *rmpSubscriberImpl) runSubscriber(ctx context.Context, out chan *types.Message, t *Topology) {
+func (s *rmpSubscriberImpl) runSubscriber(ctx context.Context, out chan *provider.Message, t *Topology) {
 	amqpChannel, err := s.openSubscribeChannel()
 	if err != nil {
 		s.logger.Error("failed to open channel", "err", err)

@@ -1,7 +1,7 @@
 package rabbitmq
 
 import (
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
 )
@@ -62,7 +62,7 @@ var (
 	errInvalidConfig = errors.New("invalid config")
 )
 
-func newConfig(configProvider types.ConfigProvider) (*RabbitMqConfig, error) {
+func newConfig(configProvider provider.Config) (*RabbitMqConfig, error) {
 	if configProvider == nil {
 		return nil, errInvalidConfig
 	}

@@ -1,25 +1,25 @@
 package sdk
 
 import (
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 )
 
-func Logger() types.LoggerProvider {
+func Logger() provider.Logger {
 	return _instance.loggerProvider
 }
 
-func Db() types.DbProvider {
+func Db() provider.Database {
 	return _instance.dbProvider
 }
 
-func Redis() types.RedisProvider {
+func Redis() provider.Redis {
 	return _instance.redisProvider
 }
 
-func Config() types.ConfigProvider {
+func Config() provider.Config {
 	return _instance.configProvider
 }
 
-func Mq() types.MessageQueueProvider {
+func Mq() provider.MessageQueue {
 	return _instance.mqProvider
 }

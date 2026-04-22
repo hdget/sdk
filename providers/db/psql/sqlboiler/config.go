@@ -1,7 +1,7 @@
 package sqlboiler
 
 import (
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/pkg/errors"
 )
 
@@ -34,7 +34,7 @@ var (
 	errEmptyConfig   = errors.New("empty postgresql provider config")
 )
 
-func newConfig(configProvider types.ConfigProvider) (*psqlProviderConfig, error) {
+func newConfig(configProvider provider.Config) (*psqlProviderConfig, error) {
 	if configProvider == nil {
 		return nil, errInvalidConfig
 	}

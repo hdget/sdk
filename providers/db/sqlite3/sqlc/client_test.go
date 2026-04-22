@@ -13,7 +13,7 @@ func TestSqlDB(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	dbPath := filepath.Join(tmpDir, "test.db")
 
@@ -27,12 +27,12 @@ func TestSqlDB(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
-	// 测试 SqlDB() 返回非 nil
-	db := client.SqlDB()
+	// 测试 Db() 返回非 nil
+	db := client.Db()
 	if db == nil {
-		t.Error("SqlDB() returned nil, expected non-nil *sql.DB")
+		t.Error("Db() returned nil, expected non-nil *sql.DB")
 	}
 
 	// 测试返回的 *sql.DB 可以正常工作
@@ -52,7 +52,7 @@ func TestSqlDB_ReturnsSameInstance(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	dbPath := filepath.Join(tmpDir, "test.db")
 
@@ -64,14 +64,14 @@ func TestSqlDB_ReturnsSameInstance(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
-	// 多次调用 SqlDB() 应返回相同的实例
-	db1 := client.SqlDB()
-	db2 := client.SqlDB()
+	// 多次调用 Db() 应返回相同的实例
+	db1 := client.Db()
+	db2 := client.Db()
 
 	if db1 != db2 {
-		t.Error("SqlDB() should return the same *sql.DB instance")
+		t.Error("Db() should return the same *sql.DB instance")
 	}
 }
 
@@ -80,6 +80,6 @@ func TestSqlite3ClientImplementsDbClient(t *testing.T) {
 	// 编译时检查接口实现
 	var _ interface {
 		Close() error
-		SqlDB() *sql.DB
+		Db() *sql.DB
 	} = &sqlite3Client{}
 }

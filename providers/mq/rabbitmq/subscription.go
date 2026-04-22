@@ -2,14 +2,14 @@ package rabbitmq
 
 import (
 	"context"
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/pkg/errors"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type subscription struct {
-	out                chan *types.Message
-	logger             types.LoggerProvider
+	out                chan *provider.Message
+	logger             provider.Logger
 	notifyCloseChannel chan *amqp.Error
 	channel            *amqp.Channel
 	queueName          string
@@ -75,8 +75,8 @@ ConsumingLoop:
 	}
 }
 
-func (s *subscription) processMessage(ctx context.Context, amqpMsg amqp.Delivery, out chan *types.Message) error {
-	msg := types.NewMessage(amqpMsg.Body)
+func (s *subscription) processMessage(ctx context.Context, amqpMsg amqp.Delivery, out chan *provider.Message) error {
+	msg := provider.NewMessage(amqpMsg.Body)
 
 	ctx, cancelCtx := context.WithCancel(ctx)
 	msg.SetContext(ctx)
