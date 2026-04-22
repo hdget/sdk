@@ -100,7 +100,7 @@ func (p *sqlboilerProvider) GetCapability() provider.Capability {
 	return Capability
 }
 
-func (p *sqlboilerProvider) Main() provider.DbClient {
+func (p *sqlboilerProvider) Default() provider.DbClient {
 	return p.defaultDb
 }
 
@@ -108,7 +108,7 @@ func (p *sqlboilerProvider) Master() provider.DbClient {
 	return p.masterDb
 }
 
-func (p *sqlboilerProvider) Replica(i int) provider.DbClient {
+func (p *sqlboilerProvider) Slave(i int) provider.DbClient {
 	if i < 0 || i >= len(p.slaveDbs) {
 		return nil
 	}

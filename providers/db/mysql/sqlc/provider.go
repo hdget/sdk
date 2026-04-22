@@ -66,7 +66,7 @@ func (p *sqlcProvider) GetCapability() provider.Capability {
 	return Capability
 }
 
-func (p *sqlcProvider) Main() provider.DbClient {
+func (p *sqlcProvider) Default() provider.DbClient {
 	return p.defaultDb
 }
 
@@ -74,7 +74,7 @@ func (p *sqlcProvider) Master() provider.DbClient {
 	return p.masterDb
 }
 
-func (p *sqlcProvider) Replica(i int) provider.DbClient {
+func (p *sqlcProvider) Slave(i int) provider.DbClient {
 	if i < 0 || i >= len(p.slaveDbs) {
 		return nil
 	}
