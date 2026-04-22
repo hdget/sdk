@@ -70,7 +70,7 @@ func (p *mysqlProvider) GetCapability() provider.Capability {
 	return Capability
 }
 
-func (p *mysqlProvider) Main() provider.DbClient {
+func (p *mysqlProvider) Default() provider.DbClient {
 	return p.defaultDb
 }
 
@@ -78,7 +78,7 @@ func (p *mysqlProvider) Master() provider.DbClient {
 	return p.masterDb
 }
 
-func (p *mysqlProvider) Replica(i int) provider.DbClient {
+func (p *mysqlProvider) Slave(i int) provider.DbClient {
 	if i < 0 || i >= len(p.slaveDbs) {
 		return nil
 	}
