@@ -3,11 +3,12 @@ package devops
 import (
 	"embed"
 	"fmt"
+	"path"
+
 	"github.com/elliotchance/pie/v2"
 	"github.com/hdget/sdk/common/biz"
 	"github.com/hdget/sdk/common/types"
 	"github.com/pkg/errors"
-	"path"
 )
 
 type sqlite3DevOpsImpl struct {

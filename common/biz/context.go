@@ -20,6 +20,10 @@ type Context interface {
 	RoleIds() []int64        // 获取角色ID列表
 }
 
+// contextImpl 实现Context接口
+// 注意: 缓存字段(tid, uid, appKey等)在并发读取时可能存在竞态条件
+// 建议在单个请求处理流程中使用，不要在多个goroutine间共享
+// 如果需要跨goroutine传递，应使用MetaData()获取原始数据而非缓存字段
 type contextImpl struct {
 	metadata   meta.MetaData
 	transactor transactor
@@ -54,15 +58,21 @@ func NewFromIncomingGrpcContext(ctx context.Context) Context {
 	for key, values := range md {
 		switch key {
 		case meta.KeyTid, meta.KeyUid: // int64
-			val, _ := strconv.ParseInt(values[0], 10, 64)
-			c.metadata.Set(key, val)
+			val, err := strconv.ParseInt(values[0], 10, 64)
+			if err == nil {
+				c.metadata.Set(key, val)
+			}
+			// 解析失败时不设置，保持默认值
 		case meta.KeyRoleIds:
 			var val []int64
 			if values[0] != "" {
 				strIds := strings.Split(values[0], ",")
-				val = make([]int64, len(strIds))
-				for i, s := range strIds {
-					val[i], _ = strconv.ParseInt(s, 10, 64)
+				val = make([]int64, 0, len(strIds))
+				for _, s := range strIds {
+					id, err := strconv.ParseInt(s, 10, 64)
+					if err == nil {
+						val = append(val, id)
+					}
 				}
 			}
 			c.metadata.Set(key, val)

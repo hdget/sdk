@@ -21,8 +21,9 @@ func New(configProvider types.ConfigProvider, logger types.LoggerProvider) (type
 }
 
 func (r rabbitmqProvider) Init(args ...any) error {
-	//TODO implement me
-	panic("implement me")
+	// RabbitMQ provider不需要额外的初始化步骤
+	// 配置已在New()中完成验证
+	return nil
 }
 
 func (r rabbitmqProvider) NewPublisher(name string, args ...*types.PublisherOption) (types.MessageQueuePublisher, error) {

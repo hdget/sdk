@@ -131,16 +131,6 @@ func getEncryptContent(postData string) (string, error) {
 	return data.Encrypt, nil
 }
 
-//
-//func replyAsXML(encrypt, Signature, Timestamp, Nonce string) string {
-//	return fmt.Sprintf(`<xml>
-//<Encrypt><![CDATA[%s]]></Encrypt>
-//<MsgSignature><![CDATA[%s]]></MsgSignature>
-//<TimeStamp>%s</TimeStamp>
-//<Nonce><![CDATA[%s]]></Nonce>
-//</xml>`, encrypt, Signature, Timestamp, Nonce)
-//}
-
 // PKCS7Encoder PKCS7填充
 type PKCS7Encoder struct {
 	BlockSize int

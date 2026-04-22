@@ -9,7 +9,9 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// ErrCodeStart 业务逻辑错误代码开始值
+// ErrCodeStart 业务逻辑错误代码起始值
+// 选择10000作为起始值是为了与系统错误码（1-999）和HTTP状态码（100-599）区分
+// 业务模块错误码按万进制划分：10000=基础模块，20000=用户模块，30000=订单模块等
 const ErrCodeStart = 10000
 
 // ErrCodeModuleRoot define error code module, e,g: 10000, 20000, 30000...

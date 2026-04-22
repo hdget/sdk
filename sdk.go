@@ -18,7 +18,6 @@ type SdkInstance struct {
 	dbProvider     types.DbProvider
 	redisProvider  types.RedisProvider
 	mqProvider     types.MessageQueueProvider
-	ossProvider    types.OssProvider
 	app            string
 	debug          bool
 	configVar      any            // 配置变量
@@ -91,8 +90,6 @@ func (i *SdkInstance) Initialize(capabilities ...types.Capability) error {
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.redisProvider))
 		case types.ProviderCategoryMq:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.mqProvider))
-		case types.ProviderCategoryOss:
-			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.ossProvider))
 		default:
 			return errors.Wrapf(errUnsupportedCapability, "capability: %s", c.Name)
 		}

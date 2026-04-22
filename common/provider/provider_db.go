@@ -1,4 +1,4 @@
-package types
+package provider
 
 import (
 	"context"
@@ -8,12 +8,12 @@ import (
 // TxCtxKey 用于在 context 中传递事务状态
 type TxCtxKey struct{}
 
-type DbProvider interface {
+// Database provider
+type Database interface {
 	Provider
-	My() DbClient
-	Master() DbClient
-	Slave(i int) DbClient
-	By(name string) DbClient
+	Main() DbClient
+	Replica(i int) DbClient
+	Named(name string) DbClient
 	// Read 返回用于读操作的数据库客户端（自动从 slave 中轮询选择）
 	Read() DbClient
 	// Write 返回用于写操作的数据库客户端（返回 master 或 default）
@@ -44,6 +44,6 @@ type DbClient interface {
 	// RunInTransaction 在事务中执行函数，支持嵌套事务（通过 SAVEPOINT 实现）
 	// fn 的参数 ctx 包含事务信息，用于嵌套事务检测
 	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
-	// SqlDB returns the underlying *sql.DB for direct access
-	SqlDB() *sql.DB
+	// Db returns the underlying *sql.DB for direct access
+	Db() *sql.DB
 }

@@ -6,28 +6,28 @@ import (
 
 /* request */
 
-type CreateRefObjectRequest[TObjectId ObjectIdentifier, TBizObject any] struct {
-	Id   TObjectId  `json:"id"`
+type CreateRefObjectRequest[TObjectKey ObjectKeyType, TBizObject any] struct {
+	Key  TObjectKey `json:"key"`
 	Item TBizObject `json:"item"`
 }
 
-type EditRefObjectRequest[TObjectId ObjectIdentifier, TBizObject any] struct {
-	Id   TObjectId  `json:"id"`
+type EditRefObjectRequest[TObjectKey ObjectKeyType, TBizObject any] struct {
+	Key  TObjectKey `json:"key"`
 	Item TBizObject `json:"item"`
 }
 
-type DeleteRefObjectRequest[TObjectId ObjectIdentifier] struct {
-	Id     TObjectId `json:"id"`
-	ItemId TObjectId `json:"itemId"`
+type DeleteRefObjectRequest[TObjectKey ObjectKeyType] struct {
+	Key     TObjectKey `json:"key"`
+	ItemKey TObjectKey `json:"itemKey"`
 }
 
-type GetRefObjectRequest[TObjectId ObjectIdentifier] struct {
-	Id     TObjectId `json:"id"`
-	ItemId TObjectId `json:"itemId"`
+type GetRefObjectRequest[TObjectKey ObjectKeyType] struct {
+	Key     TObjectKey `json:"key"`
+	ItemKey TObjectKey `json:"itemKey"`
 }
 
-type QueryRefObjectRequest[TObjectId ObjectIdentifier] struct {
-	Id      TObjectId           `json:"id"`
+type QueryRefObjectRequest[TObjectKey ObjectKeyType] struct {
+	Key     TObjectKey          `json:"key"`
 	Filters map[string]string   `json:"filters,omitempty"`
 	List    *protobuf.ListParam `json:"list,omitempty"`
 }

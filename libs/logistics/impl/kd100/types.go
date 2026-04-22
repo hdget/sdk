@@ -57,6 +57,12 @@ type kd100RecognizeItem struct {
 	Name    string `json:"name"`    // 快递公司名称 (需额外请求获取)
 }
 
+// kd100CallbackRequest 回调请求（表单格式）
+type kd100CallbackRequest struct {
+	Param string `json:"param"` // 回调数据JSON字符串
+	Sign  string `json:"sign"`  // 签名
+}
+
 // kd100Callback 回调数据（根据文档2.4）
 type kd100Callback struct {
 	Status     string                   `json:"status"`     // poll:监听状态
