@@ -11,8 +11,13 @@ type TxCtxKey struct{}
 // Database provider
 type Database interface {
 	Provider
-	Main() DbClient
-	Replica(i int) DbClient
+	// Default 缺省数据库
+	Default() DbClient
+	// Master 主数据库
+	Master() DbClient
+	// Slave 从数据库
+	Slave(i int) DbClient
+	// Named 指定名称的数据库
 	Named(name string) DbClient
 	// Read 返回用于读操作的数据库客户端（自动从 slave 中轮询选择）
 	Read() DbClient
