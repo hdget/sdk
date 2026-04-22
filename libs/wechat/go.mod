@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/elliotchance/pie/v2 v2.9.1
 	github.com/go-resty/resty/v2 v2.16.5
-	github.com/hdget/sdk/common v0.0.11
+	github.com/hdget/sdk/common v0.0.12
 	github.com/hdget/utils v0.2.3
 	github.com/hdget/utils/cmp v0.0.1
 	github.com/hdget/utils/hash v0.0.1
@@ -16,6 +16,10 @@ require (
 require (
 	github.com/matoous/go-nanoid/v2 v2.1.0 // indirect
 	github.com/speps/go-hashids/v2 v2.0.1 // indirect
+	go.uber.org/dig v1.19.0 // indirect
+	go.uber.org/fx v1.24.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
+	go.uber.org/zap v1.27.1 // indirect
 	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93 // indirect
 	golang.org/x/net v0.48.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect

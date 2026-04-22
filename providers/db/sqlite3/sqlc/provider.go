@@ -37,11 +37,15 @@ func (p *sqlite3Provider) GetCapability() provider.Capability {
 	return Capability
 }
 
-func (p *sqlite3Provider) Main() provider.DbClient {
+func (p *sqlite3Provider) Default() provider.DbClient {
 	return p.client
 }
 
-func (p *sqlite3Provider) Replica(i int) provider.DbClient {
+func (p *sqlite3Provider) Master() provider.DbClient {
+	return p.client
+}
+
+func (p *sqlite3Provider) Slave(i int) provider.DbClient {
 	return p.client
 }
 
