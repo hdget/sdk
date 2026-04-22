@@ -6,7 +6,7 @@ import (
 
 	"github.com/aarondl/sqlboiler/v4/boil"
 	"github.com/hdget/sdk/common/biz"
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	loggerUtils "github.com/hdget/utils/logger"
 )
 
@@ -20,7 +20,7 @@ type trans struct {
 	errLog func(msg string, kvs ...any)
 }
 
-func NewTransactor(ctx biz.Context, logger types.LoggerProvider) (Transactor, error) {
+func NewTransactor(ctx biz.Context, logger provider.Logger) (Transactor, error) {
 	errLog := loggerUtils.Error
 	if logger != nil {
 		errLog = logger.Error

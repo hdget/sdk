@@ -1,7 +1,7 @@
 package redigo
 
 import (
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/pkg/errors"
 )
 
@@ -27,7 +27,7 @@ var (
 	errEmptyConfig   = errors.New("empty redis config")
 )
 
-func newConfig(configProvider types.ConfigProvider) (*redisProviderConfig, error) {
+func newConfig(configProvider provider.Config) (*redisProviderConfig, error) {
 	if configProvider == nil {
 		return nil, errInvalidConfig
 	}

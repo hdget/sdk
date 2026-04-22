@@ -3,7 +3,7 @@ package cache
 import (
 	"strings"
 
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 )
 
 type ObjectCache interface {
@@ -16,7 +16,7 @@ type objectCacheImpl struct {
 	redisKey string
 }
 
-func NewObjectCache(appId string, redisProvider types.RedisProvider, redisKeys ...string) ObjectCache {
+func NewObjectCache(appId string, redisProvider provider.Redis, redisKeys ...string) ObjectCache {
 	return &objectCacheImpl{
 		Cache:    newCache(appId, redisProvider),
 		redisKey: strings.Join(redisKeys, ":"),

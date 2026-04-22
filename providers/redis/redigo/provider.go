@@ -1,22 +1,22 @@
 package redigo
 
 import (
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 )
 
 type redigoProvider struct {
-	defaultClient types.RedisClient            // 缺省redis
-	extraClients  map[string]types.RedisClient // 额外的redis
+	defaultClient provider.RedisClient            // 缺省redis
+	extraClients  map[string]provider.RedisClient // 额外的redis
 }
 
-func New(configProvider types.ConfigProvider, logger types.LoggerProvider) (types.RedisProvider, error) {
+func New(configProvider provider.Config, logger provider.Logger) (provider.Redis, error) {
 	config, err := newConfig(configProvider)
 	if err != nil {
 		return nil, err
 	}
 
 	p := &redigoProvider{
-		extraClients: make(map[string]types.RedisClient),
+		extraClients: make(map[string]provider.RedisClient),
 	}
 
 	if config.Default != nil {
@@ -38,14 +38,14 @@ func New(configProvider types.ConfigProvider, logger types.LoggerProvider) (type
 	return p, nil
 }
 
-func (p *redigoProvider) GetCapability() types.Capability {
+func (p *redigoProvider) GetCapability() provider.Capability {
 	return Capability
 }
 
-func (p *redigoProvider) My() types.RedisClient {
+func (p *redigoProvider) My() provider.RedisClient {
 	return p.defaultClient
 }
 
-func (p *redigoProvider) By(name string) types.RedisClient {
+func (p *redigoProvider) By(name string) provider.RedisClient {
 	return p.extraClients[name]
 }

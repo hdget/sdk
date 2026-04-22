@@ -4,26 +4,26 @@ import (
 	"sync/atomic"
 
 	"github.com/aarondl/sqlboiler/v4/boil"
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 )
 
 type mysqlProvider struct {
-	defaultDb types.DbClient
-	masterDb  types.DbClient
-	slaveDbs  []types.DbClient
-	extraDbs  map[string]types.DbClient
+	defaultDb provider.DbClient
+	masterDb  provider.DbClient
+	slaveDbs  []provider.DbClient
+	extraDbs  map[string]provider.DbClient
 	slaveIdx  uint64 // 用于轮询选择 slave
 }
 
-func New(configProvider types.ConfigProvider, logger types.LoggerProvider) (types.DbProvider, error) {
+func New(configProvider provider.Config, logger provider.Logger) (provider.Database, error) {
 	config, err := newConfig(configProvider)
 	if err != nil {
 		return nil, err
 	}
 
 	p := &mysqlProvider{
-		slaveDbs: make([]types.DbClient, len(config.Slaves)),
-		extraDbs: make(map[string]types.DbClient),
+		slaveDbs: make([]provider.DbClient, len(config.Slaves)),
+		extraDbs: make(map[string]provider.DbClient),
 	}
 
 	if config.Default != nil {
@@ -66,31 +66,31 @@ func New(configProvider types.ConfigProvider, logger types.LoggerProvider) (type
 	return p, nil
 }
 
-func (p *mysqlProvider) GetCapability() types.Capability {
+func (p *mysqlProvider) GetCapability() provider.Capability {
 	return Capability
 }
 
-func (p *mysqlProvider) My() types.DbClient {
+func (p *mysqlProvider) Main() provider.DbClient {
 	return p.defaultDb
 }
 
-func (p *mysqlProvider) Master() types.DbClient {
+func (p *mysqlProvider) Master() provider.DbClient {
 	return p.masterDb
 }
 
-func (p *mysqlProvider) Slave(i int) types.DbClient {
+func (p *mysqlProvider) Replica(i int) provider.DbClient {
 	if i < 0 || i >= len(p.slaveDbs) {
 		return nil
 	}
 	return p.slaveDbs[i]
 }
 
-func (p *mysqlProvider) By(name string) types.DbClient {
+func (p *mysqlProvider) Named(name string) provider.DbClient {
 	return p.extraDbs[name]
 }
 
 // Read 返回用于读操作的数据库客户端（从 slave 中轮询选择，无 slave 则返回 master 或 default）
-func (p *mysqlProvider) Read() types.DbClient {
+func (p *mysqlProvider) Read() provider.DbClient {
 	if len(p.slaveDbs) > 0 {
 		idx := atomic.AddUint64(&p.slaveIdx, 1) - 1
 		return p.slaveDbs[idx%uint64(len(p.slaveDbs))]
@@ -99,7 +99,7 @@ func (p *mysqlProvider) Read() types.DbClient {
 }
 
 // Write 返回用于写操作的数据库客户端（返回 master 或 default）
-func (p *mysqlProvider) Write() types.DbClient {
+func (p *mysqlProvider) Write() provider.DbClient {
 	if p.masterDb != nil {
 		return p.masterDb
 	}

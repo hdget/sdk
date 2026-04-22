@@ -16,6 +16,7 @@ import (
 	"github.com/dapr/go-sdk/service/http"
 	"github.com/elliotchance/pie/v2"
 	"github.com/hdget/sdk/common/biz"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/hdget/sdk/common/protobuf"
 	"github.com/hdget/sdk/common/types"
 	"github.com/hdget/sdk/libs/dapr/api"
@@ -38,13 +39,13 @@ type daprServerImpl struct {
 	cancel context.CancelFunc
 	debug  bool
 	// 自定义参数
-	app              string                             // 运行的app
+	app              string                        // 运行的app
 	hooks            map[hookPoint][]types.HookFunction // 钩子函数
-	registerFunction RegisterFunction                   // 向系统注册appServer的函数
-	registerHandlers []*protobuf.DaprHandler            // 向系统注册的方法
-	assets           embed.FS                           // 嵌入文件系统
-	logger           types.LoggerProvider
-	mq               types.MessageQueueProvider
+	registerFunction RegisterFunction              // 向系统注册appServer的函数
+	registerHandlers []*protobuf.DaprHandler       // 向系统注册的方法
+	assets           embed.FS                      // 嵌入文件系统
+	logger           provider.Logger
+	mq               provider.MessageQueue
 }
 
 func GetInvocationModules() []module.InvocationModule {
@@ -223,7 +224,7 @@ func (impl *daprServerImpl) subscribeDelayEvents() error {
 		return errors.New("message queue provider not found")
 	}
 
-	delaySubscriber, err := impl.mq.NewSubscriber(app, &types.SubscriberOption{SubscribeDelayMessage: true})
+	delaySubscriber, err := impl.mq.NewSubscriber(app, &provider.SubscriberOption{SubscribeDelayMessage: true})
 	if err != nil {
 		return errors.Wrapf(err, "new delay event subscriber, name: %s", app)
 	}

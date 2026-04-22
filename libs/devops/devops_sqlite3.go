@@ -7,7 +7,7 @@ import (
 
 	"github.com/elliotchance/pie/v2"
 	"github.com/hdget/sdk/common/biz"
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/pkg/errors"
 )
 
@@ -26,7 +26,7 @@ func SQLite3(app string, options ...Option) DevOps {
 	}
 }
 
-func (impl *sqlite3DevOpsImpl) InstallDatabase(dbClient types.DbClient, specifiedDbName ...string) (string, error) {
+func (impl *sqlite3DevOpsImpl) InstallDatabase(dbClient provider.DbClient, specifiedDbName ...string) (string, error) {
 	dbName, err := impl.getDbName(specifiedDbName...)
 	if err != nil {
 		return "", errors.Wrap(err, "get db name")
@@ -41,7 +41,7 @@ func (impl *sqlite3DevOpsImpl) InstallDatabase(dbClient types.DbClient, specifie
 }
 
 func (impl *sqlite3DevOpsImpl) InstallTables(ctx biz.Context, store embed.FS, force bool, tableNames ...string) error {
-	tx, ok := ctx.Transactor().GetTx().(types.DbExecutor)
+	tx, ok := ctx.Transactor().GetTx().(provider.DbExecutor)
 	if !ok {
 		return fmt.Errorf("db transactor not found in context")
 	}

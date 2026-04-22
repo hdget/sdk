@@ -9,7 +9,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/hdget/utils/logger"
 	"github.com/rs/zerolog"
 )
@@ -24,7 +24,7 @@ const (
 )
 
 // New initialize zerolog instance
-func New(configProvider types.ConfigProvider) (types.LoggerProvider, error) {
+func New(configProvider provider.Config) (provider.Logger, error) {
 	c, err := newConfig(configProvider)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func New(configProvider types.ConfigProvider) (types.LoggerProvider, error) {
 	return provider, nil
 }
 
-func (p *zerologLoggerProvider) GetCapability() types.Capability {
+func (p *zerologLoggerProvider) GetCapability() provider.Capability {
 	return Capability
 }
 

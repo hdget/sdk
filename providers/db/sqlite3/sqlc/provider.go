@@ -1,15 +1,15 @@
 package sqlc
 
 import (
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/pkg/errors"
 )
 
 type sqlite3Provider struct {
-	client types.DbClient
+	client provider.DbClient
 }
 
-func New(configProvider types.ConfigProvider, logger types.LoggerProvider) (types.DbProvider, error) {
+func New(configProvider provider.Config, logger provider.Logger) (provider.Database, error) {
 	config, err := newConfig(configProvider)
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func New(configProvider types.ConfigProvider, logger types.LoggerProvider) (type
 }
 
 // NewClient 从指定的文件创建创建数据库连接
-func NewClient(dbFile string) (types.DbClient, error) {
+func NewClient(dbFile string) (provider.DbClient, error) {
 	client, err := newClient(nil, dbFile)
 	if err != nil {
 		return nil, errors.Wrapf(err, "connect sqlite3: %s", dbFile)
@@ -33,32 +33,28 @@ func NewClient(dbFile string) (types.DbClient, error) {
 	return client, nil
 }
 
-func (p *sqlite3Provider) GetCapability() types.Capability {
+func (p *sqlite3Provider) GetCapability() provider.Capability {
 	return Capability
 }
 
-func (p *sqlite3Provider) My() types.DbClient {
+func (p *sqlite3Provider) Main() provider.DbClient {
 	return p.client
 }
 
-func (p *sqlite3Provider) Master() types.DbClient {
+func (p *sqlite3Provider) Replica(i int) provider.DbClient {
 	return p.client
 }
 
-func (p *sqlite3Provider) Slave(i int) types.DbClient {
-	return p.client
-}
-
-func (p *sqlite3Provider) By(name string) types.DbClient {
+func (p *sqlite3Provider) Named(name string) provider.DbClient {
 	return p.client
 }
 
 // Read 返回用于读操作的数据库客户端（SQLite3 无读写分离，返回同一客户端）
-func (p *sqlite3Provider) Read() types.DbClient {
+func (p *sqlite3Provider) Read() provider.DbClient {
 	return p.client
 }
 
 // Write 返回用于写操作的数据库客户端（SQLite3 无读写分离，返回同一客户端）
-func (p *sqlite3Provider) Write() types.DbClient {
+func (p *sqlite3Provider) Write() provider.DbClient {
 	return p.client
 }

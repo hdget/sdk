@@ -3,27 +3,27 @@ package sqlc
 import (
 	"sync/atomic"
 
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/pkg/errors"
 )
 
 type sqlcProvider struct {
-	defaultDb types.DbClient
-	masterDb  types.DbClient
-	slaveDbs  []types.DbClient
-	extraDbs  map[string]types.DbClient
+	defaultDb provider.DbClient
+	masterDb  provider.DbClient
+	slaveDbs  []provider.DbClient
+	extraDbs  map[string]provider.DbClient
 	slaveIdx  uint64 // 用于轮询选择 slave
 }
 
-func New(configProvider types.ConfigProvider, logger types.LoggerProvider) (types.DbProvider, error) {
+func New(configProvider provider.Config, logger provider.Logger) (provider.Database, error) {
 	config, err := newConfig(configProvider)
 	if err != nil {
 		return nil, err
 	}
 
 	p := &sqlcProvider{
-		slaveDbs: make([]types.DbClient, len(config.Slaves)),
-		extraDbs: make(map[string]types.DbClient),
+		slaveDbs: make([]provider.DbClient, len(config.Slaves)),
+		extraDbs: make(map[string]provider.DbClient),
 	}
 
 	if config.Default != nil {
@@ -64,7 +64,7 @@ func New(configProvider types.ConfigProvider, logger types.LoggerProvider) (type
 	return p, nil
 }
 
-func NewClient(configProvider types.ConfigProvider, database ...string) (types.DbClient, error) {
+func NewClient(configProvider provider.Config, database ...string) (provider.DbClient, error) {
 	config, err := newConfig(configProvider)
 	if err != nil {
 		return nil, errors.Wrap(err, "new postgresql config")
@@ -92,31 +92,31 @@ func NewClient(configProvider types.ConfigProvider, database ...string) (types.D
 	return client, nil
 }
 
-func (p *sqlcProvider) GetCapability() types.Capability {
+func (p *sqlcProvider) GetCapability() provider.Capability {
 	return Capability
 }
 
-func (p *sqlcProvider) My() types.DbClient {
+func (p *sqlcProvider) Main() provider.DbClient {
 	return p.defaultDb
 }
 
-func (p *sqlcProvider) Master() types.DbClient {
+func (p *sqlcProvider) Master() provider.DbClient {
 	return p.masterDb
 }
 
-func (p *sqlcProvider) Slave(i int) types.DbClient {
+func (p *sqlcProvider) Replica(i int) provider.DbClient {
 	if i < 0 || i >= len(p.slaveDbs) {
 		return nil
 	}
 	return p.slaveDbs[i]
 }
 
-func (p *sqlcProvider) By(name string) types.DbClient {
+func (p *sqlcProvider) Named(name string) provider.DbClient {
 	return p.extraDbs[name]
 }
 
 // Read 返回用于读操作的数据库客户端（从 slave 中轮询选择，无 slave 则返回 master 或 default）
-func (p *sqlcProvider) Read() types.DbClient {
+func (p *sqlcProvider) Read() provider.DbClient {
 	if len(p.slaveDbs) > 0 {
 		idx := atomic.AddUint64(&p.slaveIdx, 1) - 1
 		return p.slaveDbs[idx%uint64(len(p.slaveDbs))]
@@ -125,7 +125,7 @@ func (p *sqlcProvider) Read() types.DbClient {
 }
 
 // Write 返回用于写操作的数据库客户端（返回 master 或 default）
-func (p *sqlcProvider) Write() types.DbClient {
+func (p *sqlcProvider) Write() provider.DbClient {
 	if p.masterDb != nil {
 		return p.masterDb
 	}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/pkg/errors"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -16,7 +16,7 @@ import (
 // This manager improves performance in high volume systems and also acts as a throttle to prevent the AMQP server from
 // overloading.
 type pooledChannelManager struct {
-	logger     types.LoggerProvider
+	logger     provider.Logger
 	connection *connection
 	channels   []*pooledChannelImpl
 	closed     uint32
@@ -24,7 +24,7 @@ type pooledChannelManager struct {
 	closedChan chan struct{}
 }
 
-func newPooledChannelManager(logger types.LoggerProvider, connManager *connection, poolSize int) (channelManager, error) {
+func newPooledChannelManager(logger provider.Logger, connManager *connection, poolSize int) (channelManager, error) {
 	logger.Info("creating pooled channel manager", "poolSize", poolSize)
 
 	channels := make([]*pooledChannelImpl, poolSize)
@@ -106,14 +106,14 @@ func (m *pooledChannelManager) isClosed() bool {
 }
 
 type pooledChannelImpl struct {
-	logger      types.LoggerProvider
+	logger      provider.Logger
 	connection  *connection
 	amqpChan    *amqp.Channel
 	closedChan  chan *amqp.Error
 	confirmChan chan amqp.Confirmation
 }
 
-func newPooledChannel(logger types.LoggerProvider, conn *connection) (*pooledChannelImpl, error) {
+func newPooledChannel(logger provider.Logger, conn *connection) (*pooledChannelImpl, error) {
 	c := &pooledChannelImpl{
 		logger,
 		conn,

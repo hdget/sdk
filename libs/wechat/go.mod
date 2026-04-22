@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/elliotchance/pie/v2 v2.9.1
 	github.com/go-resty/resty/v2 v2.16.5
-	github.com/hdget/sdk/common v0.0.9
+	github.com/hdget/sdk/common v0.0.11
 	github.com/hdget/utils v0.2.3
 	github.com/hdget/utils/cmp v0.0.1
 	github.com/hdget/utils/hash v0.0.1
@@ -23,7 +23,5 @@ require (
 	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93 // indirect
 	golang.org/x/net v0.48.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251213004720-97cd9d5aeac2 // indirect
-	google.golang.org/grpc v1.79.3 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )

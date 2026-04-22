@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/pkg/errors"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type rmqPublisherImpl struct {
 	*connection
-	logger                  types.LoggerProvider
+	logger                  provider.Logger
 	config                  *RabbitMqConfig
 	publishBindingsLock     sync.RWMutex
 	publishBindingsPrepared map[string]struct{}
@@ -23,7 +23,7 @@ type rmqPublisherImpl struct {
 	useDelayTopology bool
 }
 
-func newPublisher(name string, config *RabbitMqConfig, logger types.LoggerProvider, options ...publisherOption) (*rmqPublisherImpl, error) {
+func newPublisher(name string, config *RabbitMqConfig, logger provider.Logger, options ...publisherOption) (*rmqPublisherImpl, error) {
 	conn, err := newConnection(logger, config)
 	if err != nil {
 		return nil, fmt.Errorf("publisher create new connection: %w", err)

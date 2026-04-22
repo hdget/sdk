@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/hdget/sdk/libs/wechat/pkg/cache"
 	"github.com/pkg/errors"
 )
@@ -18,7 +18,7 @@ type API interface {
 type apiImpl struct {
 	appId         string
 	appSecret     string
-	redisProvider types.RedisProvider
+	redisProvider provider.Redis
 }
 
 const (
@@ -27,8 +27,8 @@ const (
 	urlGetAccessToken   = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s"
 )
 
-func New(appId, appSecret string, redisProvider ...types.RedisProvider) API {
-	var redis types.RedisProvider
+func New(appId, appSecret string, redisProvider ...provider.Redis) API {
+	var redis provider.Redis
 	if len(redisProvider) > 0 {
 		redis = redisProvider[0]
 	}

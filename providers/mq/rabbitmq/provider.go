@@ -1,17 +1,17 @@
 package rabbitmq
 
 import (
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 )
 
 // rabbitmqProvider
 // Note: most codes comes from https://github.com/ThreeDotsLabs/watermill-amqp
 type rabbitmqProvider struct {
 	config *RabbitMqConfig
-	logger types.LoggerProvider
+	logger provider.Logger
 }
 
-func New(configProvider types.ConfigProvider, logger types.LoggerProvider) (types.MessageQueueProvider, error) {
+func New(configProvider provider.Config, logger provider.Logger) (provider.MessageQueue, error) {
 	config, err := newConfig(configProvider)
 	if err != nil {
 		return nil, err
@@ -26,8 +26,8 @@ func (r rabbitmqProvider) Init(args ...any) error {
 	return nil
 }
 
-func (r rabbitmqProvider) NewPublisher(name string, args ...*types.PublisherOption) (types.MessageQueuePublisher, error) {
-	option := types.DefaultPublisherOption
+func (r rabbitmqProvider) NewPublisher(name string, args ...*provider.PublisherOption) (provider.MessageQueuePublisher, error) {
+	option := provider.DefaultPublisherOption
 	if len(args) > 0 {
 		option = args[0]
 	}
@@ -40,8 +40,8 @@ func (r rabbitmqProvider) NewPublisher(name string, args ...*types.PublisherOpti
 	return newPublisher(name, r.config, r.logger, publisherOptions...)
 }
 
-func (r rabbitmqProvider) NewSubscriber(name string, args ...*types.SubscriberOption) (types.MessageQueueSubscriber, error) {
-	option := types.DefaultSubscriberOption
+func (r rabbitmqProvider) NewSubscriber(name string, args ...*provider.SubscriberOption) (provider.MessageQueueSubscriber, error) {
+	option := provider.DefaultSubscriberOption
 	if len(args) > 0 {
 		option = args[0]
 	}
@@ -54,6 +54,6 @@ func (r rabbitmqProvider) NewSubscriber(name string, args ...*types.SubscriberOp
 	return newSubscriber(name, r.config, r.logger, subscriberOptions...)
 }
 
-func (r rabbitmqProvider) GetCapability() types.Capability {
+func (r rabbitmqProvider) GetCapability() provider.Capability {
 	return Capability
 }

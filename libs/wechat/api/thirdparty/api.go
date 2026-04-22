@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hdget/sdk/common/types"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/hdget/sdk/libs/wechat/api"
 	"github.com/hdget/sdk/libs/wechat/api/thirdparty/cache"
 	"github.com/hdget/sdk/libs/wechat/api/thirdparty/wx"
@@ -24,7 +24,7 @@ type API interface {
 type thirdPartyApiImpl struct {
 	api.API
 	wx.WxAPI
-	redisProvider types.RedisProvider
+	redisProvider provider.Redis
 }
 
 const (
@@ -32,7 +32,7 @@ const (
 	urlH5Auth = "https://open.weixin.qq.com/wxaopen/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid=%s&pre_auth_code=%s&redirect_uri=%s&auth_type=%d#wechat_redirect"
 )
 
-func New(appId, appSecret string, redisProvider types.RedisProvider) API {
+func New(appId, appSecret string, redisProvider provider.Redis) API {
 	return &thirdPartyApiImpl{
 		API:           api.New(appId, appSecret, redisProvider),
 		WxAPI:         wx.New(appId, appSecret),
