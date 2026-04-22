@@ -32,8 +32,7 @@ func (impl *sqlite3DevOpsImpl) InstallDatabase(dbClient types.DbClient, specifie
 		return "", errors.Wrap(err, "get db name")
 	}
 
-	// 使用统一日志方法
-	impl.logInfo("install database", "name", dbName)
+	fmt.Printf("=== install database: %s ===\n", dbName)
 
 	// do nothing, just close db client
 	_ = dbClient.Close()
