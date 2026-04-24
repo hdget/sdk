@@ -2,7 +2,7 @@ package biz
 
 import "sync"
 
-type transactor interface {
+type Transactor interface {
 	Ref(tx any)      // 引用, 因为可能嵌套NewTransactor, 这里加入计数
 	Unref()          // 解引用, 如果计数为0，表示需要Finalize，并Destroy tx
 	GetTx() any      // 获取Tx
@@ -15,7 +15,7 @@ type safeTxImpl struct {
 	count int
 }
 
-func newTransactor() transactor {
+func newTransactor() Transactor {
 	return &safeTxImpl{
 		mu: sync.RWMutex{},
 	}

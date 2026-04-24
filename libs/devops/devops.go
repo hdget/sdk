@@ -2,6 +2,7 @@ package devops
 
 import (
 	"bufio"
+	"context"
 	"embed"
 	"fmt"
 	"os"
@@ -9,21 +10,20 @@ import (
 	"strings"
 
 	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/sdk/common/biz"
 	"github.com/hdget/sdk/common/constant"
 	"github.com/hdget/sdk/common/provider"
 )
 
 type TableOperator interface {
 	GetName() string
-	Init(ctx biz.Context, fs embed.FS) error
-	Export(ctx biz.Context, assetPath string) error
+	Init(ctx context.Context, fs embed.FS) error
+	Export(ctx context.Context, assetPath string) error
 }
 
 type DevOps interface {
 	InstallDatabase(dbClient provider.DbClient, dbname ...string) (string, error)
-	InstallTables(ctx biz.Context, store embed.FS, force bool, tableNames ...string) error
-	ExportTables(ctx biz.Context, storePath string, tableNames ...string) error
+	InstallTables(ctx context.Context, store embed.FS, force bool, tableNames ...string) error
+	ExportTables(ctx context.Context, storePath string, tableNames ...string) error
 }
 
 type devOpsImpl struct {
@@ -58,7 +58,7 @@ func (impl *devOpsImpl) getDbName(dbName ...string) (string, error) {
 	return fmt.Sprintf("%s_%s", project, impl.app), nil
 }
 
-func (impl *devOpsImpl) ExportTables(ctx biz.Context, storePath string, tableNames ...string) error {
+func (impl *devOpsImpl) ExportTables(ctx context.Context, storePath string, tableNames ...string) error {
 	// 获取要处理的表
 	exportTables := tableNames
 	if len(exportTables) == 0 {

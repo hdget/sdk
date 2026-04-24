@@ -26,14 +26,14 @@ type apiImpl struct {
 	ctx context.Context
 }
 
-func New(bizCtx biz.Context) APIer {
+func New(ctx context.Context) APIer {
 	return &apiImpl{
-		ctx: biz.NewOutgoingGrpcContext(bizCtx),
+		ctx: biz.NewOutgoingGrpcContext(ctx),
 	}
 }
 
 // InternalCall 内部调用, 不返回结果
-func InternalCall(ctx biz.Context, app string, version int, module, handler string, request ...any) error {
+func InternalCall(ctx context.Context, app string, version int, module, handler string, request ...any) error {
 	var req any
 	if len(request) > 0 {
 		req = request[0]
@@ -48,7 +48,7 @@ func InternalCall(ctx biz.Context, app string, version int, module, handler stri
 }
 
 // InternalInvoke 内部调用, 返回结果
-func InternalInvoke[RESULT any](ctx biz.Context, app string, version int, module, handler string, request ...any) (RESULT, error) {
+func InternalInvoke[RESULT any](ctx context.Context, app string, version int, module, handler string, request ...any) (RESULT, error) {
 	var req any
 	if len(request) > 0 {
 		req = request[0]

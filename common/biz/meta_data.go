@@ -1,20 +1,8 @@
-package meta
+package biz
 
 import (
 	"strconv"
 	"sync"
-)
-
-const (
-	KeyAppKey  = "hd-app-key"  // 应用ID
-	KeySource  = "hd-source"   // 请求来源, 例如：第三方API回调
-	KeyClient  = "hd-client"   // 请求客户端
-	KeyRelease = "hd-release"  // 版本号
-	KeyTid     = "hd-tid"      // tenant id
-	KeyUid     = "hd-uid"      // user id
-	KeyUsn     = "hd-usn"      // user sn
-	KeyRoleIds = "hd-role-ids" // role ids
-	KeyCaller  = "dapr-caller-app-id"
 )
 
 type MetaData interface {
@@ -31,7 +19,7 @@ type metaDataImpl struct {
 	mu  sync.RWMutex
 }
 
-func New(kvs ...any) MetaData {
+func newMetaData(kvs ...any) MetaData {
 	c := &metaDataImpl{
 		kvs: make(map[string]any),
 		mu:  sync.RWMutex{},

@@ -16,11 +16,11 @@ type Transactor interface {
 
 type trans struct {
 	tx     boil.Transactor
-	ctx    biz.Context
+	ctx    context.Context
 	errLog func(msg string, kvs ...any)
 }
 
-func NewTransactor(ctx biz.Context, logger provider.Logger) (Transactor, error) {
+func NewTransactor(ctx context.Context, logger provider.Logger) (Transactor, error) {
 	errLog := loggerUtils.Error
 	if logger != nil {
 		errLog = logger.Error
@@ -28,7 +28,7 @@ func NewTransactor(ctx biz.Context, logger provider.Logger) (Transactor, error) 
 
 	var err error
 	var transactor boil.Transactor
-	if v, ok := ctx.Transactor().GetTx().(boil.Transactor); ok {
+	if v, ok := biz.GetTransactor(ctx).GetTx().(boil.Transactor); ok {
 		transactor = v
 	} else { // 没找到，则new
 		transactor, err = boil.BeginTx(context.Background(), nil)
@@ -38,7 +38,7 @@ func NewTransactor(ctx biz.Context, logger provider.Logger) (Transactor, error) 
 	}
 
 	// ctx保存transaction
-	ctx.Transactor().Ref(transactor)
+	biz.GetTransactor(ctx).Ref(transactor)
 
 	return &trans{tx: transactor, ctx: ctx, errLog: errLog}, nil
 }
@@ -48,10 +48,10 @@ func (t *trans) Finalize(err error) {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("panic: %v", r)
 		}
-		t.ctx.Transactor().Unref()
+		biz.GetTransactor(t.ctx).Unref()
 	}()
 
-	if needFinalize := t.ctx.Transactor().ReachRoot(); !needFinalize {
+	if needFinalize := biz.GetTransactor(t.ctx).ReachRoot(); !needFinalize {
 		return
 	}
 

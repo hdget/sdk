@@ -5,65 +5,48 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hdget/sdk/common/meta"
 	"google.golang.org/grpc/metadata"
 )
 
-type Context interface {
-	MetaData() meta.MetaData // 元数据
-	Transactor() transactor  // 数据库Transactor相关
-	Tid() int64              // 获取租户ID
-	Uid() int64              // 获取用户ID
-	AppKey() string          // 获取应用ID
-	Source() string          // 获取请求来源
-	Client() string          // 获取请求客户端
-	RoleIds() []int64        // 获取角色ID列表
+// hdCtxValueKey 定义 context key 类型，避免与其他包冲突
+type hdCtxValueKey struct{}
+
+// ctxValue 存储在 context 中的内部结构体
+// 包含 metadata、Transactor 和缓存字段
+type ctxValue struct {
+	metadata   MetaData
+	transactor Transactor
 }
 
-// contextImpl 实现Context接口
-// 注意: 缓存字段(tid, uid, appKey等)在并发读取时可能存在竞态条件
-// 建议在单个请求处理流程中使用，不要在多个goroutine间共享
-// 如果需要跨goroutine传递，应使用MetaData()获取原始数据而非缓存字段
-type contextImpl struct {
-	metadata   meta.MetaData
-	transactor transactor
-	tid        int64   // 缓存租户ID提升效率
-	uid        int64   // 缓存用户ID提升效率
-	appKey     string  // 缓存应用Key提升效率
-	source     string  // 缓存请求来源
-	client     string  // 缓存请求客户端
-	roleIds    []int64 // 缓存角色列表提升效率
-}
-
-func NewContext(kvs ...any) Context {
-	return &contextImpl{
-		metadata:   meta.New(kvs...),
+// NewContext 创建一个kvs的 context.Context，包含空的 metadata 和 Transactor
+func NewContext(kvs ...any) context.Context {
+	return context.WithValue(context.Background(), hdCtxValueKey{}, &ctxValue{
+		metadata:   newMetaData(kvs...),
 		transactor: newTransactor(),
-	}
+	})
 }
 
-// NewFromIncomingGrpcContext GRPC context => biz.Context
-func NewFromIncomingGrpcContext(ctx context.Context) Context {
-	c := &contextImpl{
-		metadata:   meta.New(),
+// NewFromIncomingGrpcContext 从 gRPC context 中提取 metadata 并存储到 context.Context
+func NewFromIncomingGrpcContext(ctx context.Context) context.Context {
+	cv := &ctxValue{
+		metadata:   newMetaData(),
 		transactor: newTransactor(),
 	}
 
-	// 尝试从grpc context中获取meta信息
+	// 尝试从 gRPC context 中获取 metadata
 	md, exists := metadata.FromIncomingContext(ctx)
 	if !exists {
-		return c
+		return context.WithValue(ctx, hdCtxValueKey{}, cv)
 	}
 
 	for key, values := range md {
 		switch key {
-		case meta.KeyTid, meta.KeyUid: // int64
+		case MetaKeyTid, MetaKeyUid: // int64
 			val, err := strconv.ParseInt(values[0], 10, 64)
 			if err == nil {
-				c.metadata.Set(key, val)
+				cv.metadata.Set(key, val)
 			}
-			// 解析失败时不设置，保持默认值
-		case meta.KeyRoleIds:
+		case MetaKeyRoleIds:
 			var val []int64
 			if values[0] != "" {
 				strIds := strings.Split(values[0], ",")
@@ -75,67 +58,148 @@ func NewFromIncomingGrpcContext(ctx context.Context) Context {
 					}
 				}
 			}
-			c.metadata.Set(key, val)
+			cv.metadata.Set(key, val)
 		default:
-			c.metadata.Set(key, values[0])
+			cv.metadata.Set(key, values[0])
 		}
 	}
-	return c
+
+	return context.WithValue(ctx, hdCtxValueKey{}, cv)
 }
 
-// NewOutgoingGrpcContext biz.Context => GRPC context
-func NewOutgoingGrpcContext(ctx Context) context.Context {
-	return metadata.NewOutgoingContext(context.Background(), ctx.MetaData().AsGRPCMetaData())
-}
-
-// MetaData 获取元数据
-func (c *contextImpl) MetaData() meta.MetaData {
-	return c.metadata
-}
-
-// Transactor 获取DB Transactor
-func (c *contextImpl) Transactor() transactor {
-	return c.transactor
-}
-
-func (c *contextImpl) Tid() int64 {
-	if c.tid == 0 {
-		c.tid = c.metadata.GetInt64(meta.KeyTid)
+// NewOutgoingGrpcContext 将 context 中的 metadata 转换为 gRPC outgoing context
+func NewOutgoingGrpcContext(ctx context.Context) context.Context {
+	cv := getCtxValue(ctx)
+	if cv == nil {
+		return metadata.NewOutgoingContext(ctx, newMetaData().AsGRPCMetaData())
 	}
-	return c.tid
+	return metadata.NewOutgoingContext(ctx, cv.metadata.AsGRPCMetaData())
 }
 
-func (c *contextImpl) Uid() int64 {
-	if c.uid == 0 {
-		c.uid = c.metadata.GetInt64(meta.KeyUid)
+// GetMetaData 从 context 中获取 MetaData
+func GetMetaData(ctx context.Context) MetaData {
+	cv := getCtxValue(ctx)
+	if cv == nil {
+		return newMetaData()
 	}
-	return c.uid
+	return cv.metadata
 }
 
-func (c *contextImpl) AppKey() string {
-	if c.appKey == "" {
-		c.appKey = c.metadata.GetString(meta.KeyAppKey)
+// GetTransactor 从 context 中获取 Transactor
+func GetTransactor(ctx context.Context) Transactor {
+	cv := getCtxValue(ctx)
+	if cv == nil {
+		return newTransactor()
 	}
-	return c.appKey
+	return cv.transactor
 }
 
-func (c *contextImpl) Source() string {
-	if c.source == "" {
-		c.source = c.metadata.GetString(meta.KeySource)
+// GetTid 从 context 中获取租户 ID（带缓存优化）
+func GetTid(ctx context.Context) int64 {
+	cv := getCtxValue(ctx)
+	if cv == nil {
+		return 0
 	}
-	return c.source
+	// 从 metadata 获取，metadata 内部已有缓存机制
+	return cv.metadata.GetInt64(MetaKeyTid)
 }
 
-func (c *contextImpl) Client() string {
-	if c.client == "" {
-		c.client = c.metadata.GetString(meta.KeyClient)
+// GetUid 从 context 中获取用户 ID（带缓存优化）
+func GetUid(ctx context.Context) int64 {
+	cv := getCtxValue(ctx)
+	if cv == nil {
+		return 0
 	}
-	return c.client
+	return cv.metadata.GetInt64(MetaKeyUid)
 }
 
-func (c *contextImpl) RoleIds() []int64 {
-	if len(c.roleIds) == 0 {
-		c.roleIds = c.metadata.GetInt64Slice(meta.KeyRoleIds)
+// GetAppId 从 context 中获取应用 app_id（带缓存优化）
+func GetAppId(ctx context.Context) string {
+	cv := getCtxValue(ctx)
+	if cv == nil {
+		return ""
 	}
-	return c.roleIds
+	return cv.metadata.GetString(MetaKeyAppKey)
+}
+
+// GetSource 从 context 中获取请求来源（带缓存优化）
+func GetSource(ctx context.Context) string {
+	cv := getCtxValue(ctx)
+	if cv == nil {
+		return ""
+	}
+	return cv.metadata.GetString(MetaKeySource)
+}
+
+// GetAppCode 从 context 中获取请求应用类型标识（带缓存优化）
+func GetAppCode(ctx context.Context) string {
+	cv := getCtxValue(ctx)
+	if cv == nil {
+		return ""
+	}
+	return cv.metadata.GetString(MetaKeyAppCode)
+}
+
+// RoleIds 从 context 中获取角色 ID 列表（带缓存优化）
+func RoleIds(ctx context.Context) []int64 {
+	cv := getCtxValue(ctx)
+	if cv == nil {
+		return nil
+	}
+	return cv.metadata.GetInt64Slice(MetaKeyRoleIds)
+}
+
+// WithTid 将租户 ID 存入 context
+func WithTid(ctx context.Context, tid int64) context.Context {
+	cv := mustGetCtxValue(ctx)
+	cv.metadata.Set(MetaKeyTid, tid)
+	return context.WithValue(ctx, hdCtxValueKey{}, cv)
+}
+
+// WithUid 将用户 ID 存入 context
+func WithUid(ctx context.Context, uid int64) context.Context {
+	cv := mustGetCtxValue(ctx)
+	cv.metadata.Set(MetaKeyUid, uid)
+	return context.WithValue(ctx, hdCtxValueKey{}, cv)
+}
+
+// WithRoleIds 将角色 ID 列表存入 context
+func WithRoleIds(ctx context.Context, roleIds []int64) context.Context {
+	cv := mustGetCtxValue(ctx)
+	cv.metadata.Set(MetaKeyRoleIds, roleIds)
+	return context.WithValue(ctx, hdCtxValueKey{}, cv)
+}
+
+// WithMetaData 将 metadata 存入 context
+func WithMetaData(ctx context.Context, md MetaData) context.Context {
+	cv := getCtxValue(ctx)
+	if cv == nil {
+		cv = &ctxValue{
+			metadata:   md,
+			transactor: newTransactor(),
+		}
+	} else {
+		cv.metadata = md
+	}
+	return context.WithValue(ctx, hdCtxValueKey{}, cv)
+}
+
+// getCtxValue 从 context 中获取 ctxValue，如果不存在返回 nil
+func getCtxValue(ctx context.Context) *ctxValue {
+	if cv, ok := ctx.Value(hdCtxValueKey{}).(*ctxValue); ok {
+		return cv
+	}
+	return nil
+}
+
+// mustGetCtxValue 确保有个合法的*ctxValue
+func mustGetCtxValue(ctx context.Context) *ctxValue {
+	cv := getCtxValue(ctx)
+	if cv == nil {
+		cv = &ctxValue{
+			metadata:   newMetaData(),
+			transactor: newTransactor(),
+		}
+	}
+	return cv
 }

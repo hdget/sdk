@@ -26,7 +26,7 @@ type eventHandleResult struct {
 	err   error
 }
 
-type EventFunction func(ctx biz.Context, data []byte) (retry bool, err error)
+type EventFunction func(ctx context.Context, data []byte) (retry bool, err error)
 
 func (h eventHandlerImpl) GetTopic() string {
 	return h.topic

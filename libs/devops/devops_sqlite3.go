@@ -1,6 +1,7 @@
 package devops
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"path"
@@ -40,8 +41,8 @@ func (impl *sqlite3DevOpsImpl) InstallDatabase(dbClient provider.DbClient, speci
 	return "", nil
 }
 
-func (impl *sqlite3DevOpsImpl) InstallTables(ctx biz.Context, store embed.FS, force bool, tableNames ...string) error {
-	tx, ok := ctx.Transactor().GetTx().(provider.DbExecutor)
+func (impl *sqlite3DevOpsImpl) InstallTables(ctx context.Context, store embed.FS, force bool, tableNames ...string) error {
+	tx, ok := biz.GetTransactor(ctx).GetTx().(provider.DbExecutor)
 	if !ok {
 		return fmt.Errorf("db transactor not found in context")
 	}

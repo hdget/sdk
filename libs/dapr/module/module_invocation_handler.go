@@ -31,7 +31,7 @@ type invocationHandlerImpl struct {
 	fn           InvocationFunction // 调用函数
 }
 
-type InvocationFunction func(ctx biz.Context, data []byte) (any, error)
+type InvocationFunction func(ctx context.Context, data []byte) (any, error)
 type HandlerMatcher func(methodName string) (string, bool) // 传入receiver.methodName, 判断是否匹配，然后取出处理后的handlerName
 
 func (h invocationHandlerImpl) GetAlias() string {
