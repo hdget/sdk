@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/aarondl/sqlboiler/v4 v4.19.5
 	github.com/elliotchance/pie/v2 v2.9.1
-	github.com/hdget/sdk/common v0.0.12
+	github.com/hdget/sdk/common v0.0.13
 	github.com/hdget/utils v0.2.3
 	github.com/hdget/utils/json v0.0.1
 	github.com/hdget/utils/paginator v0.0.1
@@ -35,7 +35,6 @@ require (
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251213004720-97cd9d5aeac2 // indirect
 	google.golang.org/grpc v1.79.3 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
