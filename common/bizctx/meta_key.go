@@ -1,4 +1,4 @@
-package biz
+package bizctx
 
 const (
 	MetaKeyAppKey  = "hd-app-id"   // 应用ID

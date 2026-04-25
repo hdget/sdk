@@ -7,7 +7,7 @@ import (
 	"path"
 
 	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/sdk/common/biz"
+	"github.com/hdget/sdk/common/bizctx"
 	"github.com/hdget/sdk/common/provider"
 	"github.com/pkg/errors"
 )
@@ -48,7 +48,7 @@ func (impl *psqlDevOpsImpl) InstallDatabase(dbClient provider.DbClient, specifie
 }
 
 func (impl *devOpsImpl) InstallTables(ctx context.Context, store embed.FS, force bool, tableNames ...string) error {
-	tx, ok := biz.GetTransactor(ctx).GetTx().(provider.DbExecutor)
+	tx, ok := bizctx.GetTransactor(ctx).GetTx().(provider.DbExecutor)
 	if !ok {
 		return fmt.Errorf("db transactor not found in context")
 	}

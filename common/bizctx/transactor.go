@@ -1,4 +1,4 @@
-package biz
+package bizctx
 
 import "sync"
 
@@ -38,7 +38,6 @@ func (t *safeTxImpl) Unref() {
 		t.count--
 	}
 
-	// 如果计数为0后销毁tx
 	if t.count == 0 {
 		t.tx = nil
 	}
@@ -47,8 +46,6 @@ func (t *safeTxImpl) Unref() {
 func (t *safeTxImpl) ReachRoot() bool {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-
-	// 如果为1则表示到达最外层，需要Commit Or Rollback
 	return t.count == 1
 }
 

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/aarondl/sqlboiler/v4/boil"
-	"github.com/hdget/sdk/common/biz"
+	"github.com/hdget/sdk/common/bizctx"
 )
 
 type Db interface {
@@ -18,7 +18,7 @@ type dbImpl struct {
 }
 
 func (impl *dbImpl) Executor() boil.Executor {
-	if tx, ok := biz.GetTransactor(impl.ctx).GetTx().(boil.Executor); ok {
+	if tx, ok := bizctx.GetTransactor(impl.ctx).GetTx().(boil.Executor); ok {
 		return tx
 	}
 	return boil.GetDB()

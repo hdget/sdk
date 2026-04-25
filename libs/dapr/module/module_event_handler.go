@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/dapr/go-sdk/service/common"
-	"github.com/hdget/sdk/common/biz"
 	"github.com/hdget/sdk/common/provider"
 	panicUtils "github.com/hdget/utils/panic"
 )
@@ -59,7 +58,7 @@ func (h eventHandlerImpl) GetEventFunction(logger provider.Logger) common.TopicE
 			}()
 
 			// 执行具体的函数
-			fnResult.retry, fnResult.err = h.fn(biz.NewContext(), event.RawData)
+			fnResult.retry, fnResult.err = h.fn(ctx, event.RawData)
 		}()
 
 		select {

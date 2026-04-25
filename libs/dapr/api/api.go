@@ -3,33 +3,36 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"sync"
 
 	"github.com/dapr/go-sdk/client"
-	"github.com/hdget/sdk/common/biz"
 	"github.com/pkg/errors"
 )
 
-type APIer interface {
-	Invoke(app string, apiVersion int, module string, handler string, data any, client ...string) ([]byte, error)
-	Lock(lockStore, lockOwner, resource string, expiryInSeconds int) error
-	Unlock(lockStore, lockOwner, resource string) error
-	Publish(pubSubName, topic string, data interface{}, args ...bool) error
-	SaveState(storeName, key string, value interface{}) error
-	GetState(storeName, key string) ([]byte, error)
-	DeleteState(storeName, key string) error
-	GetConfigurationItems(configStore string, keys []string) (map[string]*client.ConfigurationItem, error)
+type DaprApi interface {
+	Invoke(ctx context.Context, app string, apiVersion int, module string, handler string, data any, appCode ...string) ([]byte, error)
+	Lock(ctx context.Context, lockStore, lockOwner, resource string, expiryInSeconds int) error
+	Unlock(ctx context.Context, lockStore, lockOwner, resource string) error
+	Publish(ctx context.Context, pubSubName, topic string, data interface{}, args ...bool) error
+	SaveState(ctx context.Context, storeName, key string, value interface{}) error
+	GetState(ctx context.Context, storeName, key string) ([]byte, error)
+	DeleteState(ctx context.Context, storeName, key string) error
+	GetConfigurationItems(ctx context.Context, configStore string, keys []string) (map[string]*client.ConfigurationItem, error)
 	SubscribeConfigurationItems(ctx context.Context, configStore string, keys []string, handler client.ConfigurationHandleFunction) (string, error)
-	GetBulkState(storeName string, keys any) (map[string][]byte, error)
+	GetBulkState(ctx context.Context, storeName string, keys any) (map[string][]byte, error)
 }
 
-type apiImpl struct {
-	ctx context.Context
+type daprApiImpl struct {
 }
 
-func New(ctx context.Context) APIer {
-	return &apiImpl{
-		ctx: biz.NewOutgoingGrpcContext(ctx),
-	}
+var (
+	newApi = sync.OnceValue[DaprApi](func() DaprApi {
+		return &daprApiImpl{}
+	})
+)
+
+func New() DaprApi {
+	return newApi()
 }
 
 // InternalCall 内部调用, 不返回结果
@@ -39,7 +42,7 @@ func InternalCall(ctx context.Context, app string, version int, module, handler 
 		req = request[0]
 	}
 
-	_, err := New(ctx).Invoke(app, version, module, handler, req)
+	_, err := New().Invoke(ctx, app, version, module, handler, req)
 	if err != nil {
 		return errors.Wrapf(err, "dapr internal call, app: %s, version: %d, module: %s, handler: %s, req: %v", app, version, module, handler, req)
 	}
@@ -55,7 +58,7 @@ func InternalInvoke[RESULT any](ctx context.Context, app string, version int, mo
 	}
 
 	var ret RESULT
-	data, err := New(ctx).Invoke(app, version, module, handler, req)
+	data, err := New().Invoke(ctx, app, version, module, handler, req)
 	if err != nil {
 		return ret, errors.Wrapf(err, "dapr internal invoke, app: %s, version: %d, module: %s, handler: %s, req: %v", app, version, module, handler, req)
 	}

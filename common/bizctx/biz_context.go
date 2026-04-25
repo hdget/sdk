@@ -1,4 +1,4 @@
-package biz
+package bizctx
 
 import (
 	"context"
@@ -18,8 +18,8 @@ type ctxValue struct {
 	transactor Transactor
 }
 
-// NewContext 创建一个kvs的 context.Context，包含空的 metadata 和 Transactor
-func NewContext(kvs ...any) context.Context {
+// New 创建一个kvs的 context.Context，包含空的 metadata 和 Transactor
+func New(kvs ...any) context.Context {
 	return context.WithValue(context.Background(), hdCtxValueKey{}, &ctxValue{
 		metadata:   newMetaData(kvs...),
 		transactor: newTransactor(),
@@ -94,17 +94,14 @@ func GetTransactor(ctx context.Context) Transactor {
 	return cv.transactor
 }
 
-// GetTid 从 context 中获取租户 ID（带缓存优化）
 func GetTid(ctx context.Context) int64 {
 	cv := getCtxValue(ctx)
 	if cv == nil {
 		return 0
 	}
-	// 从 metadata 获取，metadata 内部已有缓存机制
 	return cv.metadata.GetInt64(MetaKeyTid)
 }
 
-// GetUid 从 context 中获取用户 ID（带缓存优化）
 func GetUid(ctx context.Context) int64 {
 	cv := getCtxValue(ctx)
 	if cv == nil {
@@ -113,7 +110,6 @@ func GetUid(ctx context.Context) int64 {
 	return cv.metadata.GetInt64(MetaKeyUid)
 }
 
-// GetAppId 从 context 中获取应用 app_id（带缓存优化）
 func GetAppId(ctx context.Context) string {
 	cv := getCtxValue(ctx)
 	if cv == nil {
@@ -122,7 +118,6 @@ func GetAppId(ctx context.Context) string {
 	return cv.metadata.GetString(MetaKeyAppKey)
 }
 
-// GetSource 从 context 中获取请求来源（带缓存优化）
 func GetSource(ctx context.Context) string {
 	cv := getCtxValue(ctx)
 	if cv == nil {
@@ -131,7 +126,6 @@ func GetSource(ctx context.Context) string {
 	return cv.metadata.GetString(MetaKeySource)
 }
 
-// GetAppCode 从 context 中获取请求应用类型标识（带缓存优化）
 func GetAppCode(ctx context.Context) string {
 	cv := getCtxValue(ctx)
 	if cv == nil {
@@ -140,8 +134,7 @@ func GetAppCode(ctx context.Context) string {
 	return cv.metadata.GetString(MetaKeyAppCode)
 }
 
-// RoleIds 从 context 中获取角色 ID 列表（带缓存优化）
-func RoleIds(ctx context.Context) []int64 {
+func GetRoleIds(ctx context.Context) []int64 {
 	cv := getCtxValue(ctx)
 	if cv == nil {
 		return nil

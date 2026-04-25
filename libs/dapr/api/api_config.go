@@ -2,22 +2,23 @@ package api
 
 import (
 	"context"
+
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/sdk/common/namespace"
 	"github.com/pkg/errors"
 )
 
 // GetConfigurationItems 获取配置项
-func (a apiImpl) GetConfigurationItems(configStore string, keys []string) (map[string]*client.ConfigurationItem, error) {
-	daprClient, err := client.NewClient()
+func (a daprApiImpl) GetConfigurationItems(ctx context.Context, configStore string, keys []string) (map[string]*client.ConfigurationItem, error) {
+	c, err := client.NewClient()
 	if err != nil {
 		return nil, errors.Wrap(err, "new dapr client")
 	}
-	if daprClient == nil {
+	if c == nil {
 		return nil, errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
-	items, err := daprClient.GetConfigurationItems(a.ctx, namespace.Encapsulate(configStore), keys)
+	items, err := c.GetConfigurationItems(ctx, namespace.Encapsulate(configStore), keys)
 	if err != nil {
 		return nil, errors.Wrap(err, "get configuration items")
 	}
@@ -26,16 +27,16 @@ func (a apiImpl) GetConfigurationItems(configStore string, keys []string) (map[s
 }
 
 // SubscribeConfigurationItems 订阅配置项更改
-func (a apiImpl) SubscribeConfigurationItems(ctx context.Context, configStore string, keys []string, handler client.ConfigurationHandleFunction) (string, error) {
-	daprClient, err := client.NewClient()
+func (a daprApiImpl) SubscribeConfigurationItems(ctx context.Context, configStore string, keys []string, handler client.ConfigurationHandleFunction) (string, error) {
+	c, err := client.NewClient()
 	if err != nil {
 		return "", errors.Wrap(err, "new dapr client")
 	}
-	if daprClient == nil {
+	if c == nil {
 		return "", errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
-	subscriberId, err := daprClient.SubscribeConfigurationItems(ctx, namespace.Encapsulate(configStore), keys, handler)
+	subscriberId, err := c.SubscribeConfigurationItems(ctx, namespace.Encapsulate(configStore), keys, handler)
 	if err != nil {
 		return "", errors.Wrap(err, "subscribe configuration items update")
 	}

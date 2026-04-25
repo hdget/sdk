@@ -1,6 +1,8 @@
 package api
 
 import (
+	"context"
+
 	"github.com/dapr/go-sdk/client"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/sdk/common/namespace"
@@ -26,25 +28,25 @@ func NewEvent(pubsubName, topic string, handler common.TopicEventHandler, args .
 
 // Publish 发布消息
 // isRawPayLoad 发送原始的消息，非cloudevent message
-func (a apiImpl) Publish(pubSubName, topic string, data interface{}, args ...bool) error {
-	daprClient, err := client.NewClient()
+func (a daprApiImpl) Publish(ctx context.Context, pubSubName, topic string, data interface{}, args ...bool) error {
+	c, err := client.NewClient()
 	if err != nil {
 		return errors.Wrap(err, "new dapr client")
 	}
-	if daprClient == nil {
+	if c == nil {
 		return errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
-	//defer daprClient.Close()
+	//defer c.Close()
 
 	var opt client.PublishEventOption
 	metaOptions := getPublishMetaOptions(args...)
 	if metaOptions != nil {
 		opt = client.PublishEventWithMetadata(metaOptions)
-		err = daprClient.PublishEvent(a.ctx, namespace.Encapsulate(pubSubName), topic, data, opt)
+		err = c.PublishEvent(ctx, namespace.Encapsulate(pubSubName), topic, data, opt)
 	} else {
-		err = daprClient.PublishEvent(a.ctx, namespace.Encapsulate(pubSubName), topic, data)
+		err = c.PublishEvent(ctx, namespace.Encapsulate(pubSubName), topic, data)
 	}
 
 	if err != nil {

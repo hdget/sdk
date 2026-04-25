@@ -3,7 +3,7 @@ package sqlboiler
 import (
 	"context"
 
-	"github.com/hdget/sdk/common/biz"
+	"github.com/hdget/sdk/common/bizctx"
 )
 
 // Tdb Tenant db
@@ -26,5 +26,5 @@ func NewTdb(ctx context.Context) Tdb {
 }
 
 func (impl *tdbImpl) Tid() int64 {
-	return biz.GetTid(impl.ctx)
+	return bizctx.GetTid(impl.ctx)
 }
