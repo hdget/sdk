@@ -1,4 +1,4 @@
-package biz
+package bizerr
 
 import (
 	"github.com/hdget/sdk/common/protobuf"
@@ -35,8 +35,8 @@ type errorImpl struct {
 	ErrMsg  string `json:"msg"`
 }
 
-// NewError new error with error code
-func NewError[T constraints.Integer](code T, message string) Error {
+// New error with error code
+func New[T constraints.Integer](code T, message string) Error {
 	return &errorImpl{
 		ErrCode: int(code),
 		ErrMsg:  message,

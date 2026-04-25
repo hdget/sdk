@@ -1,7 +1,9 @@
 package sqlboiler
 
 import (
-	"github.com/hdget/sdk/common/biz"
+	"context"
+
+	"github.com/hdget/sdk/common/bizctx"
 )
 
 // Tdb Tenant db
@@ -14,7 +16,7 @@ type tdbImpl struct {
 	*dbImpl
 }
 
-func NewTdb(ctx biz.Context) Tdb {
+func NewTdb(ctx context.Context) Tdb {
 	return &tdbImpl{
 		dbImpl: &dbImpl{
 			ctx:    ctx,
@@ -24,5 +26,5 @@ func NewTdb(ctx biz.Context) Tdb {
 }
 
 func (impl *tdbImpl) Tid() int64 {
-	return impl.ctx.Tid()
+	return bizctx.GetTid(impl.ctx)
 }

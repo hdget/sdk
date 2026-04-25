@@ -1,9 +1,8 @@
 package devops
 
 import (
+	"context"
 	"embed"
-
-	"github.com/hdget/sdk/common/biz"
 )
 
 type tableOperatorImpl struct {
@@ -16,11 +15,11 @@ func NewTableOperator(name string) TableOperator {
 	}
 }
 
-func (impl *tableOperatorImpl) Init(ctx biz.Context, fs embed.FS) error {
+func (impl *tableOperatorImpl) Init(ctx context.Context, fs embed.FS) error {
 	return nil
 }
 
-func (impl *tableOperatorImpl) Export(ctx biz.Context, assetPath string) error {
+func (impl *tableOperatorImpl) Export(ctx context.Context, assetPath string) error {
 	return nil
 }
 

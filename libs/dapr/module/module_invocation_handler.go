@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 
 	"github.com/dapr/go-sdk/service/common"
-	"github.com/hdget/sdk/common/biz"
+	"github.com/hdget/sdk/common/bizctx"
+	"github.com/hdget/sdk/common/bizerr"
 	"github.com/hdget/sdk/common/provider"
 	"github.com/hdget/sdk/libs/dapr/api"
 	"github.com/hdget/sdk/libs/dapr/localutils"
@@ -17,7 +18,7 @@ import (
 type invocationHandler interface {
 	GetAlias() string
 	GetName() string
-	GetInvokeName() string                                                        // 调用名字
+	GetInvokeName() string                                                    // 调用名字
 	GetInvokeFunction(logger provider.Logger) common.ServiceInvocationHandler // 具体的调用函数
 }
 
@@ -31,7 +32,7 @@ type invocationHandlerImpl struct {
 	fn           InvocationFunction // 调用函数
 }
 
-type InvocationFunction func(ctx biz.Context, data []byte) (any, error)
+type InvocationFunction func(ctx context.Context, data []byte) (any, error)
 type HandlerMatcher func(methodName string) (string, bool) // 传入receiver.methodName, 判断是否匹配，然后取出处理后的handlerName
 
 func (h invocationHandlerImpl) GetAlias() string {
@@ -56,7 +57,7 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger provider.Logger) common.
 			}
 		}()
 
-		result, err := h.fn(biz.NewFromIncomingGrpcContext(ctx), event.Data)
+		result, err := h.fn(bizctx.NewFromIncomingGrpcContext(ctx), event.Data)
 		if err != nil {
 			mInfo := h.module.GetInfo()
 			logger.Error("service invoke", "dir", mInfo.Dir, "module", mInfo.Name, "handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
@@ -68,7 +69,7 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger provider.Logger) common.
 }
 
 func (h invocationHandlerImpl) replyError(err error) (*common.Content, error) {
-	return nil, biz.ToGrpcError(err)
+	return nil, bizerr.ToGrpcError(err)
 }
 
 func (h invocationHandlerImpl) replySuccess(event *common.InvocationEvent, result any) (*common.Content, error) {

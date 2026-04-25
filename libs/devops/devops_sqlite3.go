@@ -1,12 +1,13 @@
 package devops
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"path"
 
 	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/sdk/common/biz"
+	"github.com/hdget/sdk/common/bizctx"
 	"github.com/hdget/sdk/common/provider"
 	"github.com/pkg/errors"
 )
@@ -40,8 +41,8 @@ func (impl *sqlite3DevOpsImpl) InstallDatabase(dbClient provider.DbClient, speci
 	return "", nil
 }
 
-func (impl *sqlite3DevOpsImpl) InstallTables(ctx biz.Context, store embed.FS, force bool, tableNames ...string) error {
-	tx, ok := ctx.Transactor().GetTx().(provider.DbExecutor)
+func (impl *sqlite3DevOpsImpl) InstallTables(ctx context.Context, store embed.FS, force bool, tableNames ...string) error {
+	tx, ok := bizctx.GetTransactor(ctx).GetTx().(provider.DbExecutor)
 	if !ok {
 		return fmt.Errorf("db transactor not found in context")
 	}

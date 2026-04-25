@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aarondl/sqlboiler/v4/boil"
-	"github.com/hdget/sdk/common/biz"
+	"github.com/hdget/sdk/common/bizctx"
 	"github.com/hdget/sdk/common/provider"
 	loggerUtils "github.com/hdget/utils/logger"
 )
@@ -16,46 +16,44 @@ type Transactor interface {
 
 type trans struct {
 	tx     boil.Transactor
-	ctx    biz.Context
+	ctx    context.Context
 	errLog func(msg string, kvs ...any)
 }
 
-func NewTransactor(ctx biz.Context, logger provider.Logger) (Transactor, error) {
+func NewTransactor(ctx context.Context, logger provider.Logger) (Transactor, error) {
 	errLog := loggerUtils.Error
 	if logger != nil {
 		errLog = logger.Error
 	}
 
-	var err error
+	t := bizctx.GetTransactor(ctx)
 	var transactor boil.Transactor
-	if v, ok := ctx.Transactor().GetTx().(boil.Transactor); ok {
+	if v, ok := t.GetTx().(boil.Transactor); ok {
 		transactor = v
-	} else { // 没找到，则new
-		transactor, err = boil.BeginTx(context.Background(), nil)
+	} else {
+		transactor, err := boil.BeginTx(context.Background(), nil)
 		if err != nil {
 			return nil, err
 		}
+		t.Ref(transactor)
 	}
-
-	// ctx保存transaction
-	ctx.Transactor().Ref(transactor)
 
 	return &trans{tx: transactor, ctx: ctx, errLog: errLog}, nil
 }
 
 func (t *trans) Finalize(err error) {
+	tx := bizctx.GetTransactor(t.ctx)
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("panic: %v", r)
 		}
-		t.ctx.Transactor().Unref()
+		tx.Unref()
 	}()
 
-	if needFinalize := t.ctx.Transactor().ReachRoot(); !needFinalize {
+	if needFinalize := tx.ReachRoot(); !needFinalize {
 		return
 	}
 
-	// need commit
 	if err != nil {
 		e := t.tx.Rollback()
 		t.errLog("db roll back", "err", err, "rollback", e)

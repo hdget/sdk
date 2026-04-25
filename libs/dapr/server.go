@@ -15,9 +15,8 @@ import (
 	"github.com/dapr/go-sdk/service/grpc"
 	"github.com/dapr/go-sdk/service/http"
 	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/sdk/common/biz"
-	"github.com/hdget/sdk/common/provider"
 	"github.com/hdget/sdk/common/protobuf"
+	"github.com/hdget/sdk/common/provider"
 	"github.com/hdget/sdk/common/types"
 	"github.com/hdget/sdk/libs/dapr/api"
 	"github.com/hdget/sdk/libs/dapr/module"
@@ -39,11 +38,11 @@ type daprServerImpl struct {
 	cancel context.CancelFunc
 	debug  bool
 	// 自定义参数
-	app              string                        // 运行的app
+	app              string                             // 运行的app
 	hooks            map[hookPoint][]types.HookFunction // 钩子函数
-	registerFunction RegisterFunction              // 向系统注册appServer的函数
-	registerHandlers []*protobuf.DaprHandler       // 向系统注册的方法
-	assets           embed.FS                      // 嵌入文件系统
+	registerFunction RegisterFunction                   // 向系统注册appServer的函数
+	registerHandlers []*protobuf.DaprHandler            // 向系统注册的方法
+	assets           embed.FS                           // 嵌入文件系统
 	logger           provider.Logger
 	mq               provider.MessageQueue
 }
@@ -152,7 +151,6 @@ func (impl *daprServerImpl) hook(hookPoint hookPoint, hookFunctions ...types.Hoo
 	impl.hooks[hookPoint] = append(impl.hooks[hookPoint], hookFunctions...)
 }
 
-// Initialize 初始化server
 func (impl *daprServerImpl) initialize() error {
 	if err := impl.addHealthCheckHandler(); err != nil {
 		return errors.Wrap(err, "adding health check handler")
@@ -173,7 +171,6 @@ func (impl *daprServerImpl) initialize() error {
 	return nil
 }
 
-// addEventHandlers 添加事件处理函数
 func (impl *daprServerImpl) addEventHandlers() error {
 	if impl.logger == nil {
 		return errors.New("logger provider not found")
@@ -193,7 +190,6 @@ func (impl *daprServerImpl) addEventHandlers() error {
 	return nil
 }
 
-// subscribeDelayEvents 添加延迟事件处理函数
 func (impl *daprServerImpl) subscribeDelayEvents() error {
 	var app string
 	topic2delayEventHandler := make(map[string]module.DelayEventHandler)
@@ -241,7 +237,6 @@ func (impl *daprServerImpl) subscribeDelayEvents() error {
 	return nil
 }
 
-// addHealthCheckHandler 添加健康检测Handler
 func (impl *daprServerImpl) addHealthCheckHandler() error {
 	var h common.HealthCheckHandler
 
@@ -256,7 +251,6 @@ func (impl *daprServerImpl) addHealthCheckHandler() error {
 	return impl.AddHealthCheckHandler("", h)
 }
 
-// addHealthCheckHandler 添加服务调用Handler
 func (impl *daprServerImpl) addInvocationHandlers() error {
 	if impl.logger == nil {
 		return errors.New("logger provider not found")
@@ -293,7 +287,7 @@ func (impl *daprServerImpl) defaultRegisterFunction(app string, handlers []*prot
 		return nil
 	}
 
-	_, err := api.New(biz.NewContext()).Invoke("gateway", 1, "route", "update", &protobuf.UpdateRouteRequest{
+	_, err := api.New().Invoke(context.Background(), "gateway", 1, "route", "update", &protobuf.UpdateRouteRequest{
 		App:      app,
 		Handlers: exposedHandlers,
 	})

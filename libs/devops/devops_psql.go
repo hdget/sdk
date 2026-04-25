@@ -1,12 +1,13 @@
 package devops
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"path"
 
 	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/sdk/common/biz"
+	"github.com/hdget/sdk/common/bizctx"
 	"github.com/hdget/sdk/common/provider"
 	"github.com/pkg/errors"
 )
@@ -16,8 +17,8 @@ const (
 	psqlDropTable           = `DROP TABLE IF EXISTS "public"."%s";`
 	psqlCreateDatabase      = `CREATE DATABASE %s WITH LC_COLLATE = 'C' LC_CTYPE = 'en_US.utf8' TABLESPACE = pg_default;`
 	psqlBeforeInstallTables = `
-DEALLOCATE ALL;       -- 清除当前会话的所有预处理语句
-DISCARD PLANS;        -- PostgreSQL ≥13 替代方案`
+	DEALLOCATE ALL;       -- 清除当前会话的所有预处理语句
+	DISCARD PLANS;        -- PostgreSQL ≥13 替代方案`
 )
 
 type psqlDevOpsImpl struct {
@@ -46,8 +47,8 @@ func (impl *psqlDevOpsImpl) InstallDatabase(dbClient provider.DbClient, specifie
 	return dbName, nil
 }
 
-func (impl *devOpsImpl) InstallTables(ctx biz.Context, store embed.FS, force bool, tableNames ...string) error {
-	tx, ok := ctx.Transactor().GetTx().(provider.DbExecutor)
+func (impl *devOpsImpl) InstallTables(ctx context.Context, store embed.FS, force bool, tableNames ...string) error {
+	tx, ok := bizctx.GetTransactor(ctx).GetTx().(provider.DbExecutor)
 	if !ok {
 		return fmt.Errorf("db transactor not found in context")
 	}
