@@ -19,9 +19,9 @@ type RedisClient interface {
 	Dels(keys []string) error
 	Exists(key string) (bool, error)
 	Expire(key string, expire int) error
-	Incr(key string) error
-	IncrBy(key string, number int) error
-	DecrBy(key string, number int) error
+	Incr(key string) (int64, error)
+	IncrBy(key string, number int) (int64, error)
+	DecrBy(key string, number int) (int64, error)
 	Ttl(key string) (int64, error)
 	Pipeline(commands []*RedisCommand) (reply interface{}, err error)
 	Ping() error

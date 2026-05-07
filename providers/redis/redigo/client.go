@@ -125,34 +125,31 @@ func (r *redisClient) Ttl(key string) (int64, error) {
 }
 
 // Incr 将某个key中的值加1
-func (r *redisClient) Incr(key string) error {
+func (r *redisClient) Incr(key string) (int64, error) {
 	conn := r.pool.Get()
 	defer func(conn redis.Conn) {
 		_ = conn.Close()
 	}(conn)
 
-	_, err := conn.Do("INCR", key)
-	return err
+	return redis.Int64(conn.Do("INCR", key))
 }
 
-func (r *redisClient) IncrBy(key string, number int) error {
+func (r *redisClient) IncrBy(key string, number int) (int64, error) {
 	conn := r.pool.Get()
 	defer func(conn redis.Conn) {
 		_ = conn.Close()
 	}(conn)
 
-	_, err := conn.Do("INCRBY", key, number)
-	return err
+	return redis.Int64(conn.Do("INCRBY", key, number))
 }
 
-func (r *redisClient) DecrBy(key string, number int) error {
+func (r *redisClient) DecrBy(key string, number int) (int64, error) {
 	conn := r.pool.Get()
 	defer func(conn redis.Conn) {
 		_ = conn.Close()
 	}(conn)
 
-	_, err := conn.Do("DECRBY", key, number)
-	return err
+	return redis.Int64(conn.Do("DECRBY", key, number))
 }
 
 // Ping 检查redis是否存活
