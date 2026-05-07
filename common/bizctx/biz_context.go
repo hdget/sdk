@@ -110,6 +110,14 @@ func GetUid(ctx context.Context) int64 {
 	return cv.metadata.GetInt64(MetaKeyUid)
 }
 
+func GetClientIP(ctx context.Context) string {
+	cv := getCtxValue(ctx)
+	if cv == nil {
+		return ""
+	}
+	return cv.metadata.GetString(MetaKeyClientIP)
+}
+
 func GetAppId(ctx context.Context) string {
 	cv := getCtxValue(ctx)
 	if cv == nil {
