@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.10
 // 	protoc        v6.30.2
-// source: proto/sdk.proto
+// source: sdk.proto
 
 package protobuf
 
@@ -60,11 +60,11 @@ func (x DaprModuleKind) String() string {
 }
 
 func (DaprModuleKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_sdk_proto_enumTypes[0].Descriptor()
+	return file_sdk_proto_enumTypes[0].Descriptor()
 }
 
 func (DaprModuleKind) Type() protoreflect.EnumType {
-	return &file_proto_sdk_proto_enumTypes[0]
+	return &file_sdk_proto_enumTypes[0]
 }
 
 func (x DaprModuleKind) Number() protoreflect.EnumNumber {
@@ -73,7 +73,7 @@ func (x DaprModuleKind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use DaprModuleKind.Descriptor instead.
 func (DaprModuleKind) EnumDescriptor() ([]byte, []int) {
-	return file_proto_sdk_proto_rawDescGZIP(), []int{0}
+	return file_sdk_proto_rawDescGZIP(), []int{0}
 }
 
 type Error struct {
@@ -86,7 +86,7 @@ type Error struct {
 
 func (x *Error) Reset() {
 	*x = Error{}
-	mi := &file_proto_sdk_proto_msgTypes[0]
+	mi := &file_sdk_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -98,7 +98,7 @@ func (x *Error) String() string {
 func (*Error) ProtoMessage() {}
 
 func (x *Error) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_sdk_proto_msgTypes[0]
+	mi := &file_sdk_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -111,7 +111,7 @@ func (x *Error) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Error.ProtoReflect.Descriptor instead.
 func (*Error) Descriptor() ([]byte, []int) {
-	return file_proto_sdk_proto_rawDescGZIP(), []int{0}
+	return file_sdk_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Error) GetCode() int32 {
@@ -131,15 +131,15 @@ func (x *Error) GetMsg() string {
 // 按limit分页
 type ListParam struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Page          int64                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`         // 页码
-	PageSize      int64                  `protobuf:"varint,2,opt,name=pageSize,proto3" json:"pageSize,omitempty"` // 每页数量
+	Page          int64                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`                         // 页码
+	PageSize      int64                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"` // 每页数量
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListParam) Reset() {
 	*x = ListParam{}
-	mi := &file_proto_sdk_proto_msgTypes[1]
+	mi := &file_sdk_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -151,7 +151,7 @@ func (x *ListParam) String() string {
 func (*ListParam) ProtoMessage() {}
 
 func (x *ListParam) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_sdk_proto_msgTypes[1]
+	mi := &file_sdk_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -164,7 +164,7 @@ func (x *ListParam) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListParam.ProtoReflect.Descriptor instead.
 func (*ListParam) Descriptor() ([]byte, []int) {
-	return file_proto_sdk_proto_rawDescGZIP(), []int{1}
+	return file_sdk_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ListParam) GetPage() int64 {
@@ -183,8 +183,8 @@ func (x *ListParam) GetPageSize() int64 {
 
 type DaprHandler struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ModuleKind    DaprModuleKind         `protobuf:"varint,1,opt,name=moduleKind,proto3,enum=protobuf.DaprModuleKind" json:"moduleKind,omitempty"`                                               // 模块类型
-	PkgPath       string                 `protobuf:"bytes,2,opt,name=pkgPath,proto3" json:"pkgPath,omitempty"`                                                                                   // 包路径
+	ModuleKind    DaprModuleKind         `protobuf:"varint,1,opt,name=module_kind,json=moduleKind,proto3,enum=protobuf.DaprModuleKind" json:"module_kind,omitempty"`                             // 模块类型
+	PkgPath       string                 `protobuf:"bytes,2,opt,name=pkg_path,json=pkgPath,proto3" json:"pkg_path,omitempty"`                                                                    // 包路径
 	Module        string                 `protobuf:"bytes,3,opt,name=module,proto3" json:"module,omitempty"`                                                                                     // 模块名
 	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`                                                                                         // 处理函数名
 	Alias         string                 `protobuf:"bytes,5,opt,name=alias,proto3" json:"alias,omitempty"`                                                                                       // 处理函数别名
@@ -196,7 +196,7 @@ type DaprHandler struct {
 
 func (x *DaprHandler) Reset() {
 	*x = DaprHandler{}
-	mi := &file_proto_sdk_proto_msgTypes[2]
+	mi := &file_sdk_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -208,7 +208,7 @@ func (x *DaprHandler) String() string {
 func (*DaprHandler) ProtoMessage() {}
 
 func (x *DaprHandler) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_sdk_proto_msgTypes[2]
+	mi := &file_sdk_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -221,7 +221,7 @@ func (x *DaprHandler) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DaprHandler.ProtoReflect.Descriptor instead.
 func (*DaprHandler) Descriptor() ([]byte, []int) {
-	return file_proto_sdk_proto_rawDescGZIP(), []int{2}
+	return file_sdk_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *DaprHandler) GetModuleKind() DaprModuleKind {
@@ -283,7 +283,7 @@ type UpdateRouteRequest struct {
 
 func (x *UpdateRouteRequest) Reset() {
 	*x = UpdateRouteRequest{}
-	mi := &file_proto_sdk_proto_msgTypes[3]
+	mi := &file_sdk_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -295,7 +295,7 @@ func (x *UpdateRouteRequest) String() string {
 func (*UpdateRouteRequest) ProtoMessage() {}
 
 func (x *UpdateRouteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_sdk_proto_msgTypes[3]
+	mi := &file_sdk_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -308,7 +308,7 @@ func (x *UpdateRouteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRouteRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRouteRequest) Descriptor() ([]byte, []int) {
-	return file_proto_sdk_proto_rawDescGZIP(), []int{3}
+	return file_sdk_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *UpdateRouteRequest) GetApp() string {
@@ -325,22 +325,21 @@ func (x *UpdateRouteRequest) GetHandlers() []*DaprHandler {
 	return nil
 }
 
-var File_proto_sdk_proto protoreflect.FileDescriptor
+var File_sdk_proto protoreflect.FileDescriptor
 
-const file_proto_sdk_proto_rawDesc = "" +
+const file_sdk_proto_rawDesc = "" +
 	"\n" +
-	"\x0fproto/sdk.proto\x12\bprotobuf\"-\n" +
+	"\tsdk.proto\x12\bprotobuf\"-\n" +
 	"\x05Error\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x10\n" +
-	"\x03msg\x18\x02 \x01(\tR\x03msg\";\n" +
+	"\x03msg\x18\x02 \x01(\tR\x03msg\"<\n" +
 	"\tListParam\x12\x12\n" +
-	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1a\n" +
-	"\bpageSize\x18\x02 \x01(\x03R\bpageSize\"\xc9\x02\n" +
-	"\vDaprHandler\x128\n" +
-	"\n" +
-	"moduleKind\x18\x01 \x01(\x0e2\x18.protobuf.DaprModuleKindR\n" +
-	"moduleKind\x12\x18\n" +
-	"\apkgPath\x18\x02 \x01(\tR\apkgPath\x12\x16\n" +
+	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\"\xcb\x02\n" +
+	"\vDaprHandler\x129\n" +
+	"\vmodule_kind\x18\x01 \x01(\x0e2\x18.protobuf.DaprModuleKindR\n" +
+	"moduleKind\x12\x19\n" +
+	"\bpkg_path\x18\x02 \x01(\tR\apkgPath\x12\x16\n" +
 	"\x06module\x18\x03 \x01(\tR\x06module\x12\x12\n" +
 	"\x04name\x18\x04 \x01(\tR\x04name\x12\x14\n" +
 	"\x05alias\x18\x05 \x01(\tR\x05alias\x12H\n" +
@@ -360,20 +359,20 @@ const file_proto_sdk_proto_rawDesc = "" +
 	"\x14DaprModuleKindHealth\x10\x04B&Z$github.com/hdget/sdk/common/protobufb\x06proto3"
 
 var (
-	file_proto_sdk_proto_rawDescOnce sync.Once
-	file_proto_sdk_proto_rawDescData []byte
+	file_sdk_proto_rawDescOnce sync.Once
+	file_sdk_proto_rawDescData []byte
 )
 
-func file_proto_sdk_proto_rawDescGZIP() []byte {
-	file_proto_sdk_proto_rawDescOnce.Do(func() {
-		file_proto_sdk_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_sdk_proto_rawDesc), len(file_proto_sdk_proto_rawDesc)))
+func file_sdk_proto_rawDescGZIP() []byte {
+	file_sdk_proto_rawDescOnce.Do(func() {
+		file_sdk_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_sdk_proto_rawDesc), len(file_sdk_proto_rawDesc)))
 	})
-	return file_proto_sdk_proto_rawDescData
+	return file_sdk_proto_rawDescData
 }
 
-var file_proto_sdk_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_sdk_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
-var file_proto_sdk_proto_goTypes = []any{
+var file_sdk_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_sdk_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_sdk_proto_goTypes = []any{
 	(DaprModuleKind)(0),        // 0: protobuf.DaprModuleKind
 	(*Error)(nil),              // 1: protobuf.Error
 	(*ListParam)(nil),          // 2: protobuf.ListParam
@@ -381,8 +380,8 @@ var file_proto_sdk_proto_goTypes = []any{
 	(*UpdateRouteRequest)(nil), // 4: protobuf.UpdateRouteRequest
 	nil,                        // 5: protobuf.DaprHandler.AnnotationsEntry
 }
-var file_proto_sdk_proto_depIdxs = []int32{
-	0, // 0: protobuf.DaprHandler.moduleKind:type_name -> protobuf.DaprModuleKind
+var file_sdk_proto_depIdxs = []int32{
+	0, // 0: protobuf.DaprHandler.module_kind:type_name -> protobuf.DaprModuleKind
 	5, // 1: protobuf.DaprHandler.annotations:type_name -> protobuf.DaprHandler.AnnotationsEntry
 	3, // 2: protobuf.UpdateRouteRequest.handlers:type_name -> protobuf.DaprHandler
 	3, // [3:3] is the sub-list for method output_type
@@ -392,27 +391,27 @@ var file_proto_sdk_proto_depIdxs = []int32{
 	0, // [0:3] is the sub-list for field type_name
 }
 
-func init() { file_proto_sdk_proto_init() }
-func file_proto_sdk_proto_init() {
-	if File_proto_sdk_proto != nil {
+func init() { file_sdk_proto_init() }
+func file_sdk_proto_init() {
+	if File_sdk_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_sdk_proto_rawDesc), len(file_proto_sdk_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_sdk_proto_rawDesc), len(file_sdk_proto_rawDesc)),
 			NumEnums:      1,
 			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_proto_sdk_proto_goTypes,
-		DependencyIndexes: file_proto_sdk_proto_depIdxs,
-		EnumInfos:         file_proto_sdk_proto_enumTypes,
-		MessageInfos:      file_proto_sdk_proto_msgTypes,
+		GoTypes:           file_sdk_proto_goTypes,
+		DependencyIndexes: file_sdk_proto_depIdxs,
+		EnumInfos:         file_sdk_proto_enumTypes,
+		MessageInfos:      file_sdk_proto_msgTypes,
 	}.Build()
-	File_proto_sdk_proto = out.File
-	file_proto_sdk_proto_goTypes = nil
-	file_proto_sdk_proto_depIdxs = nil
+	File_sdk_proto = out.File
+	file_sdk_proto_goTypes = nil
+	file_sdk_proto_depIdxs = nil
 }

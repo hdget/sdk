@@ -12,7 +12,7 @@ message Error {
 // 按limit分页
 message ListParam {
   int64 page = 1;      // 页码
-  int64 pageSize = 2;  // 每页数量
+  int64 page_size = 2;  // 每页数量
 }
 
 enum DaprModuleKind {
@@ -24,8 +24,8 @@ enum DaprModuleKind {
 }
 
 message DaprHandler {
-  DaprModuleKind moduleKind = 1; // 模块类型
-  string pkgPath = 2; // 包路径
+  DaprModuleKind module_kind = 1; // 模块类型
+  string pkg_path = 2; // 包路径
   string module = 3;  // 模块名
   string name = 4;  // 处理函数名
   string alias = 5; // 处理函数别名
