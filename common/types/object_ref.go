@@ -18,12 +18,12 @@ type EditRefObjectRequest[TObjectKey ObjectKeyType, TBizObject any] struct {
 
 type DeleteRefObjectRequest[TObjectKey ObjectKeyType] struct {
 	Key     TObjectKey `json:"key"`
-	ItemKey TObjectKey `json:"itemKey"`
+	ItemKey TObjectKey `json:"item_key"`
 }
 
 type GetRefObjectRequest[TObjectKey ObjectKeyType] struct {
 	Key     TObjectKey `json:"key"`
-	ItemKey TObjectKey `json:"itemKey"`
+	ItemKey TObjectKey `json:"item_key"`
 }
 
 type QueryRefObjectRequest[TObjectKey ObjectKeyType] struct {
