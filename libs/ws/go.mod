@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/gin-gonic/gin v1.12.0
-	github.com/hdget/sdk/common v0.0.13
+	github.com/hdget/sdk/common v0.1.0
 	github.com/hdget/utils v0.2.3
 	github.com/hdget/utils/panic v0.0.1
 	github.com/hdget/utils/reflect v0.0.1
