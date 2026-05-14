@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/dapr/go-sdk/client"
 	"github.com/dapr/go-sdk/service/common"
@@ -13,6 +14,11 @@ type event struct {
 	Subscription *common.Subscription
 	Handler      common.TopicEventHandler
 }
+
+const (
+	defaultPubSub       = "pubsub"
+	sysEventTopicPrefix = "sys:event"
+)
 
 func NewEvent(pubsubName, topic string, handler common.TopicEventHandler, args ...bool) event {
 	metaOptions := getPublishMetaOptions(args...)
@@ -54,6 +60,19 @@ func (a daprApiImpl) Publish(ctx context.Context, pubSubName, topic string, data
 	}
 
 	return nil
+}
+
+// PublishSysEvent 发布系统事件
+func PublishSysEvent[EventKind fmt.Stringer](ctx context.Context, kind EventKind, data any, pubSubName ...string) error {
+	pubsub := defaultPubSub
+	if len(pubSubName) > 0 {
+		pubsub = pubSubName[0]
+	}
+	return New().Publish(ctx, pubsub, GetSysEventTopic(kind), data)
+}
+
+func GetSysEventTopic[EventKind fmt.Stringer](kind EventKind) string {
+	return fmt.Sprintf("%s:%s", sysEventTopicPrefix, kind.String())
 }
 
 func getPublishMetaOptions(args ...bool) map[string]string {
