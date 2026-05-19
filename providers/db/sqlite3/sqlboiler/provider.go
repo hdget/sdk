@@ -17,7 +17,7 @@ func New(configProvider provider.Config, logger provider.Logger) (provider.Datab
 		return nil, err
 	}
 
-	client, err := newClient(config)
+	client, err := newClient(config, logger)
 	if err != nil {
 		return nil, errors.Wrap(err, "new sqlite3 client")
 	}
@@ -30,8 +30,8 @@ func New(configProvider provider.Config, logger provider.Logger) (provider.Datab
 }
 
 // NewClient 从指定的文件创建创建数据库连接
-func NewClient(dbFile string) (provider.DbClient, error) {
-	client, err := newClient(nil, dbFile)
+func NewClient(dbFile string, logger provider.Logger) (provider.DbClient, error) {
+	client, err := newClient(nil, logger, dbFile)
 	if err != nil {
 		return nil, errors.Wrapf(err, "connect sqlite3: %s", dbFile)
 	}
