@@ -13,6 +13,7 @@ import (
 
 type psqlClient struct {
 	*sql.DB
+	logger provider.Logger
 }
 
 const (
@@ -20,7 +21,7 @@ const (
 	dsnTemplate = "postgres://%s:%s@%s:%d/%s?TimeZone=Asia/Shanghai"
 )
 
-func newClient(c *psqlConfig) (provider.DbClient, error) {
+func newClient(c *psqlConfig, logger provider.Logger) (provider.DbClient, error) {
 	// 构造连接参数
 	dsn := fmt.Sprintf(dsnTemplate, c.User, url.QueryEscape(c.Password), c.Host, c.Port, c.Database)
 
@@ -41,7 +42,7 @@ func newClient(c *psqlConfig) (provider.DbClient, error) {
 		db.SetConnMaxLifetime(time.Duration(c.ConnMaxLifetime) * time.Second) // 应小于PostgreSQL的idle_in_transaction_session_timeout, 默认为60m
 	}
 
-	return &psqlClient{DB: db}, nil
+	return &psqlClient{DB: db, logger: logger}, nil
 }
 
 func (m *psqlClient) Close() error {
@@ -58,21 +59,49 @@ func (m *psqlClient) RunInTransaction(ctx context.Context, fn func(ctx context.C
 	if tx, ok := ctx.Value(provider.TxCtxKey{}).(*sql.Tx); ok {
 		// 已在事务中，创建 SAVEPOINT 实现嵌套事务
 		spName := fmt.Sprintf("sp_%d", time.Now().UnixNano())
-		_, _ = tx.ExecContext(ctx, fmt.Sprintf("SAVEPOINT %s", spName))
 
-		err := fn(ctx)
+		// 创建 SAVEPOINT
+		_, err := tx.ExecContext(ctx, fmt.Sprintf("SAVEPOINT %s", spName))
 		if err != nil {
-			_, _ = tx.ExecContext(ctx, fmt.Sprintf("ROLLBACK TO SAVEPOINT %s", spName))
+			// SAVEPOINT 创建失败，说明事务可能已 aborted
+			// 记录详细错误信息，帮助定位问题
+			m.logger.Error("create savepoint failed",
+				"savepoint", spName,
+				"error", err,
+				"hint", "transaction may be aborted by previous SQL error")
+			return fmt.Errorf("create savepoint %s failed: %w", spName, err)
+		}
+
+		err = fn(ctx)
+		if err != nil {
+			// 回滚到 SAVEPOINT
+			_, rbErr := tx.ExecContext(ctx, fmt.Sprintf("ROLLBACK TO SAVEPOINT %s", spName))
+			if rbErr != nil {
+				m.logger.Error("rollback to savepoint failed",
+					"savepoint", spName,
+					"error", rbErr,
+					"original_error", err)
+				// 返回原始错误，但记录回滚失败信息
+				return fmt.Errorf("rollback to savepoint %s failed: %w (original: %v)", spName, rbErr, err)
+			}
 			return err
 		}
-		_, _ = tx.ExecContext(ctx, fmt.Sprintf("RELEASE SAVEPOINT %s", spName))
+
+		// 释放 SAVEPOINT
+		_, relErr := tx.ExecContext(ctx, fmt.Sprintf("RELEASE SAVEPOINT %s", spName))
+		if relErr != nil {
+			m.logger.Warn("release savepoint failed",
+				"savepoint", spName,
+				"error", relErr,
+				"hint", "savepoint will be released at transaction commit")
+		}
 		return nil
 	}
 
 	// 开始新事务
 	tx, err := m.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("begin transaction failed: %w", err)
 	}
 
 	defer func() {

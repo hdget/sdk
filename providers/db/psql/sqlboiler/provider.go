@@ -28,7 +28,7 @@ func newProvider(configProvider provider.Config, logger provider.Logger) (provid
 	}
 
 	if config.Default != nil {
-		p.defaultDb, err = newClient(config.Default)
+		p.defaultDb, err = newClient(config.Default, logger)
 		if err != nil {
 			logger.Fatal("init postgresql default db connection", "err", err)
 		}
@@ -39,7 +39,7 @@ func newProvider(configProvider provider.Config, logger provider.Logger) (provid
 	}
 
 	if config.Master != nil {
-		p.masterDb, err = newClient(config.Master)
+		p.masterDb, err = newClient(config.Master, logger)
 		if err != nil {
 			logger.Fatal("init postgresql master db connection", "err", err)
 		}
@@ -48,7 +48,7 @@ func newProvider(configProvider provider.Config, logger provider.Logger) (provid
 	}
 
 	for i, slaveConf := range config.Slaves {
-		p.slaveDbs[i], err = newClient(slaveConf)
+		p.slaveDbs[i], err = newClient(slaveConf, logger)
 		if err != nil {
 			logger.Fatal("init postgresql slave db connection", "slave", i, "err", err)
 		}
@@ -57,7 +57,7 @@ func newProvider(configProvider provider.Config, logger provider.Logger) (provid
 	}
 
 	for _, extraConf := range config.Items {
-		p.extraDbs[extraConf.Name], err = newClient(extraConf)
+		p.extraDbs[extraConf.Name], err = newClient(extraConf, logger)
 		if err != nil {
 			logger.Fatal("new postgresql extra db connection", "name", extraConf.Name, "err", err)
 		}
@@ -68,7 +68,7 @@ func newProvider(configProvider provider.Config, logger provider.Logger) (provid
 	return p, nil
 }
 
-func NewClient(configProvider provider.Config, database ...string) (provider.DbClient, error) {
+func NewClient(configProvider provider.Config, logger provider.Logger, database ...string) (provider.DbClient, error) {
 	config, err := newConfig(configProvider)
 	if err != nil {
 		return nil, errors.Wrap(err, "new postgresql config")
@@ -89,7 +89,7 @@ func NewClient(configProvider provider.Config, database ...string) (provider.DbC
 		c.Database = database[0]
 	}
 
-	client, err := newClient(c)
+	client, err := newClient(c, logger)
 	if err != nil {
 		return nil, errors.Wrap(err, "init postgresql sys db connection")
 	}

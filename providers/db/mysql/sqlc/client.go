@@ -12,6 +12,7 @@ import (
 
 type mysqlClient struct {
 	*sql.DB
+	logger provider.Logger
 }
 
 const (
@@ -20,7 +21,7 @@ const (
 	dsnTemplate = "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local"
 )
 
-func newClient(c *mysqlConfig) (provider.DbClient, error) {
+func newClient(c *mysqlConfig, logger provider.Logger) (provider.DbClient, error) {
 	// 构造连接参数
 	dsn := fmt.Sprintf(dsnTemplate, c.User, c.Password, c.Host, c.Port, c.Database)
 	db, err := sql.Open("mysql", dsn)
@@ -41,7 +42,7 @@ func newClient(c *mysqlConfig) (provider.DbClient, error) {
 	// connection.go:173: driver: bad connection
 	db.SetConnMaxLifetime(3 * time.Minute)
 
-	return &mysqlClient{DB: db}, nil
+	return &mysqlClient{DB: db, logger: logger}, nil
 }
 
 func (m *mysqlClient) Close() error {
@@ -58,21 +59,49 @@ func (m *mysqlClient) RunInTransaction(ctx context.Context, fn func(ctx context.
 	if tx, ok := ctx.Value(provider.TxCtxKey{}).(*sql.Tx); ok {
 		// 已在事务中，创建 SAVEPOINT 实现嵌套事务
 		spName := fmt.Sprintf("sp_%d", time.Now().UnixNano())
-		_, _ = tx.ExecContext(ctx, fmt.Sprintf("SAVEPOINT %s", spName))
 
-		err := fn(ctx)
+		// 创建 SAVEPOINT
+		_, err := tx.ExecContext(ctx, fmt.Sprintf("SAVEPOINT %s", spName))
 		if err != nil {
-			_, _ = tx.ExecContext(ctx, fmt.Sprintf("ROLLBACK TO SAVEPOINT %s", spName))
+			// SAVEPOINT 创建失败，说明事务可能已 aborted
+			// 记录详细错误信息，帮助定位问题
+			m.logger.Error("create savepoint failed",
+				"savepoint", spName,
+				"error", err,
+				"hint", "transaction may be aborted by previous SQL error")
+			return fmt.Errorf("create savepoint %s failed: %w", spName, err)
+		}
+
+		err = fn(ctx)
+		if err != nil {
+			// 回滚到 SAVEPOINT
+			_, rbErr := tx.ExecContext(ctx, fmt.Sprintf("ROLLBACK TO SAVEPOINT %s", spName))
+			if rbErr != nil {
+				m.logger.Error("rollback to savepoint failed",
+					"savepoint", spName,
+					"error", rbErr,
+					"original_error", err)
+				// 返回原始错误，但记录回滚失败信息
+				return fmt.Errorf("rollback to savepoint %s failed: %w (original: %v)", spName, rbErr, err)
+			}
 			return err
 		}
-		_, _ = tx.ExecContext(ctx, fmt.Sprintf("RELEASE SAVEPOINT %s", spName))
+
+		// 释放 SAVEPOINT
+		_, relErr := tx.ExecContext(ctx, fmt.Sprintf("RELEASE SAVEPOINT %s", spName))
+		if relErr != nil {
+			m.logger.Warn("release savepoint failed",
+				"savepoint", spName,
+				"error", relErr,
+				"hint", "savepoint will be released at transaction commit")
+		}
 		return nil
 	}
 
 	// 开始新事务
 	tx, err := m.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("begin transaction failed: %w", err)
 	}
 
 	defer func() {
