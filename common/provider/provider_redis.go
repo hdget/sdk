@@ -1,6 +1,8 @@
 package provider
 
-import "github.com/hdget/sdk/common/protobuf"
+import (
+	"github.com/hdget/sdk/common/protobuf"
+)
 
 type Redis interface {
 	Provider
@@ -23,7 +25,7 @@ type RedisClient interface {
 	IncrBy(key string, number int) (int64, error)
 	DecrBy(key string, number int) (int64, error)
 	Ttl(key string) (int64, error)
-	Pipeline(commands []*RedisCommand) (reply interface{}, err error)
+	Pipeline(commands []*RedisCommand) (map[int]any, error)
 	Ping() error
 
 	// Set operations
