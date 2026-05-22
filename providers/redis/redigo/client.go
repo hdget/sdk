@@ -10,6 +10,7 @@ import (
 	"github.com/hdget/sdk/common/provider"
 	"github.com/hdget/utils"
 	"github.com/hdget/utils/paginator"
+	"github.com/pkg/errors"
 )
 
 type redisClient struct {
@@ -163,7 +164,7 @@ func (r *redisClient) Ping() error {
 }
 
 // Pipeline 批量提交命令
-func (r *redisClient) Pipeline(commands []*provider.RedisCommand) (reply interface{}, err error) {
+func (r *redisClient) Pipeline(commands []*provider.RedisCommand) (map[int]any, error) {
 	conn := r.pool.Get()
 	defer func(conn redis.Conn) {
 		_ = conn.Close()
@@ -178,18 +179,25 @@ func (r *redisClient) Pipeline(commands []*provider.RedisCommand) (reply interfa
 	}
 
 	// 批量提交命令到redis
-	err = conn.Flush()
+	err := conn.Flush()
 	if err != nil {
 		return nil, err
 	}
 
-	// 获取批量命令的执行结果, 注意这里只会获取到最后那条命令执行的结果
-	reply, err = conn.Receive()
-	if err != nil {
-		return nil, err
+	results := make(map[int]any)
+	for index := range commands {
+		reply, err := conn.Receive()
+		if err != nil {
+			if errors.Is(err, redis.ErrNil) {
+				continue
+			}
+			return nil, err
+		}
+
+		results[index] = reply
 	}
 
-	return reply, nil
+	return results, nil
 }
 
 // Shutdown 关闭redis client
