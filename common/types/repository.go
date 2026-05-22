@@ -34,7 +34,7 @@ type RepoEdit[TBizObject any, TModelObject any] interface {
 
 // RepoDelete 删除:D
 type RepoDelete[TObjectKey ObjectKeyType] interface {
-	Delete(ctx context.Context, key TObjectKey) error
+	Delete(ctx context.Context, key TObjectKey) (int64, error)
 }
 
 // RepoUpsert Upsert 操作（创建或更新）
