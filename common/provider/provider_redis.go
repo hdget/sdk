@@ -25,7 +25,7 @@ type RedisClient interface {
 	IncrBy(key string, number int) (int64, error)
 	DecrBy(key string, number int) (int64, error)
 	Ttl(key string) (int64, error)
-	Pipeline(commands []*RedisCommand) (map[int]string, error)
+	Pipeline(commands []*RedisCommand) (map[int]any, error)
 	Ping() error
 
 	// Set operations
