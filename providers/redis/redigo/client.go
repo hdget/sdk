@@ -164,7 +164,7 @@ func (r *redisClient) Ping() error {
 }
 
 // Pipeline 批量提交命令
-func (r *redisClient) Pipeline(commands []*provider.RedisCommand) (map[int]string, error) {
+func (r *redisClient) Pipeline(commands []*provider.RedisCommand) (map[int]any, error) {
 	conn := r.pool.Get()
 	defer func(conn redis.Conn) {
 		_ = conn.Close()
@@ -184,9 +184,9 @@ func (r *redisClient) Pipeline(commands []*provider.RedisCommand) (map[int]strin
 		return nil, err
 	}
 
-	results := make(map[int]string)
+	results := make(map[int]any)
 	for index := range commands {
-		reply, err := redis.String(conn.Receive())
+		reply, err := conn.Receive()
 		if err != nil {
 			if errors.Is(err, redis.ErrNil) {
 				continue
