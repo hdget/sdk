@@ -90,7 +90,7 @@ type ScopedRepoCount[TScopeKey KeyType, TFilter any] interface {
 }
 
 type ScopedRepoList[TScopeKey KeyType, TFilter, TModel any] interface {
-	List(ctx context.Context, scopeKey TScopeKey, filters TFilter, list ...protobuf.ListParam) ([]TModel, error)
+	List(ctx context.Context, scopeKey TScopeKey, filters TFilter, list ...*protobuf.ListParam) ([]TModel, error)
 }
 
 type ScopedRepoOperation[TScopeKey, TKey KeyType, TCreate, TUpdate, TFilter, TModel any] interface {
