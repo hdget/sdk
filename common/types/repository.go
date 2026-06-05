@@ -11,35 +11,35 @@ import (
 // ============================================================
 
 // RepoCreate 创建操作:C
-type RepoCreate[TBizObject any, TModelObject any] interface {
-	Create(ctx context.Context, bizObj TBizObject) (TModelObject, error)
+type RepoCreate[TCreate any, TKey KeyType] interface {
+	Create(ctx context.Context, model TCreate) (TKey, error)
 }
 
-// RepoRetrieve 读操作:R
-type RepoRetrieve[TObjectKey ObjectKeyType, TModelObject any] interface {
-	Get(ctx context.Context, key TObjectKey) (TModelObject, error)
-	Count(ctx context.Context, filters map[string]string) (int64, error)
-	List(ctx context.Context, filters map[string]string, list ...*protobuf.ListParam) ([]TModelObject, error)
+type RepoGet[TKey KeyType, TModel any] interface {
+	Get(ctx context.Context, key TKey) (TModel, error)
+}
+
+type RepoCount[TFilter any] interface {
+	Count(ctx context.Context, filter TFilter) (int64, error)
+}
+
+type RepoList[TFilter any, TModel any] interface {
+	List(ctx context.Context, filter TFilter, list ...*protobuf.ListParam) ([]TModel, error)
+}
+
+type RepoQuery[TFilter any, TModel any] interface {
+	RepoCount[TFilter]
+	RepoList[TFilter, TModel]
 }
 
 // RepoUpdate 更新:U
-type RepoUpdate[TModelObject any] interface {
-	Update(ctx context.Context, modelObj TModelObject) error
-}
-
-// RepoEdit 编辑操作（基于业务对象，返回模型对象）
-type RepoEdit[TBizObject any, TModelObject any] interface {
-	Edit(ctx context.Context, bizObj TBizObject) (TModelObject, error)
+type RepoUpdate[TUpdate any] interface {
+	Update(ctx context.Context, model TUpdate) error
 }
 
 // RepoDelete 删除:D
-type RepoDelete[TObjectKey ObjectKeyType] interface {
-	Delete(ctx context.Context, key TObjectKey) (int64, error)
-}
-
-// RepoUpsert Upsert 操作（创建或更新）
-type RepoUpsert[TBizObject any, TModelObject any] interface {
-	Upsert(ctx context.Context, bizObj TBizObject) (TModelObject, error)
+type RepoDelete[TKey KeyType] interface {
+	Delete(ctx context.Context, keys ...TKey) (int64, error)
 }
 
 // ============================================================
@@ -48,41 +48,56 @@ type RepoUpsert[TBizObject any, TModelObject any] interface {
 
 // RepoBulkGet 批量读取（返回 map）
 // 调用者需要 slice 时，使用 pie.Values(map) 或 slices.Collect(maps.Values(map))
-type RepoBulkGet[TObjectKey ObjectKeyType, TModelObject any] interface {
-	BulkGet(ctx context.Context, ids []TObjectKey) (map[TObjectKey]TModelObject, error)
-}
-
-// RepoBulkCreate 批量创建
-type RepoBulkCreate[TModelObject any] interface {
-	BulkCreate(ctx context.Context, items []TModelObject) ([]TModelObject, error)
+type RepoBulkGet[TKey KeyType, TModel any] interface {
+	BulkGet(ctx context.Context, keys ...TKey) (map[TKey]TModel, error)
 }
 
 // ============================================================
-// 组合接口（常用 Repo 动作组合）
+// 组合接口
 // ============================================================
 
-// RepoCRUD 标准 CRUD 操作接口
-// TObjectKey: 主键类型（int64, int32, int, string）
-// TBizObject: 业务对象类型（pb.XXX）
-// TModelObject: 数据模型类型（db.XXX）
-type RepoCRUD[TObjectKey ObjectKeyType, TBizObject any, TModelObject any] interface {
-	RepoCreate[TBizObject, TModelObject]
-	RepoRetrieve[TObjectKey, TModelObject]
-	RepoEdit[TBizObject, TModelObject]
-	RepoDelete[TObjectKey]
+type RepoOperation[TKey KeyType, TCreate, TUpdate, TFilter, TModel any] interface {
+	RepoCreate[TCreate, TKey]
+	RepoGet[TKey, TModel]
+	RepoCount[TFilter]
+	RepoList[TFilter, TModel]
+	RepoUpdate[TUpdate]
+	RepoDelete[TKey]
 }
 
-// RepoCRUDWithBulk 标准 CRUD + 批量读取
-type RepoCRUDWithBulk[TObjectKey ObjectKeyType, TBizObject any, TModelObject any] interface {
-	RepoCRUD[TObjectKey, TBizObject, TModelObject]
-	RepoBulkGet[TObjectKey, TModelObject]
+// ============================================================
+// 带 scope的关联资源 Repo
+// ============================================================
+
+type ScopedRepoGet[TScopeKey, TKey KeyType, TModel any] interface {
+	Get(ctx context.Context, scopeKey TScopeKey, key TKey) (TModel, error)
 }
 
-// RepoCRUDFull 完整 CRUD（包含所有常用操作）
-type RepoCRUDFull[TObjectKey ObjectKeyType, TBizObject any, TModelObject any] interface {
-	RepoCreate[TBizObject, TModelObject]
-	RepoRetrieve[TObjectKey, TModelObject]
-	RepoBulkGet[TObjectKey, TModelObject]
-	RepoEdit[TBizObject, TModelObject]
-	RepoDelete[TObjectKey]
+type ScopedRepoCreate[TScopeKey, TKey KeyType, TCreate any] interface {
+	Create(ctx context.Context, scopeKey TScopeKey, item TCreate) (TKey, error)
+}
+
+type ScopedRepoUpdate[TScopeKey KeyType, TUpdate any] interface {
+	Update(ctx context.Context, scopeKey TScopeKey, item TUpdate) error
+}
+
+type ScopedRepoDelete[TScopeKey, TKey KeyType] interface {
+	Delete(ctx context.Context, scopeKey TScopeKey, keys ...TKey) (int64, error)
+}
+
+type ScopedRepoCount[TScopeKey KeyType, TFilter any] interface {
+	Count(ctx context.Context, scopeKey TScopeKey, filters TFilter) (int64, error)
+}
+
+type ScopedRepoList[TScopeKey KeyType, TFilter, TModel any] interface {
+	List(ctx context.Context, scopeKey TScopeKey, filters TFilter, list ...protobuf.ListParam) ([]TModel, error)
+}
+
+type ScopedRepoOperation[TScopeKey, TKey KeyType, TCreate, TUpdate, TFilter, TModel any] interface {
+	ScopedRepoGet[TScopeKey, TKey, TModel]
+	ScopedRepoCreate[TScopeKey, TKey, TCreate]
+	ScopedRepoUpdate[TScopeKey, TUpdate]
+	ScopedRepoDelete[TScopeKey, TKey]
+	ScopedRepoCount[TScopeKey, TFilter]
+	ScopedRepoList[TScopeKey, TFilter, TModel]
 }

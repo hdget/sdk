@@ -6,27 +6,27 @@ import (
 
 /* request */
 
-type CreateRefObjectRequest[TObjectKey ObjectKeyType, TBizObject any] struct {
+type CreateRefObjectRequest[TObjectKey KeyType, TBizObject any] struct {
 	Key  TObjectKey `json:"key"`
 	Item TBizObject `json:"item"`
 }
 
-type EditRefObjectRequest[TObjectKey ObjectKeyType, TBizObject any] struct {
+type EditRefObjectRequest[TObjectKey KeyType, TBizObject any] struct {
 	Key  TObjectKey `json:"key"`
 	Item TBizObject `json:"item"`
 }
 
-type DeleteRefObjectRequest[TObjectKey ObjectKeyType] struct {
+type DeleteRefObjectRequest[TObjectKey KeyType] struct {
 	Key     TObjectKey `json:"key"`
 	ItemKey TObjectKey `json:"item_key"`
 }
 
-type GetRefObjectRequest[TObjectKey ObjectKeyType] struct {
+type GetRefObjectRequest[TObjectKey KeyType] struct {
 	Key     TObjectKey `json:"key"`
 	ItemKey TObjectKey `json:"item_key"`
 }
 
-type QueryRefObjectRequest[TObjectKey ObjectKeyType] struct {
+type QueryRefObjectRequest[TObjectKey KeyType] struct {
 	Key     TObjectKey          `json:"key"`
 	Filters map[string]string   `json:"filters,omitempty"`
 	List    *protobuf.ListParam `json:"list,omitempty"`
