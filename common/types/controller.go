@@ -18,7 +18,7 @@ type DeleteRequest[TKey KeyType] struct {
 	Keys []TKey `json:"keys"`
 }
 
-type EditRequest[TUpdateModel any] struct {
+type UpdateRequest[TUpdateModel any] struct {
 	Item TUpdateModel `json:"item"`
 }
 
