@@ -37,27 +37,27 @@ type QueryResponse[TResult any] struct {
 // ============================================================
 
 type ScopedCreateRequest[TScopedKey KeyType, TCreate any] struct {
-	Key  TScopedKey `json:"key"`
-	Item TCreate    `json:"item"`
+	ScopedKey TScopedKey `json:"scoped_key"`
+	Item      TCreate    `json:"item"`
 }
 
 type ScopedUpdateRequest[TScopedKey KeyType, TUpdate any] struct {
-	Key  TScopedKey `json:"key"`
-	Item TUpdate    `json:"item"`
+	ScopedKey TScopedKey `json:"scoped_key"`
+	Item      TUpdate    `json:"item"`
 }
 
-type ScopedDeleteRequest[TScopedKey KeyType] struct {
-	Key     TScopedKey `json:"key"`
-	ItemKey TScopedKey `json:"item_key"`
+type ScopedDeleteRequest[TScopedKey, TKey KeyType] struct {
+	ScopedKey TScopedKey `json:"scoped_key"`
+	Key       TKey       `json:"key"`
 }
 
-type ScopedGetRequest[TScopedKey KeyType] struct {
-	Key     TScopedKey `json:"key"`
-	ItemKey TScopedKey `json:"item_key"`
+type ScopedGetRequest[TScopedKey, TKey KeyType] struct {
+	ScopedKey TScopedKey `json:"scoped_key"`
+	Key       TKey       `json:"key"`
 }
 
 type ScopedQueryRequest[TScopedKey KeyType, TFilter any] struct {
-	Key     TScopedKey          `json:"key"`
-	Filters TFilter             `json:"filters,omitempty"`
-	List    *protobuf.ListParam `json:"list,omitempty"`
+	ScopedKey TScopedKey          `json:"scoped_key"`
+	Filters   TFilter             `json:"filters,omitempty"`
+	List      *protobuf.ListParam `json:"list,omitempty"`
 }
