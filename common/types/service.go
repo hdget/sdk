@@ -23,7 +23,7 @@ type ServiceUpdate[TUpdate any] interface {
 }
 
 type ServiceDelete[TKey KeyType] interface {
-	Delete(ctx context.Context, keys ...TKey) error
+	Delete(ctx context.Context, key TKey) error
 }
 
 // ============================================================
