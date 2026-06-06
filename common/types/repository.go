@@ -69,10 +69,6 @@ type RepoOperation[TKey KeyType, TCreate, TUpdate, TFilter, TModel any] interfac
 // 带 scope的关联资源 Repo
 // ============================================================
 
-type ScopedRepoGet[TScopeKey, TKey KeyType, TModel any] interface {
-	Get(ctx context.Context, scopeKey TScopeKey, key TKey) (TModel, error)
-}
-
 type ScopedRepoCreate[TScopeKey, TKey KeyType, TCreate any] interface {
 	Create(ctx context.Context, scopeKey TScopeKey, item TCreate) (TKey, error)
 }
@@ -94,7 +90,7 @@ type ScopedRepoList[TScopeKey KeyType, TFilter, TModel any] interface {
 }
 
 type ScopedRepoOperation[TScopeKey, TKey KeyType, TCreate, TUpdate, TFilter, TModel any] interface {
-	ScopedRepoGet[TScopeKey, TKey, TModel]
+	RepoGet[TKey, TModel]
 	ScopedRepoCreate[TScopeKey, TKey, TCreate]
 	ScopedRepoUpdate[TScopeKey, TUpdate]
 	ScopedRepoDelete[TScopeKey, TKey]
