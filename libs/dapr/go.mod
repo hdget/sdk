@@ -10,7 +10,7 @@ require (
 	github.com/hdget/utils v0.2.3
 	github.com/hdget/utils/panic v0.0.1
 	github.com/hdget/utils/reflect v0.0.1
-	github.com/hdget/utils/text v0.0.3
+	github.com/hdget/utils/text v0.0.4
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cast v1.10.0
 )

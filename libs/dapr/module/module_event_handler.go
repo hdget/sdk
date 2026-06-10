@@ -7,6 +7,7 @@ import (
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/sdk/common/provider"
 	panicUtils "github.com/hdget/utils/panic"
+	"github.com/hdget/utils/text"
 )
 
 type eventHandler interface {
@@ -63,11 +64,11 @@ func (h eventHandlerImpl) GetEventFunction(logger provider.Logger) common.TopicE
 
 		select {
 		case <-ctxWithTimeout.Done(): // 统一用context控制
-			logger.Error("event processing timeout, discard message", "data", truncate(event.RawData))
+			logger.Error("event processing timeout, discard message", "data", text.Truncate(event.RawData, 100))
 			return false, ctxWithTimeout.Err()
 		case quitResult := <-quit:
 			if quitResult.err != nil {
-				logger.Error("event processing", "data", truncate(event.RawData), "err", quitResult.err)
+				logger.Error("event processing", "data", text.Truncate(event.RawData, 100), "err", quitResult.err)
 			}
 			return quitResult.retry, quitResult.err
 		}

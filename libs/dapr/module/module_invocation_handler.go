@@ -13,6 +13,7 @@ import (
 	"github.com/hdget/utils"
 	panicUtils "github.com/hdget/utils/panic"
 	reflectUtils "github.com/hdget/utils/reflect"
+	"github.com/hdget/utils/text"
 )
 
 type invocationHandler interface {
@@ -60,7 +61,7 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger provider.Logger) common.
 		result, err := h.fn(bizctx.NewFromIncomingGrpcContext(ctx), event.Data)
 		if err != nil {
 			mInfo := h.module.GetInfo()
-			logger.Error("service invoke", "dir", mInfo.Dir, "module", mInfo.Name, "handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", truncate(event.Data))
+			logger.Error("service invoke", "dir", mInfo.Dir, "module", mInfo.Name, "handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", text.Truncate(event.Data, 100))
 			return h.replyError(err)
 		}
 

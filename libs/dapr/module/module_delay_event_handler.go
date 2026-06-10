@@ -7,6 +7,7 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	"github.com/hdget/sdk/common/provider"
 	panicUtils "github.com/hdget/utils/panic"
+	"github.com/hdget/utils/text"
 )
 
 type DelayEventHandler interface {
@@ -51,17 +52,17 @@ LOOP:
 				msg.Ack()
 			} else {
 				if !retry { // err != nil && retry == false
-					logger.Error("drop delay event", "err", err, "data", truncate(msg.Payload))
+					logger.Error("drop delay event", "err", err, "data", text.Truncate(msg.Payload, 100))
 					msg.Ack()
 				} else { // err != nil && retry == true
 					nextBackOff := h.module.GetBackOffPolicy().NextBackOff()
 					if nextBackOff == backoff.Stop {
-						logger.Error("drop delay event after retried many times", "err", err, "data", truncate(msg.Payload))
+						logger.Error("drop delay event after retried many times", "err", err, "data", text.Truncate(msg.Payload, 100))
 						msg.Ack()
 						h.module.GetBackOffPolicy().Reset()
 					} else {
 						time.Sleep(nextBackOff)
-						logger.Error("retry delay event", "err", err, "data", truncate(msg.Payload))
+						logger.Error("retry delay event", "err", err, "data", text.Truncate(msg.Payload, 100))
 						msg.Nack()
 					}
 				}
