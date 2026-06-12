@@ -6,95 +6,195 @@ import (
 	"golang.org/x/exp/constraints"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
-// ErrCodeStart 业务逻辑错误代码起始值
-// 选择10000作为起始值是为了与系统错误码（1-999）和HTTP状态码（100-599）区分
-// 业务模块错误码按万进制划分：10000=基础模块，20000=用户模块，30000=订单模块等
-const ErrCodeStart = 10000
-
-// ErrCodeModuleRoot define error code module, e,g: 10000, 20000, 30000...
-const (
-	ErrCodeModuleRoot = ErrCodeStart * (1 + iota)
-)
-
-// define utils error code
-const (
-	_               = ErrCodeModuleRoot + iota // unknown error code
-	ErrCodeInternal                            // internal error
-)
-
-type Error interface {
+type BizError interface {
 	error
 	Code() int
+	Reason() string
+	Detail() map[string]any
+	WithDetail(kvs ...any) BizError
 }
 
-type errorImpl struct {
-	ErrCode int    `json:"code"`
-	ErrMsg  string `json:"msg"`
+type bizErrorImpl struct {
+	ErrCode   int            `json:"code"`
+	ErrReason string         `json:"reason"`
+	ErrMsg    string         `json:"msg"`
+	ErrDetail map[string]any `json:"detail,omitempty"`
 }
+
+const (
+	internalCode   = 10001
+	internalReason = "INTERNAL_ERROR"
+)
 
 // New error with error code
-func New[T constraints.Integer](code T, message string) Error {
-	return &errorImpl{
-		ErrCode: int(code),
-		ErrMsg:  message,
+func New[T constraints.Integer](code T, reason, message string, kvs ...any) BizError {
+	return &bizErrorImpl{
+		ErrCode:   int(code),
+		ErrMsg:    message,
+		ErrReason: reason,
+		ErrDetail: cloneMap(parseKvs(kvs...)),
 	}
 }
 
-func ToGrpcError(err error) error {
-	var be Error
-	ok := errors.As(err, &be)
-	if ok {
-		st, _ := status.New(codes.Internal, "internal error").WithDetails(&protobuf.Error{
-			Code: int32(be.Code()),
-			Msg:  be.Error(),
-		})
-		return st.Err()
-	}
-	return err
-}
-
-// FromGrpcError 从grpc status error获取额外的错误信息
-func FromGrpcError(err error) Error {
-	if err == nil {
-		return nil
+func FromProto(enum protoreflect.Enum, message string, kvs ...any) BizError {
+	if enum == nil {
+		return InternalError(message, kvs...)
 	}
 
-	cause := errors.Cause(err)
-	st, ok := status.FromError(cause)
-	if ok {
-		details := st.Details()
-		if len(details) > 0 {
-			var pbErr protobuf.Error
-			e := proto.Unmarshal(st.Proto().Details[0].GetValue(), &pbErr)
-			if e == nil {
-				return &errorImpl{
-					ErrCode: int(pbErr.Code),
-					ErrMsg:  pbErr.Msg,
-				}
+	reason := internalReason
+	// 增加中间值的 nil 检查
+	if desc := enum.Descriptor(); desc != nil {
+		if values := desc.Values(); values != nil {
+			if v := values.ByNumber(enum.Number()); v != nil {
+				reason = string(v.Name())
 			}
 		}
 	}
 
-	return &errorImpl{
-		ErrCode: int(codes.Internal),
-		ErrMsg:  err.Error(),
+	return &bizErrorImpl{
+		ErrCode:   int(enum.Number()),
+		ErrReason: reason,
+		ErrMsg:    message,
+		ErrDetail: cloneMap(parseKvs(kvs...)),
 	}
 }
 
-func InternalError(message string) Error {
-	return &errorImpl{
-		ErrCode: ErrCodeInternal, // 10001为自定义的内部错误编码
-		ErrMsg:  message,
+func InternalError(message string, kvs ...any) BizError {
+	return New(internalCode, internalReason, message, kvs...)
+}
+
+func ToGrpcError(err error) error {
+	var be BizError
+	if !errors.As(err, &be) {
+		return err
+	}
+
+	pbErr := &protobuf.Error{
+		Code:   int32(be.Code()),
+		Msg:    be.Error(),
+		Reason: be.Reason(),
+	}
+
+	if detail := be.Detail(); len(detail) > 0 {
+		if pbDetail, e := structpb.NewStruct(detail); e == nil {
+			pbErr.Detail = pbDetail
+		}
+	}
+
+	st, _ := status.New(codes.Code(be.Code()), be.Error()).WithDetails(pbErr)
+	return st.Err()
+}
+
+// FromGrpcError 从grpc status error获取额外的错误信息
+func FromGrpcError(err error) BizError {
+	if err == nil {
+		return nil
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		return &bizErrorImpl{
+			ErrCode:   internalCode,
+			ErrReason: internalReason,
+			ErrMsg:    err.Error(),
+		}
+	}
+
+	for _, d := range st.Details() {
+		if pbErr, ok := d.(*protobuf.Error); ok {
+			var detail map[string]any
+			if pbErr.Detail != nil {
+				detail = pbErr.Detail.AsMap()
+			}
+
+			return &bizErrorImpl{
+				ErrCode:   int(pbErr.Code),
+				ErrReason: pbErr.Reason,
+				ErrMsg:    pbErr.Msg,
+				ErrDetail: detail,
+			}
+		}
+	}
+
+	return &bizErrorImpl{
+		ErrCode:   int(st.Code()),
+		ErrReason: internalReason,
+		ErrMsg:    st.Message(),
 	}
 }
 
-func (be errorImpl) Error() string {
+func (be *bizErrorImpl) Error() string {
 	return be.ErrMsg
 }
 
-func (be errorImpl) Code() int {
+func (be *bizErrorImpl) Code() int {
 	return be.ErrCode
+}
+
+func (be *bizErrorImpl) Reason() string {
+	return be.ErrReason
+}
+
+func (be *bizErrorImpl) WithDetail(kvs ...any) BizError {
+	cp := *be
+
+	detail := cloneMap(be.ErrDetail)
+	for k, v := range parseKvs(kvs...) {
+		detail[k] = v
+	}
+
+	cp.ErrDetail = detail
+	return &cp
+}
+
+func (be *bizErrorImpl) Detail() map[string]any {
+	return cloneMap(be.ErrDetail)
+}
+
+func parseKvs(kvs ...any) map[string]any {
+	if len(kvs) == 0 {
+		return nil
+	}
+
+	// 如果是 map / struct，直接走结构化转换
+	if len(kvs) == 1 {
+		if m, ok := kvs[0].(map[string]any); ok {
+			return cloneMap(m)
+		}
+	}
+
+	// kvs key-value pair 模式
+	if len(kvs)%2 != 0 {
+		// 可以选择 panic / ignore / log
+		return nil
+	}
+
+	out := make(map[string]any, len(kvs)/2)
+	for i := 0; i < len(kvs); i += 2 {
+		key, ok := kvs[i].(string)
+		if !ok {
+			// key 不是 string，跳过或报错
+			continue
+		}
+		out[key] = kvs[i+1]
+	}
+	return out
+}
+
+func cloneMap(src map[string]any) map[string]any {
+	if src == nil {
+		return nil
+	}
+
+	dst := make(map[string]any, len(src))
+
+	for k, v := range src {
+		dst[k] = v
+	}
+
+	return dst
 }

@@ -2,11 +2,15 @@ syntax = "proto3";
 
 package protobuf;
 
+import "google/protobuf/struct.proto";
+
 option go_package = "github.com/hdget/sdk/common/protobuf";
 
 message Error {
   int32 code = 1;
   string msg = 2;
+  string reason = 3;
+  google.protobuf.Struct detail = 4;
 }
 
 // 按limit分页

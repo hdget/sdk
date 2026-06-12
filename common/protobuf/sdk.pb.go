@@ -7,11 +7,13 @@
 package protobuf
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 )
 
 const (
@@ -80,6 +82,8 @@ type Error struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
 	Msg           string                 `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	Detail        *structpb.Struct       `protobuf:"bytes,4,opt,name=detail,proto3" json:"detail,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -126,6 +130,20 @@ func (x *Error) GetMsg() string {
 		return x.Msg
 	}
 	return ""
+}
+
+func (x *Error) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *Error) GetDetail() *structpb.Struct {
+	if x != nil {
+		return x.Detail
+	}
+	return nil
 }
 
 // 按limit分页
@@ -329,10 +347,12 @@ var File_sdk_proto protoreflect.FileDescriptor
 
 const file_sdk_proto_rawDesc = "" +
 	"\n" +
-	"\tsdk.proto\x12\bprotobuf\"-\n" +
+	"\tsdk.proto\x12\bprotobuf\x1a\x1cgoogle/protobuf/struct.proto\"v\n" +
 	"\x05Error\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x10\n" +
-	"\x03msg\x18\x02 \x01(\tR\x03msg\"<\n" +
+	"\x03msg\x18\x02 \x01(\tR\x03msg\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\x12/\n" +
+	"\x06detail\x18\x04 \x01(\v2\x17.google.protobuf.StructR\x06detail\"<\n" +
 	"\tListParam\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x03R\bpageSize\"\xcb\x02\n" +
@@ -379,16 +399,18 @@ var file_sdk_proto_goTypes = []any{
 	(*DaprHandler)(nil),        // 3: protobuf.DaprHandler
 	(*UpdateRouteRequest)(nil), // 4: protobuf.UpdateRouteRequest
 	nil,                        // 5: protobuf.DaprHandler.AnnotationsEntry
+	(*structpb.Struct)(nil),    // 6: google.protobuf.Struct
 }
 var file_sdk_proto_depIdxs = []int32{
-	0, // 0: protobuf.DaprHandler.module_kind:type_name -> protobuf.DaprModuleKind
-	5, // 1: protobuf.DaprHandler.annotations:type_name -> protobuf.DaprHandler.AnnotationsEntry
-	3, // 2: protobuf.UpdateRouteRequest.handlers:type_name -> protobuf.DaprHandler
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	6, // 0: protobuf.Error.detail:type_name -> google.protobuf.Struct
+	0, // 1: protobuf.DaprHandler.module_kind:type_name -> protobuf.DaprModuleKind
+	5, // 2: protobuf.DaprHandler.annotations:type_name -> protobuf.DaprHandler.AnnotationsEntry
+	3, // 3: protobuf.UpdateRouteRequest.handlers:type_name -> protobuf.DaprHandler
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_sdk_proto_init() }
