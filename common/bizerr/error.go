@@ -10,12 +10,12 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-type BizError interface {
+type Error interface {
 	error
 	Code() int
 	Reason() string
 	Detail() map[string]any
-	WithDetail(kvs ...any) BizError
+	WithDetail(kvs ...any) Error
 }
 
 type bizErrorImpl struct {
@@ -31,7 +31,7 @@ const (
 )
 
 // New error with error code
-func New[T constraints.Integer](code T, reason, message string, kvs ...any) BizError {
+func New[T constraints.Integer](code T, reason, message string, kvs ...any) Error {
 	return &bizErrorImpl{
 		ErrCode:   int(code),
 		ErrMsg:    message,
@@ -40,7 +40,7 @@ func New[T constraints.Integer](code T, reason, message string, kvs ...any) BizE
 	}
 }
 
-func FromProto(enum protoreflect.Enum, message string, kvs ...any) BizError {
+func FromProto(enum protoreflect.Enum, message string, kvs ...any) Error {
 	if enum == nil {
 		return InternalError(message, kvs...)
 	}
@@ -63,12 +63,12 @@ func FromProto(enum protoreflect.Enum, message string, kvs ...any) BizError {
 	}
 }
 
-func InternalError(message string, kvs ...any) BizError {
+func InternalError(message string, kvs ...any) Error {
 	return New(internalCode, internalReason, message, kvs...)
 }
 
 func ToGrpcError(err error) error {
-	var be BizError
+	var be Error
 	if !errors.As(err, &be) {
 		return err
 	}
@@ -90,7 +90,7 @@ func ToGrpcError(err error) error {
 }
 
 // FromGrpcError 从grpc status error获取额外的错误信息
-func FromGrpcError(err error) BizError {
+func FromGrpcError(err error) Error {
 	if err == nil {
 		return nil
 	}
@@ -139,7 +139,7 @@ func (be *bizErrorImpl) Reason() string {
 	return be.ErrReason
 }
 
-func (be *bizErrorImpl) WithDetail(kvs ...any) BizError {
+func (be *bizErrorImpl) WithDetail(kvs ...any) Error {
 	cp := *be
 
 	detail := cloneMap(be.ErrDetail)
