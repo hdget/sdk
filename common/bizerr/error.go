@@ -90,7 +90,7 @@ func FromGrpcError(err error) Error {
 		return nil
 	}
 
-	st, ok := status.FromError(err)
+	st, ok := status.FromError(errors.Cause(err))
 	if !ok {
 		return &bizErrorImpl{
 			ErrCode:   defaultErrCode,
