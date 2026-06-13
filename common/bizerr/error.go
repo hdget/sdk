@@ -26,8 +26,8 @@ type bizErrorImpl struct {
 }
 
 const (
-	internalCode   = 10001
-	internalReason = "INTERNAL_ERROR"
+	defaultErrCode   = 10001
+	defaultErrReason = "INTERNAL_ERROR"
 )
 
 // New error with error code
@@ -36,7 +36,7 @@ func New[T constraints.Integer](code T, reason, message string, kvs ...any) Erro
 		ErrCode:   int(code),
 		ErrMsg:    message,
 		ErrReason: reason,
-		ErrDetail: cloneMap(parseKvs(kvs...)),
+		ErrDetail: parseKvs(kvs...),
 	}
 }
 
@@ -45,30 +45,25 @@ func FromProto(enum protoreflect.Enum, message string, kvs ...any) Error {
 		return InternalError(message, kvs...)
 	}
 
-	reason := internalReason
-	// 增加中间值的 nil 检查
-	if desc := enum.Descriptor(); desc != nil {
-		if values := desc.Values(); values != nil {
-			if v := values.ByNumber(enum.Number()); v != nil {
-				reason = string(v.Name())
-			}
-		}
+	reason := defaultErrReason
+	if ed := enum.Descriptor().Values().ByNumber(enum.Number()); ed != nil {
+		reason = string(ed.Name())
 	}
 
 	return &bizErrorImpl{
 		ErrCode:   int(enum.Number()),
 		ErrReason: reason,
 		ErrMsg:    message,
-		ErrDetail: cloneMap(parseKvs(kvs...)),
+		ErrDetail: parseKvs(kvs...),
 	}
 }
 
 func InternalError(message string, kvs ...any) Error {
-	return New(internalCode, internalReason, message, kvs...)
+	return New(defaultErrCode, defaultErrReason, message, kvs...)
 }
 
 func ToGrpcError(err error) error {
-	var be Error
+	var be *bizErrorImpl
 	if !errors.As(err, &be) {
 		return err
 	}
@@ -85,7 +80,7 @@ func ToGrpcError(err error) error {
 		}
 	}
 
-	st, _ := status.New(codes.Code(be.Code()), be.Error()).WithDetails(pbErr)
+	st, _ := status.New(codes.Unknown, be.Error()).WithDetails(pbErr)
 	return st.Err()
 }
 
@@ -98,8 +93,8 @@ func FromGrpcError(err error) Error {
 	st, ok := status.FromError(err)
 	if !ok {
 		return &bizErrorImpl{
-			ErrCode:   internalCode,
-			ErrReason: internalReason,
+			ErrCode:   defaultErrCode,
+			ErrReason: defaultErrReason,
 			ErrMsg:    err.Error(),
 		}
 	}
@@ -122,7 +117,7 @@ func FromGrpcError(err error) Error {
 
 	return &bizErrorImpl{
 		ErrCode:   int(st.Code()),
-		ErrReason: internalReason,
+		ErrReason: defaultErrReason,
 		ErrMsg:    st.Message(),
 	}
 }
@@ -142,17 +137,21 @@ func (be *bizErrorImpl) Reason() string {
 func (be *bizErrorImpl) WithDetail(kvs ...any) Error {
 	cp := *be
 
-	detail := cloneMap(be.ErrDetail)
-	for k, v := range parseKvs(kvs...) {
-		detail[k] = v
+	parsedMap := parseKvs(kvs...)
+	if len(parsedMap) > 0 {
+		cp.ErrDetail = make(map[string]any, len(parsedMap))
+		for k, v := range parsedMap {
+			cp.ErrDetail[k] = v
+		}
+	} else {
+		cp.ErrDetail = nil
 	}
 
-	cp.ErrDetail = detail
 	return &cp
 }
 
 func (be *bizErrorImpl) Detail() map[string]any {
-	return cloneMap(be.ErrDetail)
+	return be.ErrDetail
 }
 
 func parseKvs(kvs ...any) map[string]any {
@@ -163,14 +162,14 @@ func parseKvs(kvs ...any) map[string]any {
 	// 如果是 map / struct，直接走结构化转换
 	if len(kvs) == 1 {
 		if m, ok := kvs[0].(map[string]any); ok {
-			return cloneMap(m)
+			return m
 		}
 	}
 
 	// kvs key-value pair 模式
 	if len(kvs)%2 != 0 {
 		// 可以选择 panic / ignore / log
-		return nil
+		return map[string]any{"_err": "invalid detail"}
 	}
 
 	out := make(map[string]any, len(kvs)/2)
@@ -183,18 +182,4 @@ func parseKvs(kvs ...any) map[string]any {
 		out[key] = kvs[i+1]
 	}
 	return out
-}
-
-func cloneMap(src map[string]any) map[string]any {
-	if src == nil {
-		return nil
-	}
-
-	dst := make(map[string]any, len(src))
-
-	for k, v := range src {
-		dst[k] = v
-	}
-
-	return dst
 }
