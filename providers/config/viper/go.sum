@@ -139,8 +139,8 @@ github.com/hashicorp/memberlist v0.5.0 h1:EtYPN8DpAURiapus508I4n9CzHs2W+8NZGbmmR
 github.com/hashicorp/memberlist v0.5.0/go.mod h1:yvyXLpo0QaGE59Y7hDTsTzDD25JYBZ4mHgHUZ8lrOI0=
 github.com/hashicorp/serf v0.10.1 h1:Z1H2J60yRKvfDYAOZLd2MU0ND4AH/WDz7xYHDWQsIPY=
 github.com/hashicorp/serf v0.10.1/go.mod h1:yL2t6BqATOLGc5HF7qbFkTfXoPIY0WZdWHfEvMqbG+4=
-github.com/hdget/sdk/common v0.1.1 h1:ExmQ6vSpfZBTAtXITnbf8ScObTj+3HGqmtPhUNVIG/A=
-github.com/hdget/sdk/common v0.1.1/go.mod h1:fC99dwcFBIY334lxIaKkriCHqZaYVNK7ft/VTQ8tH5w=
+github.com/hdget/sdk/common v0.1.21 h1:dx8ojQVj9E0eyLRAY6Og4FBhpl43lx8ftfZDB6hIh2g=
+github.com/hdget/sdk/common v0.1.21/go.mod h1:fC99dwcFBIY334lxIaKkriCHqZaYVNK7ft/VTQ8tH5w=
 github.com/json-iterator/go v1.1.6/go.mod h1:+SdeFBvtyEkXs7REEP0seUULqWtbJapLOCVDaaPEHmU=
 github.com/json-iterator/go v1.1.9/go.mod h1:KdQUCv79m/52Kvf8AW2vK1V8akMuk1QjK/uOdHXbAo4=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=

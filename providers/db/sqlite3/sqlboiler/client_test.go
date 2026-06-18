@@ -23,7 +23,7 @@ func TestSqlDB(t *testing.T) {
 	}
 
 	// 创建 client
-	client, err := newClient(cfg)
+	client, err := newClient(cfg, nil)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
@@ -60,7 +60,7 @@ func TestSqlDB_ReturnsSameInstance(t *testing.T) {
 		DbPath: dbPath,
 	}
 
-	client, err := newClient(cfg)
+	client, err := newClient(cfg, nil)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
@@ -89,7 +89,7 @@ func TestSqlDB_AfterClose(t *testing.T) {
 		DbPath: dbPath,
 	}
 
-	client, err := newClient(cfg)
+	client, err := newClient(cfg, nil)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
@@ -118,7 +118,7 @@ func TestSqlite3ClientImplementsDbClient(t *testing.T) {
 		DbPath: ":memory:",
 	}
 
-	client, err := newClient(cfg)
+	client, err := newClient(cfg, nil)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}

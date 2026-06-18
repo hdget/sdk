@@ -23,7 +23,7 @@ func TestSqlDB(t *testing.T) {
 	}
 
 	// 创建 client
-	client, err := newClient(cfg)
+	client, err := newClient(cfg, nil)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
@@ -60,7 +60,7 @@ func TestSqlDB_ReturnsSameInstance(t *testing.T) {
 		DbPath: dbPath,
 	}
 
-	client, err := newClient(cfg)
+	client, err := newClient(cfg, nil)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}

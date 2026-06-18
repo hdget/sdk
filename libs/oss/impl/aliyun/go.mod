@@ -14,6 +14,4 @@ require (
 	golang.org/x/time v0.4.0 // indirect
 )
 
-replace (
-	github.com/hdget/sdk/libs/oss => ../..
-)
+replace github.com/hdget/sdk/libs/oss => ../..
