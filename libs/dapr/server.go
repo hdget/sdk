@@ -287,7 +287,8 @@ func (impl *daprServerImpl) defaultRegisterFunction(app string, handlers []*prot
 		return nil
 	}
 
-	_, err := api.New().Invoke(context.Background(), "gateway", 1, "route", "update", &protobuf.UpdateRouteRequest{
+	// 改为调用 core.service.register
+	_, err := api.New().Invoke(context.Background(), "core", 1, "service", "register", &protobuf.RegisterServiceRequest{
 		App:      app,
 		Handlers: exposedHandlers,
 	})
