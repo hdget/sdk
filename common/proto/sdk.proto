@@ -37,7 +37,7 @@ message DaprHandler {
   repeated string comments = 6; // 注释
 }
 
-message UpdateRouteRequest {
+message RegisterRequest {
   string app = 1; // 应用名
   repeated DaprHandler handlers = 2; // AST解析后保存的Dapr处理函数列表
 }
