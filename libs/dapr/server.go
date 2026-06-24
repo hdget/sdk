@@ -287,8 +287,7 @@ func (impl *daprServerImpl) defaultRegisterFunction(app string, handlers []*prot
 		return nil
 	}
 
-	// 改为调用 core.service.register
-	_, err := api.New().Invoke(context.Background(), "core", 1, "service", "register", &protobuf.RegisterServiceRequest{
+	_, err := api.New().Invoke(context.Background(), "core", 1, "system", "register", &protobuf.RegisterRequest{
 		App:      app,
 		Handlers: exposedHandlers,
 	})

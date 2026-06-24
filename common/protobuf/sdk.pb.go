@@ -7,13 +7,12 @@
 package protobuf
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (
@@ -291,7 +290,7 @@ func (x *DaprHandler) GetComments() []string {
 	return nil
 }
 
-type UpdateRouteRequest struct {
+type RegisterRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	App           string                 `protobuf:"bytes,1,opt,name=app,proto3" json:"app,omitempty"`           // 应用名
 	Handlers      []*DaprHandler         `protobuf:"bytes,2,rep,name=handlers,proto3" json:"handlers,omitempty"` // AST解析后保存的Dapr处理函数列表
@@ -299,20 +298,20 @@ type UpdateRouteRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UpdateRouteRequest) Reset() {
-	*x = UpdateRouteRequest{}
+func (x *RegisterRequest) Reset() {
+	*x = RegisterRequest{}
 	mi := &file_sdk_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpdateRouteRequest) String() string {
+func (x *RegisterRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateRouteRequest) ProtoMessage() {}
+func (*RegisterRequest) ProtoMessage() {}
 
-func (x *UpdateRouteRequest) ProtoReflect() protoreflect.Message {
+func (x *RegisterRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_sdk_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -324,19 +323,19 @@ func (x *UpdateRouteRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateRouteRequest.ProtoReflect.Descriptor instead.
-func (*UpdateRouteRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use RegisterRequest.ProtoReflect.Descriptor instead.
+func (*RegisterRequest) Descriptor() ([]byte, []int) {
 	return file_sdk_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *UpdateRouteRequest) GetApp() string {
+func (x *RegisterRequest) GetApp() string {
 	if x != nil {
 		return x.App
 	}
 	return ""
 }
 
-func (x *UpdateRouteRequest) GetHandlers() []*DaprHandler {
+func (x *RegisterRequest) GetHandlers() []*DaprHandler {
 	if x != nil {
 		return x.Handlers
 	}
@@ -367,8 +366,8 @@ const file_sdk_proto_rawDesc = "" +
 	"\bcomments\x18\x06 \x03(\tR\bcomments\x1a>\n" +
 	"\x10AnnotationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"Y\n" +
-	"\x12UpdateRouteRequest\x12\x10\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"V\n" +
+	"\x0fRegisterRequest\x12\x10\n" +
 	"\x03app\x18\x01 \x01(\tR\x03app\x121\n" +
 	"\bhandlers\x18\x02 \x03(\v2\x15.protobuf.DaprHandlerR\bhandlers*\x9a\x01\n" +
 	"\x0eDaprModuleKind\x12\x19\n" +
@@ -393,19 +392,19 @@ func file_sdk_proto_rawDescGZIP() []byte {
 var file_sdk_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_sdk_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_sdk_proto_goTypes = []any{
-	(DaprModuleKind)(0),        // 0: protobuf.DaprModuleKind
-	(*Error)(nil),              // 1: protobuf.Error
-	(*ListParam)(nil),          // 2: protobuf.ListParam
-	(*DaprHandler)(nil),        // 3: protobuf.DaprHandler
-	(*UpdateRouteRequest)(nil), // 4: protobuf.UpdateRouteRequest
-	nil,                        // 5: protobuf.DaprHandler.AnnotationsEntry
-	(*structpb.Struct)(nil),    // 6: google.protobuf.Struct
+	(DaprModuleKind)(0),     // 0: protobuf.DaprModuleKind
+	(*Error)(nil),           // 1: protobuf.Error
+	(*ListParam)(nil),       // 2: protobuf.ListParam
+	(*DaprHandler)(nil),     // 3: protobuf.DaprHandler
+	(*RegisterRequest)(nil), // 4: protobuf.RegisterRequest
+	nil,                     // 5: protobuf.DaprHandler.AnnotationsEntry
+	(*structpb.Struct)(nil), // 6: google.protobuf.Struct
 }
 var file_sdk_proto_depIdxs = []int32{
 	6, // 0: protobuf.Error.detail:type_name -> google.protobuf.Struct
 	0, // 1: protobuf.DaprHandler.module_kind:type_name -> protobuf.DaprModuleKind
 	5, // 2: protobuf.DaprHandler.annotations:type_name -> protobuf.DaprHandler.AnnotationsEntry
-	3, // 3: protobuf.UpdateRouteRequest.handlers:type_name -> protobuf.DaprHandler
+	3, // 3: protobuf.RegisterRequest.handlers:type_name -> protobuf.DaprHandler
 	4, // [4:4] is the sub-list for method output_type
 	4, // [4:4] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name
