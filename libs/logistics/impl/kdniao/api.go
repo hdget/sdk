@@ -15,7 +15,7 @@ import (
 	"github.com/hdget/utils"
 )
 
-// API endpoints
+// ApiCommon endpoints
 const (
 	InstantQueryURL = "https://api.kdniao.com/Ebusiness/EbusinessOrderHandle.aspx"
 	SubscribeURL    = "https://api.kdniao.com/api/dist"
@@ -31,7 +31,7 @@ const (
 	RequestTypeCallbackPremium = "102"  // 增值订阅推送回调
 )
 
-// DataType for KDNiao API (2 = JSON)
+// DataType for KDNiao ApiCommon (2 = JSON)
 const DataType = "2"
 
 // 供应商名称

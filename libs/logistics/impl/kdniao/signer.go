@@ -10,7 +10,7 @@ import (
 // sign 生成快递鸟签名
 // 签名算法: DataSign = Base64(MD5(RequestData + ApiKey))
 //
-// 安全说明: MD5 仅用于满足快递鸟 API 的签名要求，不应用于其他安全敏感场景。
+// 安全说明: MD5 仅用于满足快递鸟 ApiCommon 的签名要求，不应用于其他安全敏感场景。
 // 参考: 快递鸟开放平台文档
 func sign(requestData, appKey string) string {
 	// 1. MD5加密
