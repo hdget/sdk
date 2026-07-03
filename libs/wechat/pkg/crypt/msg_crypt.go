@@ -1,28 +1,26 @@
 package crypt
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/binary"
-	"encoding/xml"
 	"fmt"
 	"math/big"
 	"sort"
-	"strings"
 	"time"
 
-	"github.com/hdget/utils"
 	"github.com/pkg/errors"
 )
 
 // WXBizMsgCrypt 微信消息加解密主类
 type WXBizMsgCrypt struct {
-	token string
-	key   []byte
-	appid string
+	appIdOrCorpId string
+	token         string
+	key           []byte
 }
 
 type EncryptResult struct {
@@ -33,7 +31,7 @@ type EncryptResult struct {
 }
 
 // NewBizMsgCrypt 创建WXBizMsgCrypt实例
-func NewBizMsgCrypt(appId, token, encodingAESKey string) (*WXBizMsgCrypt, error) {
+func NewBizMsgCrypt(appIdOrCorpId, token, encodingAESKey string) (*WXBizMsgCrypt, error) {
 	// Base64解码AESKey
 	key, err := base64.StdEncoding.DecodeString(encodingAESKey + "=")
 	if err != nil || len(key) != 32 {
@@ -41,9 +39,9 @@ func NewBizMsgCrypt(appId, token, encodingAESKey string) (*WXBizMsgCrypt, error)
 	}
 
 	return &WXBizMsgCrypt{
-		token: token,
-		key:   key,
-		appid: appId,
+		appIdOrCorpId: appIdOrCorpId,
+		token:         token,
+		key:           key,
 	}, nil
 }
 
@@ -61,12 +59,12 @@ func (w *WXBizMsgCrypt) Encrypt(replyMsg, nonce string, timestamp ...string) (*E
 		return nil, err
 	}
 
-	encrypt, err := pc.Encrypt(replyMsg, w.appid)
+	encrypt, err := pc.Encrypt(replyMsg, w.appIdOrCorpId)
 	if err != nil {
 		return nil, err
 	}
 
-	signature, err := calculateSHA1(w.token, ts, nonce, encrypt)
+	signature, err := CalculateSignature(w.token, ts, nonce, encrypt)
 	if err != nil {
 		return nil, err
 	}
@@ -75,13 +73,8 @@ func (w *WXBizMsgCrypt) Encrypt(replyMsg, nonce string, timestamp ...string) (*E
 }
 
 // Decrypt 解密消息
-func (w *WXBizMsgCrypt) Decrypt(msgSignature, timestamp, nonce, body string) ([]byte, error) {
-	encrypt, err := getEncryptContent(body)
-	if err != nil {
-		return nil, err
-	}
-
-	calculatedSignature, err := calculateSHA1(w.token, timestamp, nonce, encrypt)
+func (w *WXBizMsgCrypt) Decrypt(msgSignature, timestamp, nonce, encryptedData string) ([]byte, error) {
+	calculatedSignature, err := CalculateSignature(w.token, timestamp, nonce, encryptedData)
 	if err != nil {
 		return nil, err
 	}
@@ -95,40 +88,24 @@ func (w *WXBizMsgCrypt) Decrypt(msgSignature, timestamp, nonce, body string) ([]
 		return nil, err
 	}
 
-	return pc.Decrypt(encrypt, w.appid)
+	return pc.Decrypt(encryptedData, w.appIdOrCorpId)
 }
 
-// calculateSHA1 计算SHA1签名
-func calculateSHA1(token, timestamp, nonce, encrypt string) (string, error) {
-	inputs := []string{token, timestamp, nonce, encrypt}
+// CalculateSignature 计算SHA1签名
+func CalculateSignature(token, timestamp, nonce, data string) (string, error) {
+	inputs := []string{token, timestamp, nonce, data}
 	sort.Strings(inputs)
-	combined := strings.Join(inputs, "")
-
+	var buffer bytes.Buffer
+	for _, input := range inputs {
+		buffer.WriteString(input)
+	}
 	h := sha1.New()
-	_, err := h.Write([]byte(combined))
+	_, err := h.Write(buffer.Bytes())
 	if err != nil {
 		return "", errors.New("compute Signature")
 	}
 
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
-}
-
-// XMLParse XML解析和生成
-type XMLParse struct{}
-
-// getEncryptContent 从XML中提取加密消息
-func getEncryptContent(postData string) (string, error) {
-	type XmlData struct {
-		Encrypt string `xml:"Encrypt"`
-	}
-
-	var data XmlData
-	err := xml.Unmarshal(utils.StringToBytes(postData), &data)
-	if err != nil {
-		return "", err
-	}
-
-	return data.Encrypt, nil
 }
 
 // PKCS7Encoder PKCS7填充
@@ -239,7 +216,7 @@ func (p *CBCEncryptor) Decrypt(text, appid string) ([]byte, error) {
 		return nil, errors.New("illegal buffer")
 	}
 
-	// 16位随机字符串 + 4位长度 + 数据 + appid
+	// 16位随机字符串 + 4位长度 + 数据 + appIdOrCorpId
 	xmlLen := binary.BigEndian.Uint32(content[16:20])
 	if len(content) < int(20+xmlLen) {
 		return nil, errors.New("illegal buffer")
