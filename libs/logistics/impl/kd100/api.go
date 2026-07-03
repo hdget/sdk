@@ -16,7 +16,7 @@ import (
 	"github.com/hdget/sdk/libs/logistics"
 )
 
-// ApiCommon endpoints
+// API endpoints
 const (
 	InstantQueryURL = "https://poll.kuaidi100.com/poll/query.do"
 	SubscribeURL    = "https://poll.kuaidi100.com/poll"
@@ -56,7 +56,7 @@ func New(cfg *logistics.Config) (logistics.LogisticsApi, error) {
 // sign 生成快递100签名
 // sign = MD5(param + key + customer).toUpperCase()
 //
-// 安全说明: MD5 仅用于满足快递100 ApiCommon 的签名要求，不应用于其他安全敏感场景。
+// 安全说明: MD5 仅用于满足快递100API的签名要求，不应用于其他安全敏感场景。
 // 参考: 快递100开放平台文档
 func sign(param, key, customer string) string {
 	h := md5.New()
