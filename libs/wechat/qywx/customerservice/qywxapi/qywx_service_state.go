@@ -51,17 +51,22 @@ func (impl *qywxApiImpl) GetServiceState(accessToken, openKfID, externalUserID s
 }
 
 // TransServiceState 转换会话状态
-func (impl *qywxApiImpl) TransServiceState(accessToken string, req *TransServiceStateReq) error {
+func (impl *qywxApiImpl) TransServiceState(accessToken string, req *TransServiceStateReq) (string, error) {
 	url := fmt.Sprintf(urlTransServiceState, accessToken)
 
-	ret, err := api.Post[api.Result](url, req)
+	type transServiceStateResult struct {
+		api.Result
+		MsgCode string `json:"msg_code"` // 用于发送响应事件消息的code
+	}
+
+	ret, err := api.Post[transServiceStateResult](url, req)
 	if err != nil {
-		return errors.Wrap(err, "trans service state")
+		return "", errors.Wrap(err, "trans service state")
 	}
 
-	if err = api.CheckResult(ret, url, req); err != nil {
-		return errors.Wrap(err, "trans service state")
+	if err = api.CheckResult(ret.Result, url, req); err != nil {
+		return "", errors.Wrap(err, "trans service state")
 	}
 
-	return nil
+	return ret.MsgCode, nil
 }

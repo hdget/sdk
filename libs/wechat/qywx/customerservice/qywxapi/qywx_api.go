@@ -10,16 +10,17 @@ import (
 // Api 企业微信客服API接口
 type Api interface {
 	SendMessage(accessToken string, msg interface{}) error                     // 发送消息
-	ListCSR(accessToken, kfID string) ([]CSR, error)                           // 获取客服账号接待人员列表
-	AddCSR(accessToken, kfID string, servicers []CSR) error                    // 添加接待人员
-	DeleteCSR(accessToken, kfID string, servicers []CSR) error                 // 删除接待人员
+	SendMsgOnEvent(accessToken string, msg interface{}) (string, error)        // 发送事件响应消息，返回消息ID
+	ListCSR(accessToken, kfId string) ([]CSR, error)                           // 获取客服账号接待人员列表
+	AddCSR(accessToken, kfId string, servicers []CSR) error                    // 添加接待人员
+	DeleteCSR(accessToken, kfId string, servicers []CSR) error                 // 删除接待人员
 	ListKfAccount(accessToken string) ([]KfAccount, error)                     // 获取客服账号列表
 	AddKfAccount(accessToken string, account *KfAccountCreate) (string, error) // 创建客服账号
-	DeleteKfAccount(accessToken, kfID string) error                            // 删除客服账号
-	GetContactWay(accessToken, kfID string) (*ContactWay, error)               // 获取联系方式
+	DeleteKfAccount(accessToken, kfId string) error                            // 删除客服账号
+	GetContactWay(accessToken, kfId string) (*ContactWay, error)               // 获取联系方式
 	UpdateContactWay(accessToken string, contactWay *ContactWayUpdate) error   // 更新联系方式
-	GetServiceState(accessToken, openKfID, externalUserID string) (int, error) // 获取会话状态
-	TransServiceState(accessToken string, req *TransServiceStateReq) error     // 转换会话状态
+	GetServiceState(accessToken, openKfId, externalUserID string) (int, error) // 获取会话状态
+	TransServiceState(accessToken string, req *TransServiceStateReq) (string, error) // 转换会话状态，返回msg_code用于发送事件响应消息
 }
 
 type qywxApiImpl struct {
