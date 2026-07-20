@@ -6,30 +6,30 @@ import (
 	"github.com/hdget/sdk/libs/oss"
 )
 
-// 实现 oss 包 Option 函数所需的 setter 方法, 通过类型断言在 Option 函数中调用
+// 实现 oss.InternalConfigurer 接口的方法
 // nolint:unused
-func (impl *aliyunOssImpl) setContentTypes(contentTypes []string) {
+func (impl *aliyunOssImpl) SetContentTypes(contentTypes []string) {
 	if len(contentTypes) > 0 {
 		impl.allowContentTypes = contentTypes
 	}
 }
 
 // nolint:unused
-func (impl *aliyunOssImpl) setMaxFileSize(size int64) {
+func (impl *aliyunOssImpl) SetMaxFileSize(size int64) {
 	if size > 0 {
 		impl.maxFileSize = size
 	}
 }
 
 // nolint:unused
-func (impl *aliyunOssImpl) setSignExpiresIn(duration time.Duration) {
+func (impl *aliyunOssImpl) SetSignExpiresIn(duration time.Duration) {
 	if duration > 0 {
 		impl.signExpiresIn = duration
 	}
 }
 
 // nolint:unused
-func (impl *aliyunOssImpl) setObjectACL(acl oss.ObjectACL) {
+func (impl *aliyunOssImpl) SetObjectACL(acl oss.ObjectACL) {
 	if acl != "" {
 		impl.objectACL = acl
 	}
