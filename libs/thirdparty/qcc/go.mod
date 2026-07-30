@@ -1,6 +1,6 @@
 module github.com/hdget/sdk/libs/thirdparty/qcc
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/go-resty/resty/v2 v2.16.5
@@ -9,6 +9,6 @@ require (
 )
 
 require (
-	golang.org/x/net v0.48.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
