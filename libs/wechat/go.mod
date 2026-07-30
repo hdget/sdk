@@ -1,6 +1,6 @@
 module github.com/hdget/sdk/libs/wechat
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/elliotchance/pie/v2 v2.9.1
@@ -21,7 +21,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.1 // indirect
 	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93 // indirect
-	golang.org/x/net v0.48.0 // indirect
-	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
